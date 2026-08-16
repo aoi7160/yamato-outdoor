@@ -1,0 +1,155 @@
+:root {
+  --color-bg: #14161a;
+  --color-bg-elevated: #1c1f24;
+  --color-text: #e8e6df;
+  --color-text-muted: #9a9c9f;
+  --color-accent: #c9502e;
+  --color-border: #2c2f34;
+  --font-sans: 'Hiragino Sans', 'Noto Sans JP', system-ui, sans-serif;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+html,
+body {
+  margin: 0;
+  padding: 0;
+}
+
+body {
+  background: var(--color-bg);
+  color: var(--color-text);
+  font-family: var(--font-sans);
+  line-height: 1.8;
+  -webkit-font-smoothing: antialiased;
+}
+
+a {
+  color: inherit;
+}
+
+img {
+  max-width: 100%;
+  display: block;
+}
+
+.container {
+  max-width: 960px;
+  margin: 0 auto;
+  padding: 0 1.5rem;
+}
+
+.site-header {
+  border-bottom: 1px solid var(--color-border);
+  padding: 1.5rem 0;
+}
+
+.site-header .container {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+}
+
+.site-title {
+  font-size: 1.4rem;
+  font-weight: 700;
+  letter-spacing: 0.05em;
+  text-decoration: none;
+}
+
+.site-tagline {
+  font-size: 0.8rem;
+  color: var(--color-text-muted);
+  letter-spacing: 0.1em;
+}
+
+.site-footer {
+  border-top: 1px solid var(--color-border);
+  margin-top: 4rem;
+  padding: 2rem 0;
+  color: var(--color-text-muted);
+  font-size: 0.85rem;
+}
+
+.hero {
+  padding: 5rem 0 3rem;
+  border-bottom: 1px solid var(--color-border);
+}
+
+.hero h1 {
+  font-size: 2.2rem;
+  letter-spacing: 0.06em;
+  margin: 0 0 0.75rem;
+}
+
+.hero p {
+  color: var(--color-text-muted);
+  font-size: 1rem;
+}
+
+.article-list {
+  list-style: none;
+  margin: 0;
+  padding: 3rem 0;
+  display: grid;
+  gap: 1.5rem;
+}
+
+.article-card {
+  display: block;
+  text-decoration: none;
+  border: 1px solid var(--color-border);
+  border-radius: 4px;
+  padding: 1.5rem;
+  background: var(--color-bg-elevated);
+  transition: border-color 0.15s ease;
+}
+
+.article-card:hover {
+  border-color: var(--color-accent);
+}
+
+.article-card .category {
+  color: var(--color-accent);
+  font-size: 0.75rem;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.article-card h2 {
+  font-size: 1.15rem;
+  margin: 0.5rem 0;
+}
+
+.article-card .description {
+  color: var(--color-text-muted);
+  font-size: 0.9rem;
+  margin: 0;
+}
+
+.article-body {
+  padding: 3rem 0;
+}
+
+.article-body h1 {
+  font-size: 1.9rem;
+  line-height: 1.5;
+}
+
+.article-body .meta {
+  color: var(--color-text-muted);
+  font-size: 0.85rem;
+  margin-bottom: 2rem;
+}
+
+.article-body .content {
+  font-size: 1rem;
+}
+
+.article-body .content h2 {
+  border-left: 4px solid var(--color-accent);
+  padding-left: 0.75rem;
+  margin-top: 2.5rem;
+}

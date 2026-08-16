@@ -1,0 +1,18 @@
+# build output
+dist/
+.astro/
+
+# dependencies
+node_modules/
+
+# environment variables
+.env
+.env.*
+!.env.example
+
+# editor / OS
+.DS_Store
+*.log
+
+# wrangler
+.wrangler/
