@@ -1,0 +1,38 @@
+---
+// microCMSの画面プレビュー専用ページ。
+// 下書きコンテンツを都度取得して表示するため、このページのみリクエスト時にレンダリングする。
+export const prerender = false;
+
+import BaseLayout from '../../layouts/BaseLayout.astro';
+import { getArticleDraft } from '../../lib/microcms';
+
+const { contentId } = Astro.params;
+const draftKey = Astro.url.searchParams.get('draftKey');
+
+if (!contentId || !draftKey) {
+  return new Response('contentId または draftKey が指定されていません。', { status: 400 });
+}
+
+const article = await getArticleDraft(contentId, draftKey);
+
+if (!article) {
+  return new Response('下書きコンテンツが見つかりませんでした。', { status: 404 });
+}
+
+const publishedDate = article.publishedAt
+  ? new Date(article.publishedAt).toLocaleDateString('ja-JP')
+  : '未公開';
+---
+
+<BaseLayout title={`[プレビュー] ${article.title} | YAMATO OUTDOOR`}>
+  <div class="container" style="background:#3a2a10; color:#f0c987; padding:0.75rem 1.5rem; margin-top:1.5rem; border-radius:4px; font-size:0.85rem;">
+    これはプレビュー表示です。まだ公開されていない下書きの内容です。
+  </div>
+  <article class="container article-body">
+    {article.category && <span class="category">{article.category.name}</span>}
+    <h1>{article.title}</h1>
+    <p class="meta">公開日: {publishedDate}</p>
+    {article.thumbnail && <img src={article.thumbnail.url} alt={article.title} />}
+    <div class="content" set:html={article.content} />
+  </article>
+</BaseLayout>

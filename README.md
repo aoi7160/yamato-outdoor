@@ -8,10 +8,14 @@
 
 ## 技術構成の方針
 
-microCMSからビルド時に記事データを取得して静的HTMLを生成する構成(SSG)にしています。
-サーバーサイド実行(Cloudflare Workers)を使わないため、Cloudflare Pagesの無料枠だけで
-運用できます。記事を追加・更新したらmicroCMS側で公開し、Cloudflare Pages側で
-再ビルドを走らせれば反映されます(GitHub連携時は後述の通り自動化可能)。
+基本は、microCMSからビルド時に記事データを取得して静的HTMLを生成する構成(SSG)です。
+記事を追加・更新したらmicroCMS側で公開し、Cloudflare Pages側で再ビルドを走らせれば
+反映されます(GitHub連携時は後述の通り自動化可能)。
+
+例外として、下書きを確認する「画面プレビュー」ページ(`/preview/[contentId]`)だけは
+リクエストの都度サーバー側で描画する構成にしています(Cloudflare Pages Functions)。
+これはCloudflare Pagesの無料枠(1日10万リクエストまで)に含まれる機能で、EmDashで
+問題になった「Dynamic Workers」(Workers Paidプラン必須の機能)とは別物です。
 
 ## セットアップ手順
 
@@ -44,7 +48,7 @@ npm run dev
 npm run build
 ```
 
-`dist/` に静的ファイルが出力されます。
+`dist/client/` に静的ファイル、`dist/server/` にプレビュー用のサーバー関数が出力されます。
 
 ## Cloudflare Pagesへのデプロイ(GitHub連携・自動デプロイ)
 
@@ -57,7 +61,7 @@ pushするたびに自動でビルド・公開されます。
 4. ビルド設定:
    - フレームワークプリセット: `Astro`
    - ビルドコマンド: `npm run build`
-   - ビルド出力ディレクトリ: `dist`
+   - ビルド出力ディレクトリ: `dist/client`(`dist` ではない点に注意)
 5. 「環境変数」に以下を追加(本番・プレビュー両方の環境で):
    - `MICROCMS_SERVICE_DOMAIN`
    - `MICROCMS_API_KEY`
@@ -65,6 +69,19 @@ pushするたびに自動でビルド・公開されます。
 
 以降、`main`ブランチにpushすると自動的に再ビルド・公開されます。
 プルリクエストを作成すると、プレビュー用のURLも自動生成されます。
+
+## microCMSの画面プレビュー設定
+
+下書き状態の記事を公開前に確認できる機能です。microCMS管理画面で以下を設定してください。
+
+1. `articles` API を開く >「API設定」>「画面プレビュー」
+2. 「遷移先URL」に以下を設定:
+   - ローカル確認用: `http://localhost:4321/preview/{CONTENT_ID}?draftKey={DRAFT_KEY}`
+   - 本番確認用(Cloudflare Pagesデプロイ後): `https://yamato-outdoor.com/preview/{CONTENT_ID}?draftKey={DRAFT_KEY}`
+3. 「変更する」で保存
+
+設定後、記事の詳細画面右上に出る「画面プレビュー」ボタンから、公開前の下書き内容を
+確認できます。`{CONTENT_ID}` と `{DRAFT_KEY}` はmicroCMSが自動的に値を埋め込みます。
 
 ## 独自ドメインの紐付け
 

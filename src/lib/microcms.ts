@@ -54,3 +54,20 @@ export const getAllArticleSlugs = async (): Promise<string[]> => {
   });
   return res.contents.map((a) => a.slug);
 };
+
+// 画面プレビュー用: 下書き状態のコンテンツをcontentId + draftKeyで取得する。
+export const getArticleDraft = async (
+  contentId: string,
+  draftKey: string,
+): Promise<Article | null> => {
+  if (!client) return null;
+  try {
+    return await client.getListDetail<Article>({
+      endpoint: 'articles',
+      contentId,
+      queries: { draftKey },
+    });
+  } catch {
+    return null;
+  }
+};
