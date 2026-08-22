@@ -30,7 +30,7 @@ export const categories: CategoryDef[] = [
     name: '釣り',
     description:
       '釣りカテゴリ。今後1年でメンバーが実際に行い、検証した上でコンテンツ化していく予定の領域。',
-    tagline: '待つことも、釣りのうち。',
+    tagline: '何も起きない時間ほど、価値がある。',
     status: 'upcoming',
     imageAlt: '水辺に置かれた釣り椅子と竿',
   },
