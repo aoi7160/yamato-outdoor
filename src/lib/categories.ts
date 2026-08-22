@@ -21,7 +21,7 @@ export const categories: CategoryDef[] = [
     name: '登山',
     description:
       '登山カテゴリ。装備検証・レビュー・ルート情報など、実体験ベースでファクトチェックした一次情報を発信。',
-    tagline: '軽さより、確かさを選ぶ。',
+    tagline: '壊れて、初めてわかる。',
     status: 'active',
     imageAlt: '霧に包まれた稜線を歩く登山者たち',
   },

@@ -182,7 +182,7 @@ h3 {
 }
 
 .site-header.is-scrolled {
-  background: rgba(246, 243, 236, 0.92);
+  background: rgba(236, 236, 234, 0.92);
   backdrop-filter: blur(8px);
   border-bottom-color: var(--color-border);
 }
