@@ -12,7 +12,7 @@ export type CategoryDef = {
 
 export const categories: CategoryDef[] = [
   {
-    slug: 'tozan',
+    slug: 'mountain-climbing',
     name: '登山',
     description: '装備検証・レビュー・ルート情報。実体験ベースでファクトチェックした一次情報。',
     status: 'active',
