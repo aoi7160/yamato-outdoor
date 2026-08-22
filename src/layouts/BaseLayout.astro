@@ -7,6 +7,10 @@ interface Props {
 }
 
 const { title, description = '山と生きる。山と挑む。実体験ベースのアウトドアメディア。' } = Astro.props;
+
+// Umami Cloudの無料Hobbyプランで計測する。UMAMI_WEBSITE_ID未設定時はスクリプトごと省略する
+// (アカウント作成前でもビルド・表示が壊れないようにするため)。
+const umamiWebsiteId = import.meta.env.UMAMI_WEBSITE_ID;
 ---
 
 <!doctype html>
@@ -17,6 +21,9 @@ const { title, description = '山と生きる。山と挑む。実体験ベー�
     <meta name="description" content={description} />
     <title>{title}</title>
     <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+    {umamiWebsiteId && (
+      <script defer src="https://cloud.umami.is/script.js" data-website-id={umamiWebsiteId}></script>
+    )}
   </head>
   <body>
     <header class="site-header">

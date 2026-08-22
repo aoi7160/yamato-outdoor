@@ -65,6 +65,7 @@ pushするたびに自動でビルド・公開されます。
 5. 「環境変数」に以下を追加(本番・プレビュー両方の環境で):
    - `MICROCMS_SERVICE_DOMAIN`
    - `MICROCMS_API_KEY`
+   - `UMAMI_WEBSITE_ID`(任意。Umami連携の詳細は `docs/integrations/umami.md`)
 6. 「保存してデプロイ」
 
 以降、`main`ブランチにpushすると自動的に再ビルド・公開されます。
@@ -98,5 +99,10 @@ src/
   lib/microcms.ts  microCMS APIクライアント・型定義
   styles/        グローバルCSS
 docs/
-  microcms-schema.md  microCMS側のAPI設計ドキュメント
+  microcms-schema.md   microCMS側のAPI設計ドキュメント
+  architecture.md      全体構成と、将来何が必要になりそうかのメモ
+  content-workflow.md  記事の企画〜公開フロー(平日/週末の役割分担)
+  decisions/           採用・不採用の判断記録(ADR)
+  integrations/        採用したサービスごとの連携仕様
+.claude/agents/  記事制作・分析を担うサブエージェント定義
 ```
