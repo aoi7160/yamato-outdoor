@@ -5,13 +5,41 @@ import { categories } from '../lib/categories';
 interface Props {
   title: string;
   description?: string;
+  jsonLd?: Record<string, unknown>[];
 }
 
-const { title, description = '山と生きる。山と挑む。実体験ベースのアウトドアメディア。' } = Astro.props;
+const {
+  title,
+  description = '山と生きる。山と挑む。実体験ベースのアウトドアメディア。',
+  jsonLd = [],
+} = Astro.props;
 
 // Umami Cloudの無料Hobbyプランで計測する。UMAMI_WEBSITE_ID未設定時はスクリプトごと省略する
 // (アカウント作成前でもビルド・表示が壊れないようにするため)。
 const umamiWebsiteId = import.meta.env.UMAMI_WEBSITE_ID;
+
+// サイト全体で常に出す構造化データ(WebSite/Organization)。
+// SNS・Wikipedia等のエンティティが無い現状はsameAsを持たせない(実在しないものを捏造しない)。
+const siteUrl = Astro.site?.toString().replace(/\/$/, '') ?? 'https://yamato-outdoor.com';
+const baseJsonLd = [
+  {
+    '@context': 'https://schema.org',
+    '@type': 'WebSite',
+    name: 'YAMATO OUTDOOR',
+    alternateName: '山と生きる。山と挑む。',
+    url: siteUrl,
+    description: '山と生きる。山と挑む。実体験ベースのアウトドアメディア。',
+    inLanguage: 'ja',
+  },
+  {
+    '@context': 'https://schema.org',
+    '@type': 'Organization',
+    name: 'YAMATO OUTDOOR',
+    url: siteUrl,
+    logo: `${siteUrl}/logo.png`,
+  },
+];
+const allJsonLd = [...baseJsonLd, ...jsonLd];
 
 const marqueeItems = [
   '山と生きる。山と挑む。',
@@ -38,6 +66,7 @@ const marqueeItems = [
     {umamiWebsiteId && (
       <script defer src="https://cloud.umami.is/script.js" data-website-id={umamiWebsiteId}></script>
     )}
+    {allJsonLd.map((schema) => <script type="application/ld+json" set:html={JSON.stringify(schema)} />)}
   </head>
   <body>
     <a href="#main" class="skip-link">本文へスキップ</a>

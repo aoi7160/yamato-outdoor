@@ -7,9 +7,25 @@ const { contents: articles } = await getArticles({ orders: '-publishedAt', limit
 
 // public/media/hero/01.jpg 〜 05.jpg を差し替えると、ヒーローの背景が自動でクロスフェードする。
 const heroSlides = ['01', '02', '03', '04', '05'];
+
+const siteUrl = Astro.site?.toString().replace(/\/$/, '') ?? 'https://yamato-outdoor.com';
+const jsonLd = [
+  {
+    '@context': 'https://schema.org',
+    '@type': 'ItemList',
+    name: 'YAMATO OUTDOORのカテゴリ',
+    itemListElement: categories.map((c, i) => ({
+      '@type': 'ListItem',
+      position: i + 1,
+      name: c.name,
+      description: c.description,
+      url: `${siteUrl}/category/${c.slug}/`,
+    })),
+  },
+];
 ---
 
-<BaseLayout title="YAMATO OUTDOOR | 山と生きる。山と挑む。">
+<BaseLayout title="YAMATO OUTDOOR | 山と生きる。山と挑む。" jsonLd={jsonLd}>
   <section class="hero" id="hero">
     {
       heroSlides.map((slide, i) => (
@@ -55,7 +71,7 @@ const heroSlides = ['01', '02', '03', '04', '05'];
                 {c.name}
                 {c.status === 'upcoming' && <span class="nav-badge">準備中</span>}
               </h3>
-              <p>{c.description}</p>
+              <p>{c.tagline}</p>
               <span class="story-link">詳しく見る →</span>
             </a>
           ))

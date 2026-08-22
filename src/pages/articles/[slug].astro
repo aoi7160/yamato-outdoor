@@ -15,9 +15,51 @@ if (!article) {
 }
 
 const publishedDate = new Date(article.publishedAt).toLocaleDateString('ja-JP');
+
+const siteUrl = Astro.site?.toString().replace(/\/$/, '') ?? 'https://yamato-outdoor.com';
+const pageUrl = `${siteUrl}/articles/${article.slug}/`;
+const jsonLd = [
+  {
+    '@context': 'https://schema.org',
+    '@type': 'BlogPosting',
+    headline: article.title,
+    description: article.description,
+    url: pageUrl,
+    datePublished: article.publishedAt,
+    dateModified: article.revisedAt,
+    ...(article.thumbnail && { image: article.thumbnail.url }),
+    ...(article.category && { articleSection: article.category.name }),
+    ...(article.tags && article.tags.length > 0 && { keywords: article.tags.join(', ') }),
+    inLanguage: 'ja',
+    publisher: {
+      '@type': 'Organization',
+      name: 'YAMATO OUTDOOR',
+      logo: { '@type': 'ImageObject', url: `${siteUrl}/logo.png` },
+    },
+    mainEntityOfPage: { '@type': 'WebPage', '@id': pageUrl },
+  },
+  {
+    '@context': 'https://schema.org',
+    '@type': 'BreadcrumbList',
+    itemListElement: [
+      { '@type': 'ListItem', position: 1, name: 'トップ', item: siteUrl },
+      ...(article.category
+        ? [
+            {
+              '@type': 'ListItem',
+              position: 2,
+              name: article.category.name,
+              item: `${siteUrl}/category/${article.category.slug}/`,
+            },
+          ]
+        : []),
+      { '@type': 'ListItem', position: article.category ? 3 : 2, name: article.title, item: pageUrl },
+    ],
+  },
+];
 ---
 
-<BaseLayout title={`${article.title} | YAMATO OUTDOOR`} description={article.description}>
+<BaseLayout title={`${article.title} | YAMATO OUTDOOR`} description={article.description} jsonLd={jsonLd}>
   <article class="container article-body">
     {
       article.category && (

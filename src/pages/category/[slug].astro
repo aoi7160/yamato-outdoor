@@ -22,17 +22,41 @@ const { contents: articles } =
         limit: 100,
       })
     : { contents: [] };
+
+const siteUrl = Astro.site?.toString().replace(/\/$/, '') ?? 'https://yamato-outdoor.com';
+const pageUrl = `${siteUrl}/category/${category.slug}/`;
+const jsonLd = [
+  {
+    '@context': 'https://schema.org',
+    '@type': 'CollectionPage',
+    name: `${category.name} | YAMATO OUTDOOR`,
+    description: category.description,
+    url: pageUrl,
+    isPartOf: { '@type': 'WebSite', name: 'YAMATO OUTDOOR', url: siteUrl },
+    about: { '@type': 'Thing', name: category.name },
+  },
+  {
+    '@context': 'https://schema.org',
+    '@type': 'BreadcrumbList',
+    itemListElement: [
+      { '@type': 'ListItem', position: 1, name: 'トップ', item: siteUrl },
+      { '@type': 'ListItem', position: 2, name: category.name, item: pageUrl },
+    ],
+  },
+];
 ---
 
 <BaseLayout
   title={`${category.name} | YAMATO OUTDOOR`}
   description={category.description}
+  jsonLd={jsonLd}
 >
   <section class="hero hero-category">
-    <div class="container">
+    <div class="hero-scrim"></div>
+    <div class="container hero-inner">
       <p class="hero-eyebrow">CATEGORY</p>
       <h1>{category.name}</h1>
-      <p class="hero-lead">{category.description}</p>
+      <p class="hero-lead">{category.tagline}</p>
     </div>
   </section>
 
