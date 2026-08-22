@@ -97,33 +97,18 @@ h3 {
 
 .logo {
   display: inline-flex;
-  flex-direction: column;
-  line-height: 1;
+  align-items: center;
   text-decoration: none;
   flex-shrink: 0;
 }
 
-.logo-line {
-  font-size: 1.3rem;
-  font-weight: 800;
-  letter-spacing: 0.08em;
+.logo img {
+  height: 2.1rem;
+  width: auto;
 }
 
-.logo-line-sub {
-  font-size: 0.62rem;
-  font-weight: 600;
-  letter-spacing: 0.42em;
-  color: var(--color-text-muted);
-  margin-top: 0.3rem;
-}
-
-.logo-small .logo-line {
-  font-size: 1.05rem;
-}
-
-.logo-small .logo-line-sub {
-  font-size: 0.5rem;
-  margin-top: 0.25rem;
+.logo-small img {
+  height: 1.65rem;
 }
 
 .site-nav ul {
