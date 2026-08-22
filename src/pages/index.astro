@@ -4,36 +4,64 @@ import { getArticles } from '../lib/microcms';
 import { categories } from '../lib/categories';
 
 const { contents: articles } = await getArticles({ orders: '-publishedAt', limit: 20 });
+
+// public/media/hero/01.jpg 〜 05.jpg を差し替えると、ヒーローの背景が自動でクロスフェードする。
+const heroSlides = ['01', '02', '03', '04', '05'];
 ---
 
 <BaseLayout title="YAMATO OUTDOOR | 山と生きる。山と挑む。">
-  <section class="hero">
-    <div class="container">
+  <section class="hero" id="hero">
+    {
+      heroSlides.map((slide, i) => (
+        <div class:list={['hero-bg-layer', { 'is-active': i === 0 }]} data-hero-layer style={`background-image:url(/media/hero/${slide}.jpg)`} />
+      ))
+    }
+    <div class="hero-scrim"></div>
+    <div class="container hero-inner">
       <p class="hero-eyebrow">YAMATO OUTDOOR</p>
       <h1>山と生きる。山と挑む。</h1>
+      <p class="hero-lead">実体験ベースの装備検証・レビューを届けるアウトドアメディア。</p>
     </div>
+    <div class="hero-scroll-cue">SCROLL</div>
   </section>
 
-  <section class="container category-section">
+  <section class="container story-section">
     <h2 class="section-heading">カテゴリから探す</h2>
-    <ul class="category-grid">
-      {
-        categories.map((c) => (
-          <li>
+    <div class="story" id="story">
+      <div class="story-visual">
+        <div class="story-visual-inner">
+          {
+            categories.map((c, i) => (
+              <div
+                class:list={['story-image', { 'is-active': i === 0 }]}
+                data-story-image={i}
+                style={`background-image:url(/media/category/${c.slug}.jpg)`}
+              />
+            ))
+          }
+          <span class="story-index-badge" id="story-index-badge">01 / {String(categories.length).padStart(2, '0')}</span>
+        </div>
+      </div>
+      <div class="story-panels">
+        {
+          categories.map((c, i) => (
             <a
-              class:list={['category-card', { 'is-upcoming': c.status === 'upcoming' }]}
               href={`/category/${c.slug}/`}
+              class:list={['story-panel', { 'is-active': i === 0 }]}
+              data-story-panel={i}
             >
-              <span class="category-card-name">
+              <span class="story-num">{String(i + 1).padStart(2, '0')}</span>
+              <h3>
                 {c.name}
                 {c.status === 'upcoming' && <span class="nav-badge">準備中</span>}
-              </span>
-              <span class="category-card-description">{c.description}</span>
+              </h3>
+              <p>{c.description}</p>
+              <span class="story-link">詳しく見る →</span>
             </a>
-          </li>
-        ))
-      }
-    </ul>
+          ))
+        }
+      </div>
+    </div>
   </section>
 
   <section class="container article-section">
@@ -59,3 +87,44 @@ const { contents: articles } = await getArticles({ orders: '-publishedAt', limit
     }
   </section>
 </BaseLayout>
+
+<script>
+  const heroLayers = document.querySelectorAll<HTMLElement>('[data-hero-layer]');
+  if (heroLayers.length > 1) {
+    let heroIndex = 0;
+    setInterval(() => {
+      heroLayers[heroIndex].classList.remove('is-active');
+      heroIndex = (heroIndex + 1) % heroLayers.length;
+      heroLayers[heroIndex].classList.add('is-active');
+    }, 4500);
+  }
+
+  const storyPanels = document.querySelectorAll<HTMLElement>('[data-story-panel]');
+  const storyImages = document.querySelectorAll<HTMLElement>('[data-story-image]');
+  const storyBadge = document.getElementById('story-index-badge');
+  const total = storyPanels.length;
+
+  if (storyPanels.length && storyImages.length) {
+    const activate = (idx: number) => {
+      storyImages.forEach((img, i) => img.classList.toggle('is-active', i === idx));
+      storyPanels.forEach((p, i) => p.classList.toggle('is-active', i === idx));
+      if (storyBadge) {
+        storyBadge.textContent = `${String(idx + 1).padStart(2, '0')} / ${String(total).padStart(2, '0')}`;
+      }
+    };
+
+    const io = new IntersectionObserver(
+      (entries) => {
+        entries.forEach((entry) => {
+          if (entry.isIntersecting) {
+            const idx = Number((entry.target as HTMLElement).dataset.storyPanel);
+            activate(idx);
+          }
+        });
+      },
+      { rootMargin: '-45% 0px -45% 0px', threshold: 0 },
+    );
+
+    storyPanels.forEach((p) => io.observe(p));
+  }
+</script>

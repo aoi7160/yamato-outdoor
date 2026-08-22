@@ -12,6 +12,13 @@ const { title, description = '山と生きる。山と挑む。実体験ベー�
 // Umami Cloudの無料Hobbyプランで計測する。UMAMI_WEBSITE_ID未設定時はスクリプトごと省略する
 // (アカウント作成前でもビルド・表示が壊れないようにするため)。
 const umamiWebsiteId = import.meta.env.UMAMI_WEBSITE_ID;
+
+const marqueeItems = [
+  '山と生きる。山と挑む。',
+  'YAMATO OUTDOOR',
+  '実体験ベースのアウトドアメディア',
+  '登山 / 釣り / キャンプ',
+];
 ---
 
 <!doctype html>
@@ -22,16 +29,34 @@ const umamiWebsiteId = import.meta.env.UMAMI_WEBSITE_ID;
     <meta name="description" content={description} />
     <title>{title}</title>
     <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;700&family=JetBrains+Mono:wght@400;500&display=swap"
+      rel="stylesheet"
+    />
     {umamiWebsiteId && (
       <script defer src="https://cloud.umami.is/script.js" data-website-id={umamiWebsiteId}></script>
     )}
   </head>
   <body>
     <a href="#main" class="skip-link">本文へスキップ</a>
-    <header class="site-header">
+
+    <div class="marquee" aria-hidden="true">
+      <div class="marquee-track">
+        {
+          [...marqueeItems, ...marqueeItems].map((item, i) => (
+            <span class={i % 4 === 1 ? 'is-accent' : ''}>{item}</span>
+          ))
+        }
+      </div>
+    </div>
+
+    <header class="site-header" id="site-header">
       <div class="container site-header-inner">
         <a href="/" class="logo" aria-label="YAMATO OUTDOOR トップページ">
-          <img src="/logo.png" alt="YAMATO OUTDOOR" width="220" height="85" />
+          <img class="logo-light" src="/logo.png" alt="YAMATO OUTDOOR" width="220" height="85" />
+          <img class="logo-dark" src="/logo-dark.png" alt="YAMATO OUTDOOR" width="220" height="85" />
         </a>
         <nav class="site-nav" aria-label="カテゴリ">
           <ul>
@@ -49,30 +74,65 @@ const umamiWebsiteId = import.meta.env.UMAMI_WEBSITE_ID;
         </nav>
       </div>
     </header>
+
     <main id="main">
       <slot />
     </main>
+
+    <section class="cta-band">
+      <div class="cta-scrim"></div>
+      <div class="container cta-inner">
+        <p class="hero-eyebrow">YAMATO OUTDOOR</p>
+        <h2>次の山行の準備は、できているか。</h2>
+        <p>実体験ベースで検証した装備レビューを、これから少しずつ積み上げていく。</p>
+        <a class="cta-button" href="/category/tozan/">登山カテゴリを見る →</a>
+      </div>
+    </section>
+
     <footer class="site-footer">
-      <div class="container site-footer-inner">
-        <div>
-          <a href="/" class="logo logo-small" aria-label="YAMATO OUTDOOR トップページ">
-            <img src="/logo.png" alt="YAMATO OUTDOOR" width="220" height="85" />
-          </a>
-          <p class="footer-mission">山と生きる。山と挑む。</p>
+      <div class="container">
+        <div class="footer-top">
+          <div class="footer-brand">
+            <a href="/" class="logo logo-small" aria-label="YAMATO OUTDOOR トップページ">
+              <img src="/logo.png" alt="YAMATO OUTDOOR" width="220" height="85" />
+            </a>
+            <p class="footer-mission">山と生きる。山と挑む。実体験ベースのアウトドアメディア。</p>
+          </div>
+          <div class="footer-nav-groups">
+            <div class="footer-nav-group">
+              <h4>Category</h4>
+              <ul>
+                {
+                  categories.map((c) => (
+                    <li>
+                      <a href={`/category/${c.slug}/`}>{c.name}</a>
+                    </li>
+                  ))
+                }
+              </ul>
+            </div>
+            <div class="footer-nav-group">
+              <h4>Site</h4>
+              <ul>
+                <li><a href="/">トップ</a></li>
+              </ul>
+            </div>
+          </div>
         </div>
-        <nav class="footer-nav" aria-label="カテゴリ">
-          <ul>
-            {
-              categories.map((c) => (
-                <li>
-                  <a href={`/category/${c.slug}/`}>{c.name}</a>
-                </li>
-              ))
-            }
-          </ul>
-        </nav>
-        <p class="copyright">&copy; {new Date().getFullYear()} YAMATO OUTDOOR</p>
+        <img class="footer-skyline" src="/mountain-line.svg" alt="" aria-hidden="true" width="1200" height="120" />
+        <div class="footer-bottom">
+          <span>&copy; {new Date().getFullYear()} YAMATO OUTDOOR</span>
+        </div>
       </div>
     </footer>
+
+    <script>
+      const header = document.getElementById('site-header');
+      if (header) {
+        const onScroll = () => header.classList.toggle('is-scrolled', window.scrollY > 40);
+        onScroll();
+        window.addEventListener('scroll', onScroll, { passive: true });
+      }
+    </script>
   </body>
 </html>
