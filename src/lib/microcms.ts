@@ -27,6 +27,25 @@ export type Article = {
   content: string;
   category?: Category;
   tags?: string[];
+  // 監修者(任意)。監修者を立てない記事もあるので全て省略可にする。
+  supervisorName?: string;
+  supervisorTitle?: string;
+  supervisorBio?: string;
+  supervisorImage?: MicroCMSImage;
+};
+
+// microCMSへ新規記事(下書き)を作成する時に渡す入力。
+// category は id 参照(スラッグではなく microCMS のコンテンツID)。
+export type NewArticleInput = {
+  title: string;
+  slug: string;
+  description: string;
+  content: string;
+  categoryId: string;
+  tags?: string[];
+  supervisorName?: string;
+  supervisorTitle?: string;
+  supervisorBio?: string;
 };
 
 // microCMS未接続・一時的な障害時でもビルド・表示が落ちないよう、取得失敗時は空の結果にフォールバックする。
@@ -66,6 +85,43 @@ export const getAllArticleSlugs = async (): Promise<string[]> => {
   } catch {
     return [];
   }
+};
+
+// カテゴリのslugから、記事作成時に必要なmicroCMS内部IDを引く。
+export const getCategoryIdBySlug = async (slug: string): Promise<string | null> => {
+  if (!client) return null;
+  try {
+    const res = await client.getList<Category>({
+      endpoint: 'categories',
+      queries: { filters: `slug[equals]${slug}`, limit: 1 },
+    });
+    return res.contents[0]?.id ?? null;
+  } catch {
+    return null;
+  }
+};
+
+// 平日パイプライン(seo-researcher→outdoor-researcher→writer→editor)の最終ステップ。
+// 「下書き」状態でmicroCMSに保存する(公開はしない。isDraft:trueがそれを保証する)。
+// 書き込みには WRITE 権限を持つ APIキーが必要(microCMS管理画面のAPIキー設定で書き込みを許可すること)。
+export const createArticleDraft = async (input: NewArticleInput): Promise<string> => {
+  if (!client) throw new Error('microCMSクライアントが未初期化です(.envを確認してください)');
+  const result = await client.create({
+    endpoint: 'articles',
+    content: {
+      title: input.title,
+      slug: input.slug,
+      description: input.description,
+      content: input.content,
+      category: input.categoryId,
+      tags: input.tags,
+      supervisorName: input.supervisorName,
+      supervisorTitle: input.supervisorTitle,
+      supervisorBio: input.supervisorBio,
+    },
+    isDraft: true,
+  });
+  return result.id;
 };
 
 // 画面プレビュー用: 下書き状態のコンテンツをcontentId + draftKeyで取得する。

@@ -30,6 +30,13 @@ const jsonLd = [
     ...(article.thumbnail && { image: article.thumbnail.url }),
     ...(article.category && { articleSection: article.category.name }),
     ...(article.tags && article.tags.length > 0 && { keywords: article.tags.join(', ') }),
+    ...(article.supervisorName && {
+      reviewedBy: {
+        '@type': 'Person',
+        name: article.supervisorName,
+        ...(article.supervisorTitle && { jobTitle: article.supervisorTitle }),
+      },
+    }),
     inLanguage: 'ja',
     publisher: {
       '@type': 'Organization',
@@ -72,5 +79,26 @@ const jsonLd = [
     <p class="meta">公開日: {publishedDate}</p>
     {article.thumbnail && <img src={article.thumbnail.url} alt={article.title} />}
     <div class="content" set:html={article.content} />
+    {
+      article.supervisorName && (
+        <aside class="supervisor-box">
+          {article.supervisorImage && (
+            <img
+              class="supervisor-box-photo"
+              src={article.supervisorImage.url}
+              alt={article.supervisorName}
+              width="64"
+              height="64"
+            />
+          )}
+          <div>
+            <span class="supervisor-box-label">監修</span>
+            <span class="supervisor-box-name">{article.supervisorName}</span>
+            {article.supervisorTitle && <span class="supervisor-box-title">{article.supervisorTitle}</span>}
+            {article.supervisorBio && <p class="supervisor-box-bio">{article.supervisorBio}</p>}
+          </div>
+        </aside>
+      )
+    }
   </article>
 </BaseLayout>
