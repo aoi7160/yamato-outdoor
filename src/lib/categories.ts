@@ -19,7 +19,7 @@ export const categories: CategoryDef[] = [
     name: '登山',
     description:
       '登山カテゴリ。装備検証・レビュー・ルート情報など、実体験ベースでファクトチェックした一次情報を発信。',
-    tagline: '机上の空論ではなく、山で確かめる。',
+    tagline: '軽さより、確かさを選ぶ。',
     status: 'active',
   },
   {
@@ -27,7 +27,7 @@ export const categories: CategoryDef[] = [
     name: '釣り',
     description:
       '釣りカテゴリ。今後1年でメンバーが実際に行い、検証した上でコンテンツ化していく予定の領域。',
-    tagline: 'まだ何も語れない。だから、まず自分たちで行く。',
+    tagline: '待つことも、釣りのうち。',
     status: 'upcoming',
   },
   {
@@ -35,7 +35,7 @@ export const categories: CategoryDef[] = [
     name: 'キャンプ',
     description:
       'キャンプカテゴリ。今後1年でメンバーが実際に行い、検証した上でコンテンツ化していく予定の領域。',
-    tagline: '経験していないことは書かない。それだけの話。',
+    tagline: '火ひとつで、夜は変わる。',
     status: 'upcoming',
   },
 ];

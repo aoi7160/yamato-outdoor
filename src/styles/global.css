@@ -658,11 +658,8 @@ h3 {
   text-wrap: balance;
 }
 
-.cta-inner p {
-  color: var(--color-ink-text-muted);
-  font-size: 1rem;
-  margin: 0 0 2.25rem;
-  text-wrap: pretty;
+.cta-inner .cta-button {
+  margin-top: 2.25rem;
 }
 
 .cta-button {
