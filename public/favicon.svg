@@ -1,4 +1,10 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32">
-  <rect width="32" height="32" fill="#14161a"/>
-  <path d="M4 24 L13 10 L17 17 L20 12 L28 24 Z" fill="#c9502e"/>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 400 400">
+  <rect width="400" height="400" rx="48" fill="#14161a"/>
+  <g transform="translate(30,90) scale(0.8)">
+    <text x="20" y="220" font-family="Arial, Helvetica, sans-serif" font-weight="900" font-size="220" fill="#e8e6df">Y</text>
+  </g>
+  <g transform="translate(210,90) scale(0.8)">
+    <text x="20" y="220" font-family="Arial, Helvetica, sans-serif" font-weight="900" font-size="220" fill="#e8e6df">Y</text>
+    <polygon points="58,80 132,80 100,158" fill="#e8e6df"/>
+  </g>
 </svg>
