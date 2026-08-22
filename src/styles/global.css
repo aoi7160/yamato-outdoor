@@ -1,13 +1,13 @@
 :root {
-  /* Light-dominant paper palette (body content) */
-  --color-bg: #f6f3ec;
+  /* Light-dominant palette (body content) — cool neutral, not warm paper */
+  --color-bg: #ececea;
   --color-bg-elevated: #ffffff;
-  --color-bg-elevated-hover: #efece0;
+  --color-bg-elevated-hover: #f4f5f3;
   --color-text: #14161a;
-  --color-text-muted: #63625a;
-  --color-text-faint: #98968a;
-  --color-border: #e2ddcc;
-  --color-border-strong: #cec8b3;
+  --color-text-muted: #5a5d5a;
+  --color-text-faint: #8c908c;
+  --color-border: #dcdfdc;
+  --color-border-strong: #c4c8c4;
   --color-accent: #4f6b52;
   --color-accent-hover: #3b5140;
 
