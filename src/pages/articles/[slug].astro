@@ -19,7 +19,13 @@ const publishedDate = new Date(article.publishedAt).toLocaleDateString('ja-JP');
 
 <BaseLayout title={`${article.title} | YAMATO OUTDOOR`} description={article.description}>
   <article class="container article-body">
-    {article.category && <span class="category">{article.category.name}</span>}
+    {
+      article.category && (
+        <a class="category" href={`/category/${article.category.slug}/`}>
+          {article.category.name}
+        </a>
+      )
+    }
     <h1>{article.title}</h1>
     <p class="meta">公開日: {publishedDate}</p>
     {article.thumbnail && <img src={article.thumbnail.url} alt={article.title} />}

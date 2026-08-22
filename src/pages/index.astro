@@ -1,6 +1,7 @@
 ---
 import BaseLayout from '../layouts/BaseLayout.astro';
 import { getArticles } from '../lib/microcms';
+import { categories } from '../lib/categories';
 
 const { contents: articles } = await getArticles({ orders: '-publishedAt', limit: 20 });
 ---
@@ -8,15 +9,38 @@ const { contents: articles } = await getArticles({ orders: '-publishedAt', limit
 <BaseLayout title="YAMATO OUTDOOR | 山と生きる。山と挑む。">
   <section class="hero">
     <div class="container">
+      <p class="hero-eyebrow">YAMATO OUTDOOR</p>
       <h1>山と生きる。山と挑む。</h1>
-      <p>準備に、妥協はない。実体験ベースの装備検証・レビューを届けるアウトドアメディア。</p>
     </div>
   </section>
 
-  <section class="container">
+  <section class="container category-section">
+    <h2 class="section-heading">カテゴリから探す</h2>
+    <ul class="category-grid">
+      {
+        categories.map((c) => (
+          <li>
+            <a
+              class:list={['category-card', { 'is-upcoming': c.status === 'upcoming' }]}
+              href={`/category/${c.slug}/`}
+            >
+              <span class="category-card-name">
+                {c.name}
+                {c.status === 'upcoming' && <span class="nav-badge">準備中</span>}
+              </span>
+              <span class="category-card-description">{c.description}</span>
+            </a>
+          </li>
+        ))
+      }
+    </ul>
+  </section>
+
+  <section class="container article-section">
+    <h2 class="section-heading">新着記事</h2>
     {
       articles.length === 0 ? (
-        <p style="color: var(--color-text-muted); padding: 3rem 0;">
+        <p class="empty-state">
           記事を準備中です。microCMSで記事を公開するとここに一覧表示されます。
         </p>
       ) : (
@@ -25,7 +49,7 @@ const { contents: articles } = await getArticles({ orders: '-publishedAt', limit
             <li>
               <a class="article-card" href={`/articles/${article.slug}/`}>
                 {article.category && <span class="category">{article.category.name}</span>}
-                <h2>{article.title}</h2>
+                <h3>{article.title}</h3>
                 <p class="description">{article.description}</p>
               </a>
             </li>

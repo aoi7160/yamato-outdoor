@@ -1,0 +1,63 @@
+---
+import BaseLayout from '../../layouts/BaseLayout.astro';
+import { getArticles } from '../../lib/microcms';
+import { categories, getCategoryBySlug } from '../../lib/categories';
+
+export async function getStaticPaths() {
+  return categories.map((c) => ({ params: { slug: c.slug } }));
+}
+
+const { slug } = Astro.params;
+const category = getCategoryBySlug(slug!);
+
+if (!category) {
+  return Astro.redirect('/404');
+}
+
+const { contents: articles } =
+  category.status === 'active'
+    ? await getArticles({
+        filters: `category.slug[equals]${category.slug}`,
+        orders: '-publishedAt',
+        limit: 100,
+      })
+    : { contents: [] };
+---
+
+<BaseLayout
+  title={`${category.name} | YAMATO OUTDOOR`}
+  description={category.description}
+>
+  <section class="hero hero-category">
+    <div class="container">
+      <p class="hero-eyebrow">CATEGORY</p>
+      <h1>{category.name}</h1>
+      <p class="hero-lead">{category.description}</p>
+    </div>
+  </section>
+
+  <section class="container article-section">
+    {
+      category.status === 'upcoming' ? (
+        <p class="empty-state">
+          {category.name}
+          はまだ着手していない領域です。実体験を積んでから、実体験ベースの記事として公開します。
+        </p>
+      ) : articles.length === 0 ? (
+        <p class="empty-state">記事を準備中です。microCMSで記事を公開するとここに一覧表示されます。</p>
+      ) : (
+        <ul class="article-list">
+          {articles.map((article) => (
+            <li>
+              <a class="article-card" href={`/articles/${article.slug}/`}>
+                {article.category && <span class="category">{article.category.name}</span>}
+                <h3>{article.title}</h3>
+                <p class="description">{article.description}</p>
+              </a>
+            </li>
+          ))}
+        </ul>
+      )
+    }
+  </section>
+</BaseLayout>

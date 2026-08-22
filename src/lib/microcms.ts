@@ -29,30 +29,43 @@ export type Article = {
   tags?: string[];
 };
 
+// microCMS未接続・一時的な障害時でもビルド・表示が落ちないよう、取得失敗時は空の結果にフォールバックする。
 export const getArticles = async (
   queries?: Record<string, unknown>,
 ): Promise<MicroCMSListResponse<Article>> => {
   if (!client) return { contents: [], totalCount: 0, offset: 0, limit: 0 };
-  return client.getList<Article>({ endpoint: 'articles', queries });
+  try {
+    return await client.getList<Article>({ endpoint: 'articles', queries });
+  } catch {
+    return { contents: [], totalCount: 0, offset: 0, limit: 0 };
+  }
 };
 
 export const getArticleBySlug = async (slug: string): Promise<Article | null> => {
   if (!client) return null;
-  const res = await client.getList<Article>({
-    endpoint: 'articles',
-    queries: { filters: `slug[equals]${slug}`, limit: 1 },
-  });
-  return res.contents[0] ?? null;
+  try {
+    const res = await client.getList<Article>({
+      endpoint: 'articles',
+      queries: { filters: `slug[equals]${slug}`, limit: 1 },
+    });
+    return res.contents[0] ?? null;
+  } catch {
+    return null;
+  }
 };
 
 export const getAllArticleSlugs = async (): Promise<string[]> => {
   if (!client) return [];
-  const res = await client.getList<Article>({
-    endpoint: 'articles',
-    fields: ['slug'],
-    limit: 100,
-  });
-  return res.contents.map((a) => a.slug);
+  try {
+    const res = await client.getList<Article>({
+      endpoint: 'articles',
+      fields: ['slug'],
+      limit: 100,
+    });
+    return res.contents.map((a) => a.slug);
+  } catch {
+    return [];
+  }
 };
 
 // 画面プレビュー用: 下書き状態のコンテンツをcontentId + draftKeyで取得する。
