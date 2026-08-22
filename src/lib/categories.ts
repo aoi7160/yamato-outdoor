@@ -11,6 +11,8 @@ export type CategoryDef = {
   /** 画面に出す短いコピー。ブランドの声で書く。 */
   tagline: string;
   status: CategoryStatus;
+  /** public/media/category/<slug>.webp の代替テキスト。 */
+  imageAlt: string;
 };
 
 export const categories: CategoryDef[] = [
@@ -21,6 +23,7 @@ export const categories: CategoryDef[] = [
       '登山カテゴリ。装備検証・レビュー・ルート情報など、実体験ベースでファクトチェックした一次情報を発信。',
     tagline: '軽さより、確かさを選ぶ。',
     status: 'active',
+    imageAlt: '霧に包まれた稜線を歩く登山者たち',
   },
   {
     slug: 'fishing',
@@ -29,6 +32,7 @@ export const categories: CategoryDef[] = [
       '釣りカテゴリ。今後1年でメンバーが実際に行い、検証した上でコンテンツ化していく予定の領域。',
     tagline: '待つことも、釣りのうち。',
     status: 'upcoming',
+    imageAlt: '水辺に置かれた釣り椅子と竿',
   },
   {
     slug: 'camp',
@@ -37,6 +41,7 @@ export const categories: CategoryDef[] = [
       'キャンプカテゴリ。今後1年でメンバーが実際に行い、検証した上でコンテンツ化していく予定の領域。',
     tagline: '火ひとつで、夜は変わる。',
     status: 'upcoming',
+    imageAlt: '満天の星空の下に張られたテント',
   },
 ];
 

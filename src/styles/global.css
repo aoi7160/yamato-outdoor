@@ -283,6 +283,8 @@ h3 {
   background-size: cover;
   background-position: center;
   opacity: 0;
+  /* story-imageと同じグレーディングを適用し、写真の出どころが違っても統一感を出す */
+  filter: grayscale(12%) sepia(6%) saturate(88%) contrast(1.06) brightness(0.97);
   transition: opacity 1.4s var(--ease-soft);
 }
 
@@ -422,9 +424,13 @@ h3 {
 .story-image {
   position: absolute;
   inset: 0;
-  background-size: cover;
-  background-position: center;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  object-position: center;
   opacity: 0;
+  /* 出どころの違う写真の彩度・コントラストを揃えるための共通グレーディング */
+  filter: grayscale(12%) sepia(6%) saturate(88%) contrast(1.06) brightness(0.97);
   transition: opacity 0.9s var(--ease-soft);
 }
 

@@ -8,6 +8,13 @@ const { contents: articles } = await getArticles({ orders: '-publishedAt', limit
 // public/media/hero/01.jpg 〜 05.jpg を差し替えると、ヒーローの背景が自動でクロスフェードする。
 const heroSlides = ['01', '02', '03', '04', '05'];
 
+// public/media/category/<slug>.webp の縦横比(表示サイズはCSSのobject-fit:coverで揃える)。
+const categoryImageSize: Record<string, { w: number; h: number }> = {
+  'mountain-climbing': { w: 1500, h: 2000 },
+  fishing: { w: 1125, h: 2000 },
+  camp: { w: 1459, h: 2000 },
+};
+
 const siteUrl = Astro.site?.toString().replace(/\/$/, '') ?? 'https://yamato-outdoor.com';
 const jsonLd = [
   {
@@ -48,10 +55,14 @@ const jsonLd = [
         <div class="story-visual-inner">
           {
             categories.map((c, i) => (
-              <div
+              <img
                 class:list={['story-image', { 'is-active': i === 0 }]}
                 data-story-image={i}
-                style={`background-image:url(/media/category/${c.slug}.jpg)`}
+                src={`/media/category/${c.slug}.webp`}
+                alt={c.imageAlt}
+                width={categoryImageSize[c.slug].w}
+                height={categoryImageSize[c.slug].h}
+                loading={i === 0 ? 'eager' : 'lazy'}
               />
             ))
           }
