@@ -66,39 +66,131 @@ const jsonLd = [
 ];
 ---
 
-<BaseLayout title={`${article.title} | YAMATO OUTDOOR`} description={article.description} jsonLd={jsonLd}>
-  <article class="container article-body">
-    {
-      article.category && (
-        <a class="category" href={`/category/${article.category.slug}/`}>
-          {article.category.name}
-        </a>
-      )
-    }
-    <h1>{article.title}</h1>
-    <p class="meta">公開日: {publishedDate}</p>
-    {article.thumbnail && <img src={article.thumbnail.url} alt={article.title} />}
-    <div class="content" set:html={article.content} />
-    {
-      article.supervisorName && (
-        <aside class="supervisor-box">
-          {article.supervisorImage && (
-            <img
-              class="supervisor-box-photo"
-              src={article.supervisorImage.url}
-              alt={article.supervisorName}
-              width="64"
-              height="64"
-            />
-          )}
-          <div>
-            <span class="supervisor-box-label">監修</span>
-            <span class="supervisor-box-name">{article.supervisorName}</span>
-            {article.supervisorTitle && <span class="supervisor-box-title">{article.supervisorTitle}</span>}
-            {article.supervisorBio && <p class="supervisor-box-bio">{article.supervisorBio}</p>}
-          </div>
-        </aside>
-      )
-    }
-  </article>
+<BaseLayout
+  title={`${article.title} | YAMATO OUTDOOR`}
+  description={article.description}
+  jsonLd={jsonLd}
+  variant="article"
+  activeCategorySlug={article.category?.slug}
+>
+  <div class="container article-shell">
+    <aside class="article-aside article-aside-left">
+      {
+        article.category && (
+          <a class="aside-category-tag" href={`/category/${article.category.slug}/`}>
+            {article.category.name}
+          </a>
+        )
+      }
+      <p class="aside-meta">公開日: {publishedDate}</p>
+      <div class="aside-share">
+        <span class="aside-share-label">この記事を共有する</span>
+        <div class="aside-share-buttons">
+          <a
+            class="share-btn"
+            href={`https://twitter.com/intent/tweet?url=${encodeURIComponent(pageUrl)}&text=${encodeURIComponent(article.title)}`}
+            target="_blank"
+            rel="noopener noreferrer"
+          >
+            <svg viewBox="0 0 24 24" fill="currentColor">
+              <path d="M3 3l7.5 8.4L3.4 21H6l6-6.7L17 21h4l-7.9-8.9L20.6 3H18l-5.6 6.2L7 3H3z" />
+            </svg>
+            Xでシェア
+          </a>
+          <a
+            class="share-btn"
+            href={`https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(pageUrl)}`}
+            target="_blank"
+            rel="noopener noreferrer"
+          >
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6">
+              <circle cx="12" cy="12" r="9.3" />
+              <path
+                d="M14 8.5h-1.5c-.9 0-1.5.6-1.5 1.6V12h3l-.4 2.6h-2.6V21"
+                stroke-linecap="round"
+                stroke-linejoin="round"
+              />
+            </svg>
+            Facebookでシェア
+          </a>
+          <a
+            class="share-btn"
+            href={`https://social-plugins.line.me/lineit/share?url=${encodeURIComponent(pageUrl)}`}
+            target="_blank"
+            rel="noopener noreferrer"
+          >
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6">
+              <path
+                d="M21 11.2c0-4.5-4.5-8.2-10-8.2S1 6.7 1 11.2c0 4 3.6 7.4 8.4 8.1.3.1.8.3.9.7.1.3.1.8 0 1.1 0 0-.1.7-.2.9-.1.3-.3 1.1 1 .6 1.3-.5 6.9-4.1 9.4-7 1.8-1.9 2.5-3.8 2.5-5.4z"
+                stroke-linejoin="round"
+              />
+            </svg>
+            LINEでシェア
+          </a>
+          <button type="button" class="share-btn share-copy" data-copy-url={pageUrl}>
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round">
+              <path d="M9 15l6-6" />
+              <path d="M10.5 6.5l1-1a3.5 3.5 0 015 5l-1.5 1.5" />
+              <path d="M13.5 17.5l-1 1a3.5 3.5 0 01-5-5l1.5-1.5" />
+            </svg>
+            <span class="share-copy-label">リンクをコピー</span>
+          </button>
+        </div>
+      </div>
+    </aside>
+
+    <article class="article-body">
+      <h1>{article.title}</h1>
+      {article.thumbnail && <img src={article.thumbnail.url} alt={article.title} />}
+      <div class="content" set:html={article.content} />
+      {
+        article.supervisorName && (
+          <aside class="supervisor-box">
+            {article.supervisorImage && (
+              <img
+                class="supervisor-box-photo"
+                src={article.supervisorImage.url}
+                alt={article.supervisorName}
+                width="64"
+                height="64"
+              />
+            )}
+            <div>
+              <span class="supervisor-box-label">監修</span>
+              <span class="supervisor-box-name">{article.supervisorName}</span>
+              {article.supervisorTitle && <span class="supervisor-box-title">{article.supervisorTitle}</span>}
+              {article.supervisorBio && <p class="supervisor-box-bio">{article.supervisorBio}</p>}
+            </div>
+          </aside>
+        )
+      }
+    </article>
+
+    <aside class="article-aside article-aside-right">
+      <div class="ad-slot">広告枠</div>
+      <div class="ad-slot ad-slot-tall">広告枠</div>
+    </aside>
+  </div>
+
+  <script>
+    document.querySelectorAll<HTMLButtonElement>('.share-copy').forEach((btn) => {
+      btn.addEventListener('click', async () => {
+        const url = btn.dataset.copyUrl;
+        if (!url) return;
+        try {
+          await navigator.clipboard.writeText(url);
+          const label = btn.querySelector('.share-copy-label');
+          const original = label?.textContent;
+          btn.classList.add('is-copied');
+          if (label) label.textContent = 'コピーしました';
+          setTimeout(() => {
+            btn.classList.remove('is-copied');
+            if (label && original) label.textContent = original;
+          }, 2000);
+        } catch {
+          // クリップボードAPIが使えない環境では何もしない(URLは共有ボタン一覧から確認できる)
+        }
+      });
+    });
+  </script>
 </BaseLayout>

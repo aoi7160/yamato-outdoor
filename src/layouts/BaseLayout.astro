@@ -6,13 +6,21 @@ interface Props {
   title: string;
   description?: string;
   jsonLd?: Record<string, unknown>[];
+  /** 'article' = 記事詳細ページ専用のダークテーマ+拡張ヘッダーを使う。それ以外のページには影響しない。 */
+  variant?: 'default' | 'article';
+  /** variant='article'時、ヘッダーのカテゴリタブでこのslugを選択中として強調する。 */
+  activeCategorySlug?: string;
 }
 
 const {
   title,
   description = '山と生きる。山と挑む。実体験ベースのアウトドアメディア。',
   jsonLd = [],
+  variant = 'default',
+  activeCategorySlug,
 } = Astro.props;
+
+const isArticleTheme = variant === 'article';
 
 // Umami Cloudの無料Hobbyプランで計測する。UMAMI_WEBSITE_ID未設定時はスクリプトごと省略する
 // (アカウント作成前でもビルド・表示が壊れないようにするため)。
@@ -68,7 +76,7 @@ const marqueeItems = [
     )}
     {allJsonLd.map((schema) => <script type="application/ld+json" set:html={JSON.stringify(schema)} />)}
   </head>
-  <body>
+  <body class={isArticleTheme ? 'theme-article' : ''}>
     <a href="#main" class="skip-link">本文へスキップ</a>
 
     <div class="marquee" aria-hidden="true">
@@ -82,16 +90,57 @@ const marqueeItems = [
     </div>
 
     <header class="site-header" id="site-header">
+      {
+        isArticleTheme && (
+          <div class="container header-utility-bar">
+            <div class="header-social">
+              <button type="button" aria-label="Instagram(準備中)">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6">
+                  <rect x="3" y="3" width="18" height="18" rx="5" />
+                  <circle cx="12" cy="12" r="4" />
+                  <circle cx="17.3" cy="6.7" r="1" fill="currentColor" stroke="none" />
+                </svg>
+              </button>
+              <button type="button" aria-label="X(準備中)">
+                <svg viewBox="0 0 24 24" fill="currentColor">
+                  <path d="M3 3l7.5 8.4L3.4 21H6l6-6.7L17 21h4l-7.9-8.9L20.6 3H18l-5.6 6.2L7 3H3z" />
+                </svg>
+              </button>
+              <button type="button" aria-label="YouTube(準備中)">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6">
+                  <rect x="2.5" y="6" width="19" height="12" rx="4" />
+                  <path d="M10.5 9.5l5 2.5-5 2.5v-5z" fill="currentColor" stroke="none" />
+                </svg>
+              </button>
+            </div>
+            <div class="header-actions">
+              <button type="button" class="header-pill-btn">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6">
+                  <rect x="7" y="2.5" width="10" height="19" rx="2.5" />
+                  <path d="M11 18.5h2" stroke-linecap="round" />
+                </svg>
+                <span>アプリを入手</span>
+              </button>
+              <button type="button" class="header-icon-btn" aria-label="アカウント(準備中)">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6">
+                  <circle cx="12" cy="8.5" r="3.3" />
+                  <path d="M4.5 20c1.4-3.6 4.3-5.5 7.5-5.5s6.1 1.9 7.5 5.5" stroke-linecap="round" />
+                </svg>
+              </button>
+            </div>
+          </div>
+        )
+      }
       <div class="container site-header-inner">
         <a href="/" class="logo" aria-label="YAMATO OUTDOOR トップページ">
           <img class="logo-light" src="/logo.png" alt="YAMATO OUTDOOR" width="220" height="85" />
           <img class="logo-dark" src="/logo-dark.png" alt="YAMATO OUTDOOR" width="220" height="85" />
         </a>
-        <nav class="site-nav" aria-label="カテゴリ">
+        <nav class={`site-nav ${isArticleTheme ? 'is-pills' : ''}`} aria-label="カテゴリ">
           <ul>
             {
               categories.map((c) => (
-                <li>
+                <li class={isArticleTheme && c.slug === activeCategorySlug ? 'is-active' : ''}>
                   <a href={`/category/${c.slug}/`}>
                     {c.name}
                     {c.status === 'upcoming' && <span class="nav-badge">準備中</span>}

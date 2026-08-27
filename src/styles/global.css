@@ -44,6 +44,23 @@
   --header-height: 76px;
   --marquee-height: 32px;
   --max-width: 1200px;
+  --max-width-article: 1360px;
+}
+
+/* ---------- Article page dark theme ----------
+   記事ページ専用の配色スコープ。夜の山(黒〜ダークグレー)+ 既存の登山アクセントグリーン。
+   トップ・カテゴリページの明るい配色には影響させない(body.theme-articleの中でのみ上書き)。 */
+body.theme-article {
+  --color-bg: #0c0e0d;
+  --color-bg-elevated: #161a17;
+  --color-bg-elevated-hover: #1f2521;
+  --color-text: #f2f4f0;
+  --color-text-muted: #b7bdb5;
+  --color-text-faint: #838a83;
+  --color-border: #272d29;
+  --color-border-strong: #3a423c;
+  --color-accent: #6b9770;
+  --color-accent-hover: #86ad89;
 }
 
 * {
@@ -263,6 +280,159 @@ h3 {
   opacity: 0.7;
   border-radius: 999px;
   padding: 0.1rem 0.5rem;
+}
+
+/* ---------- Article header (dark, HYPEBEAST-influenced two-tier header) ---------- */
+
+.theme-article .site-header {
+  height: auto;
+  flex-direction: column;
+  align-items: stretch;
+  background: rgba(12, 14, 13, 0.86);
+  backdrop-filter: blur(10px);
+  border-bottom: 1px solid var(--color-border);
+}
+
+.theme-article .site-header.is-scrolled {
+  background: rgba(12, 14, 13, 0.96);
+}
+
+.theme-article .logo .logo-light {
+  display: block !important;
+}
+
+.theme-article .logo .logo-dark {
+  display: none !important;
+}
+
+.header-utility-bar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0.55rem 0;
+  border-bottom: 1px solid var(--color-border);
+}
+
+.header-social {
+  display: flex;
+  align-items: center;
+  gap: 0.9rem;
+}
+
+.header-social button {
+  display: inline-flex;
+  color: var(--color-text-faint);
+  background: none;
+  border: none;
+  padding: 0;
+  cursor: pointer;
+  transition: color 0.15s ease;
+}
+
+.header-social button svg {
+  width: 16px;
+  height: 16px;
+}
+
+.header-social button:hover {
+  color: var(--color-accent-hover);
+}
+
+.header-actions {
+  display: flex;
+  align-items: center;
+  gap: 0.85rem;
+}
+
+.header-pill-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  font-family: var(--font-mono);
+  font-size: 0.68rem;
+  font-weight: 500;
+  letter-spacing: 0.06em;
+  color: var(--color-ink-text);
+  background: transparent;
+  border: 1px solid var(--color-border-strong);
+  border-radius: 999px;
+  padding: 0.35rem 0.9rem;
+  cursor: pointer;
+  transition: border-color 0.15s ease, color 0.15s ease;
+}
+
+.header-pill-btn svg {
+  width: 13px;
+  height: 13px;
+}
+
+.header-pill-btn:hover {
+  border-color: var(--color-accent);
+  color: var(--color-accent-hover);
+}
+
+.header-icon-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 30px;
+  height: 30px;
+  color: var(--color-ink-text);
+  background: transparent;
+  border: 1px solid var(--color-border-strong);
+  border-radius: 50%;
+  cursor: pointer;
+  transition: border-color 0.15s ease, color 0.15s ease;
+}
+
+.header-icon-btn svg {
+  width: 15px;
+  height: 15px;
+}
+
+.header-icon-btn:hover {
+  border-color: var(--color-accent);
+  color: var(--color-accent-hover);
+}
+
+.theme-article .site-header-inner {
+  display: grid;
+  grid-template-columns: 1fr auto 1fr;
+  align-items: center;
+  padding: 0.85rem 0;
+}
+
+.theme-article .site-header-inner .logo {
+  grid-column: 1;
+  justify-self: start;
+}
+
+.theme-article .site-header-inner .site-nav {
+  grid-column: 2;
+  justify-self: center;
+}
+
+.site-nav.is-pills ul {
+  gap: 0.6rem;
+}
+
+.site-nav.is-pills a {
+  font-size: 0.72rem;
+  padding: 0.45rem 1rem;
+  border: 1px solid var(--color-border-strong);
+  border-radius: 999px;
+  color: var(--color-text-muted);
+}
+
+.site-nav.is-pills a:hover {
+  border-color: var(--color-accent);
+  color: var(--color-accent-hover);
+}
+
+.site-nav.is-pills li.is-active a {
+  border-color: var(--color-accent);
+  background: rgba(107, 151, 112, 0.14);
+  color: var(--color-accent-hover);
 }
 
 /* ---------- Hero ---------- */
@@ -587,17 +757,6 @@ h3 {
   border-radius: var(--radius-md);
 }
 
-.article-body .category {
-  display: inline-block;
-  font-family: var(--font-mono);
-  color: var(--color-accent);
-  font-size: 0.7rem;
-  font-weight: 600;
-  letter-spacing: 0.1em;
-  text-transform: uppercase;
-  text-decoration: none;
-}
-
 .article-body h1 {
   font-size: clamp(1.7rem, 4vw, 2.3rem);
   line-height: 1.5;
@@ -754,6 +913,131 @@ h3 {
   line-height: 1.7;
 }
 
+/* ---------- Article shell (3カラム: サブトピック/シェア - 本文 - 広告枠) ---------- */
+
+.article-shell {
+  max-width: var(--max-width-article);
+  display: grid;
+  grid-template-columns: 200px minmax(0, 72ch) 260px;
+  justify-content: center;
+  gap: var(--space-5);
+  align-items: start;
+  padding-top: var(--space-6);
+}
+
+.article-shell .article-body {
+  padding: 0 0 var(--space-7);
+  max-width: none;
+  margin: 0;
+}
+
+.article-aside {
+  position: sticky;
+  top: calc(var(--header-height) + var(--space-3));
+}
+
+.article-aside-left {
+  padding-top: 0.3rem;
+}
+
+.aside-category-tag {
+  display: inline-block;
+  font-family: var(--font-mono);
+  font-size: 0.7rem;
+  font-weight: 600;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--color-accent);
+  text-decoration: none;
+  border: 1px solid var(--color-accent);
+  border-radius: 999px;
+  padding: 0.3rem 0.8rem;
+  margin-bottom: 0.9rem;
+}
+
+.aside-meta {
+  font-family: var(--font-mono);
+  color: var(--color-text-muted);
+  font-size: 0.78rem;
+  margin: 0 0 1.75rem;
+  padding-bottom: 1.5rem;
+  border-bottom: 1px solid var(--color-border);
+}
+
+.aside-share-label {
+  display: block;
+  font-family: var(--font-mono);
+  font-size: 0.68rem;
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--color-text-faint);
+  margin-bottom: 0.85rem;
+}
+
+.aside-share-buttons {
+  display: flex;
+  flex-direction: column;
+  gap: 0.6rem;
+}
+
+.share-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.6rem;
+  font-family: var(--font-mono);
+  font-size: 0.75rem;
+  color: var(--color-text-muted);
+  text-decoration: none;
+  background: var(--color-bg-elevated);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-sm);
+  padding: 0.5rem 0.8rem;
+  cursor: pointer;
+  transition: border-color 0.15s ease, color 0.15s ease;
+}
+
+.share-btn svg {
+  width: 15px;
+  height: 15px;
+  flex-shrink: 0;
+}
+
+.share-btn:hover {
+  border-color: var(--color-accent);
+  color: var(--color-accent-hover);
+}
+
+.share-btn.is-copied {
+  border-color: var(--color-accent);
+  color: var(--color-accent-hover);
+}
+
+.article-aside-right {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+}
+
+.ad-slot {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 250px;
+  border: 1px dashed var(--color-border-strong);
+  border-radius: var(--radius-md);
+  color: var(--color-text-faint);
+  font-family: var(--font-mono);
+  font-size: 0.7rem;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  background: var(--color-bg-elevated);
+}
+
+.ad-slot-tall {
+  min-height: 500px;
+}
+
 /* ---------- CTA band ---------- */
 
 .cta-band {
@@ -906,6 +1190,52 @@ h3 {
 
 /* ---------- Responsive ---------- */
 
+@media (max-width: 1180px) {
+  .article-shell {
+    grid-template-columns: 1fr;
+    max-width: 72ch;
+    margin: 0 auto;
+  }
+
+  .article-aside {
+    position: static;
+  }
+
+  .article-aside-left {
+    display: flex;
+    flex-direction: column;
+    padding-bottom: var(--space-3);
+    border-bottom: 1px solid var(--color-border);
+    margin-bottom: var(--space-3);
+  }
+
+  .aside-meta {
+    border-bottom: none;
+    padding-bottom: 0;
+    margin-bottom: 0.9rem;
+  }
+
+  .aside-share-buttons {
+    flex-direction: row;
+    flex-wrap: wrap;
+  }
+
+  .article-aside-right {
+    flex-direction: row;
+    flex-wrap: wrap;
+    margin-top: var(--space-5);
+  }
+
+  .ad-slot {
+    flex: 1 1 260px;
+    min-height: 180px;
+  }
+
+  .ad-slot-tall {
+    min-height: 180px;
+  }
+}
+
 @media (max-width: 900px) {
   .story {
     grid-template-columns: 1fr;
@@ -928,6 +1258,27 @@ h3 {
     flex-wrap: wrap;
     row-gap: 0.5rem;
     padding: 0.75rem 0;
+  }
+
+  .theme-article .site-header-inner {
+    grid-template-columns: 1fr;
+    justify-items: center;
+    row-gap: 0.6rem;
+  }
+
+  .theme-article .site-header-inner .logo,
+  .theme-article .site-header-inner .site-nav {
+    grid-column: 1;
+    justify-self: center;
+  }
+
+  .header-social span,
+  .header-pill-btn span {
+    display: none;
+  }
+
+  .header-utility-bar {
+    padding: 0.5rem 0;
   }
 
   .site-nav ul {

@@ -24,15 +24,27 @@ const publishedDate = article.publishedAt
   : '未公開';
 ---
 
-<BaseLayout title={`[プレビュー] ${article.title} | YAMATO OUTDOOR`}>
+<BaseLayout
+  title={`[プレビュー] ${article.title} | YAMATO OUTDOOR`}
+  variant="article"
+  activeCategorySlug={article.category?.slug}
+>
   <div class="container" style="background:#3a2a10; color:#f0c987; padding:0.75rem 1.5rem; margin-top:1.5rem; border-radius:4px; font-size:0.85rem;">
     これはプレビュー表示です。まだ公開されていない下書きの内容です。
   </div>
-  <article class="container article-body">
-    {article.category && <span class="category">{article.category.name}</span>}
-    <h1>{article.title}</h1>
-    <p class="meta">公開日: {publishedDate}</p>
-    {article.thumbnail && <img src={article.thumbnail.url} alt={article.title} />}
-    <div class="content" set:html={article.content} />
-  </article>
+  <div class="container article-shell">
+    <aside class="article-aside article-aside-left">
+      {article.category && <span class="aside-category-tag">{article.category.name}</span>}
+      <p class="aside-meta">公開日: {publishedDate}</p>
+    </aside>
+    <article class="article-body">
+      <h1>{article.title}</h1>
+      {article.thumbnail && <img src={article.thumbnail.url} alt={article.title} />}
+      <div class="content" set:html={article.content} />
+    </article>
+    <aside class="article-aside article-aside-right">
+      <div class="ad-slot">広告枠</div>
+      <div class="ad-slot ad-slot-tall">広告枠</div>
+    </aside>
+  </div>
 </BaseLayout>
