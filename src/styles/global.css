@@ -1,155 +1,454 @@
+/* =========================================================
+   YAMATO OUTDOOR / base
+   夜明け前の稜線をモチーフにしたトーン。
+   背景・霧・地形はすべてCSSで描いている(画像アセットを使わない)。
+   ========================================================= */
+
 :root {
-  --color-bg: #14161a;
-  --color-bg-elevated: #1c1f24;
-  --color-text: #e8e6df;
-  --color-text-muted: #9a9c9f;
-  --color-accent: #c9502e;
-  --color-border: #2c2f34;
-  --font-sans: 'Hiragino Sans', 'Noto Sans JP', system-ui, sans-serif;
+  /* 夜明け前の空。上に行くほど夜、下に行くほど朝焼け */
+  --night-0: #070a12;   /* 天頂 */
+  --night-1: #0b111d;
+  --night-2: #121b2b;
+  --dawn-0:  #24263a;   /* 稜線の上、まだ青が残る帯 */
+  --dawn-1:  #3d3547;
+  --dawn-2:  #6b4a48;   /* 朝焼けの芯 */
+  --dawn-3:  #a8663f;
+
+  --ridge-far:  #1a2233;
+  --ridge-mid:  #131a28;
+  --ridge-near: #0c111b;
+  --ridge-fore: #070a11;
+
+  --ink:        #e9e6dd;  /* 本文 */
+  --ink-strong: #fbfaf6;
+  --ink-mute:   #9aa0ab;
+  --ink-faint:  #6d7480;
+
+  --ember:  #d1683c;   /* 朝焼けのアクセント */
+  --ember-soft: #e0a06d;
+  --moss:   #7f9179;   /* 補助色。苔・ハイマツ */
+  --line:   rgba(233, 230, 221, 0.14);
+  --line-soft: rgba(233, 230, 221, 0.07);
+
+  --mist:   rgba(206, 214, 224, 0.5);
+
+  /* 和文は明朝で骨を出し、欧文・数字はコンデンスドで締める */
+  --font-serif: 'Zen Old Mincho', 'Shippori Mincho', 'Hiragino Mincho ProN', 'Yu Mincho', serif;
+  --font-sans:  'Zen Kaku Gothic New', 'Hiragino Sans', 'Noto Sans JP', system-ui, sans-serif;
+  --font-latin: 'Barlow Condensed', 'Zen Kaku Gothic New', system-ui, sans-serif;
+
+  --measure: 34rem;         /* 本文の一行の物理幅 */
+  --shell: 74rem;
+  --ease: cubic-bezier(0.22, 0.61, 0.36, 1);
 }
 
-* {
+*,
+*::before,
+*::after {
   box-sizing: border-box;
 }
 
-html,
+html {
+  scroll-behavior: smooth;
+  /* 目次からジャンプしたとき見出しがヘッダーに潜らないように */
+  scroll-padding-top: 6.5rem;
+  -webkit-text-size-adjust: 100%;
+}
+
 body {
   margin: 0;
-  padding: 0;
-}
-
-body {
-  background: var(--color-bg);
-  color: var(--color-text);
+  min-height: 100vh;
+  background: var(--night-0);
+  color: var(--ink);
   font-family: var(--font-sans);
-  line-height: 1.8;
+  font-weight: 350;
+  font-size: 1rem;
+  line-height: 1.95;
+  letter-spacing: 0.045em;
+  font-feature-settings: 'palt' 1;
   -webkit-font-smoothing: antialiased;
-}
-
-a {
-  color: inherit;
+  text-rendering: optimizeLegibility;
 }
 
 img {
   max-width: 100%;
+  height: auto;
   display: block;
 }
 
-.container {
-  max-width: 960px;
-  margin: 0 auto;
-  padding: 0 1.5rem;
+a {
+  color: inherit;
+  text-underline-offset: 0.3em;
+  text-decoration-thickness: 1px;
+  text-decoration-color: rgba(209, 104, 60, 0.5);
+}
+
+::selection {
+  background: rgba(209, 104, 60, 0.32);
+  color: var(--ink-strong);
+}
+
+:focus-visible {
+  outline: 1px solid var(--ember-soft);
+  outline-offset: 4px;
+}
+
+/* ---------------------------------------------------------
+   背景の山 —— 画像は一切使わず、
+   グラデーション + clip-path の稜線 + ぼかした霧の帯で作る
+   --------------------------------------------------------- */
+
+.scenery {
+  position: fixed;
+  inset: 0;
+  z-index: -2;
+  overflow: hidden;
+  pointer-events: none;
+  background:
+    /* 月あかり */
+    radial-gradient(46rem 30rem at 78% 6%, rgba(180, 198, 226, 0.14), transparent 62%),
+    /* 東の空の焼け */
+    radial-gradient(64rem 26rem at 30% 78%, rgba(168, 102, 63, 0.34), transparent 68%),
+    radial-gradient(38rem 18rem at 24% 82%, rgba(209, 104, 60, 0.26), transparent 70%),
+    linear-gradient(
+      to bottom,
+      var(--night-0) 0%,
+      var(--night-1) 22%,
+      var(--night-2) 44%,
+      var(--dawn-0) 62%,
+      var(--dawn-1) 74%,
+      var(--dawn-2) 86%,
+      var(--dawn-3) 100%
+    );
+}
+
+/* 星。位置は手で置いている(等間隔に散らすと途端に嘘くさくなる) */
+.scenery__stars {
+  position: absolute;
+  inset: 0 0 42% 0;
+  background-image:
+    radial-gradient(1.4px 1.4px at 12% 18%, rgba(255, 255, 255, 0.9), transparent),
+    radial-gradient(1px 1px at 23% 41%, rgba(255, 255, 255, 0.55), transparent),
+    radial-gradient(1.7px 1.7px at 31% 12%, rgba(233, 240, 255, 0.85), transparent),
+    radial-gradient(1px 1px at 44% 29%, rgba(255, 255, 255, 0.4), transparent),
+    radial-gradient(1.2px 1.2px at 57% 8%, rgba(255, 255, 255, 0.7), transparent),
+    radial-gradient(1px 1px at 63% 34%, rgba(255, 255, 255, 0.35), transparent),
+    radial-gradient(2px 2px at 71% 21%, rgba(255, 252, 240, 0.9), transparent),
+    radial-gradient(1px 1px at 82% 15%, rgba(255, 255, 255, 0.5), transparent),
+    radial-gradient(1.3px 1.3px at 88% 37%, rgba(255, 255, 255, 0.6), transparent),
+    radial-gradient(1px 1px at 94% 24%, rgba(255, 255, 255, 0.4), transparent),
+    radial-gradient(1px 1px at 8% 33%, rgba(255, 255, 255, 0.45), transparent),
+    radial-gradient(1.1px 1.1px at 37% 45%, rgba(255, 255, 255, 0.3), transparent);
+  -webkit-mask-image: linear-gradient(to bottom, #000 0%, #000 55%, transparent 100%);
+  mask-image: linear-gradient(to bottom, #000 0%, #000 55%, transparent 100%);
+  animation: twinkle 11s var(--ease) infinite alternate;
+}
+
+@keyframes twinkle {
+  from { opacity: 0.55; }
+  to   { opacity: 0.95; }
+}
+
+/* 稜線。奥ほど淡く、手前ほど黒く沈める(空気遠近) */
+.scenery__ridge {
+  position: absolute;
+  left: -6%;
+  right: -6%;
+  bottom: 0;
+}
+
+.ridge--far {
+  height: 46vh;
+  background: linear-gradient(to bottom, var(--ridge-far), #10182600 88%);
+  opacity: 0.75;
+  clip-path: polygon(
+    0% 62%, 6% 48%, 11% 55%, 17% 33%, 22% 44%, 27% 27%,
+    33% 41%, 39% 22%, 44% 36%, 50% 18%, 56% 34%, 62% 25%,
+    68% 39%, 74% 21%, 80% 37%, 86% 28%, 92% 44%, 100% 34%,
+    100% 100%, 0% 100%
+  );
+}
+
+.ridge--mid {
+  height: 36vh;
+  background: linear-gradient(to bottom, var(--ridge-mid), #0b111d 92%);
+  opacity: 0.92;
+  clip-path: polygon(
+    0% 54%, 5% 61%, 9% 47%, 15% 58%, 21% 36%, 26% 51%,
+    31% 30%, 37% 49%, 43% 27%, 49% 46%, 54% 33%, 61% 52%,
+    67% 31%, 73% 48%, 79% 38%, 85% 55%, 91% 41%, 96% 58%, 100% 46%,
+    100% 100%, 0% 100%
+  );
+}
+
+.ridge--near {
+  height: 24vh;
+  background: linear-gradient(to bottom, var(--ridge-near), #05080e);
+  clip-path: polygon(
+    0% 70%, 7% 55%, 13% 66%, 19% 43%, 25% 60%, 32% 38%,
+    38% 57%, 45% 34%, 52% 55%, 58% 41%, 65% 62%, 71% 45%,
+    78% 64%, 84% 49%, 90% 67%, 96% 52%, 100% 63%,
+    100% 100%, 0% 100%
+  );
+}
+
+/* 手前の樹林帯。ギザギザを細かくして針葉樹に見せる */
+.ridge--fore {
+  height: 11vh;
+  background: var(--ridge-fore);
+  clip-path: polygon(
+    0% 60%, 2% 30%, 4% 62%, 6% 24%, 8% 58%, 10% 36%, 12% 66%, 14% 28%,
+    16% 61%, 18% 40%, 20% 22%, 22% 57%, 24% 33%, 26% 64%, 28% 26%,
+    30% 59%, 32% 38%, 34% 20%, 36% 55%, 38% 31%, 40% 63%, 42% 27%,
+    44% 60%, 46% 35%, 48% 18%, 50% 54%, 52% 30%, 54% 62%, 56% 25%,
+    58% 58%, 60% 37%, 62% 21%, 64% 56%, 66% 32%, 68% 65%, 70% 28%,
+    72% 60%, 74% 36%, 76% 23%, 78% 57%, 80% 31%, 82% 63%, 84% 26%,
+    86% 59%, 88% 38%, 90% 20%, 92% 55%, 94% 33%, 96% 61%, 98% 29%, 100% 58%,
+    100% 100%, 0% 100%
+  );
+}
+
+/* 霧。速度も高さも透明度も揃えない。揃えると"生成物"の顔になる */
+.scenery__mist {
+  position: absolute;
+  left: -30%;
+  width: 160%;
+  border-radius: 50%;
+  filter: blur(28px);
+  opacity: 0.5;
+  background: radial-gradient(closest-side, var(--mist), transparent 72%);
+  will-change: transform;
+}
+
+.mist--1 { bottom: 26vh; height: 13vh; opacity: 0.30; animation: drift-a 47s linear infinite; }
+.mist--2 { bottom: 17vh; height: 9vh;  opacity: 0.42; animation: drift-b 71s linear infinite; }
+.mist--3 { bottom: 8vh;  height: 16vh; opacity: 0.26; animation: drift-a 93s linear infinite reverse; }
+.mist--4 { bottom: 34vh; height: 6vh;  opacity: 0.18; animation: drift-b 61s linear infinite reverse; }
+
+@keyframes drift-a {
+  0%   { transform: translate3d(-8%, 0, 0) scaleY(1); }
+  50%  { transform: translate3d(6%, -1.5vh, 0) scaleY(1.18); }
+  100% { transform: translate3d(-8%, 0, 0) scaleY(1); }
+}
+
+@keyframes drift-b {
+  0%   { transform: translate3d(5%, 0.6vh, 0) scaleY(1.1); }
+  50%  { transform: translate3d(-7%, -0.8vh, 0) scaleY(0.92); }
+  100% { transform: translate3d(5%, 0.6vh, 0) scaleY(1.1); }
+}
+
+/* フィルムの粒子。のっぺりした面をざらつかせて機械っぽさを削る */
+.scenery__grain {
+  position: absolute;
+  inset: -50%;
+  opacity: 0.055;
+  mix-blend-mode: overlay;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='180' height='180'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='180' height='180' filter='url(%23n)'/%3E%3C/svg%3E");
+  animation: grain 6s steps(6) infinite;
+}
+
+@keyframes grain {
+  0%   { transform: translate(0, 0); }
+  20%  { transform: translate(-3%, 2%); }
+  40%  { transform: translate(2%, -3%); }
+  60%  { transform: translate(-2%, -2%); }
+  80%  { transform: translate(3%, 1%); }
+  100% { transform: translate(0, 0); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  html { scroll-behavior: auto; }
+  .scenery__stars,
+  .scenery__mist,
+  .scenery__grain { animation: none; }
+}
+
+/* 空が明るく焼けている帯の上でも本文が読めるように、
+   風景と内容のあいだに薄い暗幕を一枚入れる。 */
+body::before {
+  content: '';
+  position: fixed;
+  inset: 0;
+  z-index: -1;
+  pointer-events: none;
+  background: linear-gradient(
+    to bottom,
+    rgba(7, 10, 18, 0.35) 0%,
+    rgba(7, 10, 18, 0.45) 45%,
+    rgba(7, 10, 18, 0.62) 78%,
+    rgba(7, 10, 18, 0.72) 100%
+  );
+}
+
+/* ---------------------------------------------------------
+   共通レイアウト
+   --------------------------------------------------------- */
+
+.shell {
+  width: min(100% - 2.5rem, var(--shell));
+  margin-inline: auto;
 }
 
 .site-header {
-  border-bottom: 1px solid var(--color-border);
-  padding: 1.5rem 0;
+  position: sticky;
+  top: 0;
+  z-index: 40;
+  backdrop-filter: blur(14px) saturate(120%);
+  -webkit-backdrop-filter: blur(14px) saturate(120%);
+  background: linear-gradient(to bottom, rgba(7, 10, 18, 0.96), rgba(7, 10, 18, 0.88));
+  border-bottom: 1px solid var(--line-soft);
 }
 
-.site-header .container {
+.site-header .shell {
   display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1.5rem;
+  min-height: 4.25rem;
+}
+
+.site-title {
+  font-family: var(--font-latin);
+  font-size: 1.32rem;
+  font-weight: 500;
+  letter-spacing: 0.26em;
+  text-decoration: none;
+  color: var(--ink-strong);
+  text-shadow: 0 0 26px rgba(206, 214, 224, 0.28);
+  white-space: nowrap;
+}
+
+.site-title span {
+  color: var(--ember);
+}
+
+.site-nav {
+  display: flex;
+  gap: 1.6rem;
+  font-family: var(--font-latin);
+  font-size: 0.86rem;
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+  color: var(--ink-mute);
+}
+
+.site-nav a {
+  text-decoration: none;
+  padding-block: 0.3rem;
+  border-bottom: 1px solid transparent;
+  transition: color 0.25s var(--ease), border-color 0.25s var(--ease);
+}
+
+.site-nav a:hover {
+  color: var(--ink-strong);
+  border-bottom-color: var(--ember);
+}
+
+@media (max-width: 44rem) {
+  .site-nav { display: none; }
+}
+
+.site-footer {
+  margin-top: 7rem;
+  border-top: 1px solid var(--line-soft);
+  background: linear-gradient(to bottom, rgba(5, 8, 14, 0.5), rgba(5, 8, 14, 0.92));
+  padding: 3.5rem 0 2.5rem;
+  color: var(--ink-faint);
+  font-size: 0.85rem;
+}
+
+.site-footer .shell {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 1.5rem 3rem;
   align-items: baseline;
   justify-content: space-between;
 }
 
-.site-title {
-  font-size: 1.4rem;
-  font-weight: 700;
-  letter-spacing: 0.05em;
-  text-decoration: none;
+.site-footer .footer-mark {
+  font-family: var(--font-latin);
+  letter-spacing: 0.24em;
+  color: var(--ink-mute);
 }
 
-.site-tagline {
-  font-size: 0.8rem;
-  color: var(--color-text-muted);
-  letter-spacing: 0.1em;
-}
-
-.site-footer {
-  border-top: 1px solid var(--color-border);
-  margin-top: 4rem;
-  padding: 2rem 0;
-  color: var(--color-text-muted);
-  font-size: 0.85rem;
-}
+/* ---------------------------------------------------------
+   トップページ
+   --------------------------------------------------------- */
 
 .hero {
-  padding: 5rem 0 3rem;
-  border-bottom: 1px solid var(--color-border);
+  padding: 8rem 0 5rem;
+}
+
+.hero__eyebrow {
+  font-family: var(--font-latin);
+  letter-spacing: 0.42em;
+  text-transform: uppercase;
+  font-size: 0.78rem;
+  color: var(--ember-soft);
+  margin: 0 0 1.6rem;
 }
 
 .hero h1 {
-  font-size: 2.2rem;
-  letter-spacing: 0.06em;
-  margin: 0 0 0.75rem;
+  font-family: var(--font-serif);
+  font-weight: 400;
+  font-size: clamp(2.1rem, 6vw, 3.4rem);
+  line-height: 1.55;
+  letter-spacing: 0.1em;
+  margin: 0 0 1.4rem;
+  color: var(--ink-strong);
+  text-shadow: 0 0 40px rgba(190, 205, 226, 0.22);
 }
 
 .hero p {
-  color: var(--color-text-muted);
-  font-size: 1rem;
+  max-width: var(--measure);
+  color: var(--ink-mute);
+  margin: 0;
 }
 
 .article-list {
   list-style: none;
   margin: 0;
-  padding: 3rem 0;
+  padding: 0 0 4rem;
   display: grid;
-  gap: 1.5rem;
+  gap: 1px;
+  background: var(--line-soft);
+  border-block: 1px solid var(--line-soft);
 }
 
 .article-card {
-  display: block;
+  display: grid;
+  gap: 0.5rem;
+  padding: 2rem 1.5rem;
   text-decoration: none;
-  border: 1px solid var(--color-border);
-  border-radius: 4px;
-  padding: 1.5rem;
-  background: var(--color-bg-elevated);
-  transition: border-color 0.15s ease;
+  background: rgba(7, 10, 18, 0.35);
+  transition: background 0.3s var(--ease), padding-left 0.3s var(--ease);
 }
 
 .article-card:hover {
-  border-color: var(--color-accent);
+  background: rgba(18, 27, 43, 0.6);
+  padding-left: 2.25rem;
 }
 
-.article-card .category {
-  color: var(--color-accent);
-  font-size: 0.75rem;
-  letter-spacing: 0.08em;
+.article-card .card-meta {
+  font-family: var(--font-latin);
+  font-size: 0.82rem;
+  letter-spacing: 0.18em;
   text-transform: uppercase;
+  color: var(--ember-soft);
 }
 
 .article-card h2 {
-  font-size: 1.15rem;
-  margin: 0.5rem 0;
+  font-family: var(--font-serif);
+  font-weight: 400;
+  font-size: 1.28rem;
+  line-height: 1.7;
+  letter-spacing: 0.06em;
+  margin: 0;
+  color: var(--ink-strong);
 }
 
 .article-card .description {
-  color: var(--color-text-muted);
-  font-size: 0.9rem;
   margin: 0;
-}
-
-.article-body {
-  padding: 3rem 0;
-}
-
-.article-body h1 {
-  font-size: 1.9rem;
-  line-height: 1.5;
-}
-
-.article-body .meta {
-  color: var(--color-text-muted);
-  font-size: 0.85rem;
-  margin-bottom: 2rem;
-}
-
-.article-body .content {
-  font-size: 1rem;
-}
-
-.article-body .content h2 {
-  border-left: 4px solid var(--color-accent);
-  padding-left: 0.75rem;
-  margin-top: 2.5rem;
+  color: var(--ink-mute);
+  font-size: 0.9rem;
 }

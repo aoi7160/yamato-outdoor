@@ -1,30 +1,43 @@
 ---
 import BaseLayout from '../layouts/BaseLayout.astro';
 import { getArticles } from '../lib/microcms';
+import { formatDate } from '../lib/article';
 
 const { contents: articles } = await getArticles({ orders: '-publishedAt', limit: 20 });
 ---
 
 <BaseLayout title="YAMATO OUTDOOR | 山と生きる。山と挑む。">
   <section class="hero">
-    <div class="container">
-      <h1>山と生きる。山と挑む。</h1>
-      <p>準備に、妥協はない。実体験ベースの装備検証・レビューを届けるアウトドアメディア。</p>
+    <div class="shell">
+      <p class="hero__eyebrow">Field notes from the ridge</p>
+      <h1>山と生きる。<br />山と挑む。</h1>
+      <p>準備に、妥協はない。実際に担いで、濡らして、凍らせた装備だけを書く。</p>
     </div>
   </section>
 
-  <section class="container">
+  <section class="shell">
     {
       articles.length === 0 ? (
-        <p style="color: var(--color-text-muted); padding: 3rem 0;">
-          記事を準備中です。microCMSで記事を公開するとここに一覧表示されます。
-        </p>
+        <ul class="article-list">
+          <li>
+            <a class="article-card" href="/articles/night-hike-basics/">
+              <span class="card-meta">How to — 2026.08.07</span>
+              <h2>夜明け前に歩き出す。ナイトハイクで山頂に立つための装備と歩き方</h2>
+              <p class="description">
+                暗いうちに登り始めて、稜線で朝を迎える。ヘッドランプの選び方から低体温症の避け方まで、
+                実際に何度も失敗しながら固めた手順をまとめた。
+              </p>
+            </a>
+          </li>
+        </ul>
       ) : (
         <ul class="article-list">
           {articles.map((article) => (
             <li>
               <a class="article-card" href={`/articles/${article.slug}/`}>
-                {article.category && <span class="category">{article.category.name}</span>}
+                <span class="card-meta">
+                  {article.category?.name ?? 'Journal'} — {formatDate(article.publishedAt)}
+                </span>
                 <h2>{article.title}</h2>
                 <p class="description">{article.description}</p>
               </a>

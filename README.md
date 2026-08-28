@@ -93,10 +93,34 @@ pushするたびに自動でビルド・公開されます。
 
 ```
 src/
-  layouts/       共通レイアウト
+  layouts/
+    BaseLayout.astro     共通レイアウト(フォント読み込み・背景の山・ヘッダー/フッター)
+    ArticleLayout.astro  記事ページ(目次・読了バー・FAQ・著者・関連記事・構造化データ)
   pages/         ルーティング(index.astro, articles/[slug].astro など)
-  lib/microcms.ts  microCMS APIクライアント・型定義
-  styles/        グローバルCSS
+  lib/
+    microcms.ts  microCMS APIクライアント・型定義
+    article.ts   本文HTMLの加工(見出しへのid付与・目次抽出・表の横スクロール化)
+  styles/
+    global.css   全体のトーンと背景の山
+    article.css  記事ページ専用
 docs/
   microcms-schema.md  microCMS側のAPI設計ドキュメント
 ```
+
+## 記事ページのデザインについて
+
+夜明け前の稜線をモチーフにしている。背景の空・星・稜線・霧・粒子はすべてCSSで
+描いていて、画像アセットは使っていない(`global.css` の `.scenery` 以下)。
+見出しや本文の影は、霧越しに文字が浮かび上がる見え方を狙って二段の `text-shadow`
+で作っている。
+
+- フォント: 和文の見出しは Zen Old Mincho(明朝)、本文は Zen Kaku Gothic New、
+  欧文・数字・ラベルは Barlow Condensed。Google Fontsから読み込む。
+- 目次: 本文の `h2` / `h3` から自動生成する(`src/lib/article.ts`)。
+  広い画面では右側に追従表示し、いま読んでいる見出しをハイライトする。
+  狭い画面では本文の先頭に置く。
+- 記事内で使える装飾クラス(microCMSのリッチエディタでHTMLとして貼れる):
+  `div.note`(補足) / `div.note.warn`(注意) / `div.checklist`(持ち物リスト) /
+  `p.source`(出典)。表は自動で横スクロール対応の箱に入る。
+- `src/pages/articles/night-hike-basics.astro` は、microCMSに記事が入る前でも
+  デザインと記事の分量を確認するための見本ページ。不要になったら削除してよい。

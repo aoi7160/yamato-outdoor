@@ -1,28 +1,46 @@
 ---
-import BaseLayout from '../../layouts/BaseLayout.astro';
-import { getAllArticleSlugs, getArticleBySlug } from '../../lib/microcms';
+import ArticleLayout from '../../layouts/ArticleLayout.astro';
+import { getArticles, getArticleBySlug } from '../../lib/microcms';
 
 export async function getStaticPaths() {
-  const slugs = await getAllArticleSlugs();
-  return slugs.map((slug) => ({ params: { slug } }));
+  const res = await getArticles({ limit: 100, fields: ['id', 'slug', 'title', 'category', 'publishedAt'] });
+  return res.contents.map((a) => ({
+    params: { slug: a.slug },
+    props: { siblings: res.contents.filter((b) => b.slug !== a.slug) },
+  }));
 }
 
 const { slug } = Astro.params;
+const { siblings = [] } = Astro.props;
 const article = await getArticleBySlug(slug!);
 
 if (!article) {
   return Astro.redirect('/404');
 }
 
-const publishedDate = new Date(article.publishedAt).toLocaleDateString('ja-JP');
+// 関連記事は同カテゴリを優先して3本。足りなければ新着で埋める。
+const related = siblings
+  .sort((a, b) => {
+    const same = (x: typeof a) => (x.category?.id && x.category.id === article.category?.id ? 0 : 1);
+    return same(a) - same(b);
+  })
+  .slice(0, 3)
+  .map((a) => ({
+    title: a.title,
+    href: `/articles/${a.slug}`,
+    meta: a.category?.name,
+  }));
 ---
 
-<BaseLayout title={`${article.title} | YAMATO OUTDOOR`} description={article.description}>
-  <article class="container article-body">
-    {article.category && <span class="category">{article.category.name}</span>}
-    <h1>{article.title}</h1>
-    <p class="meta">公開日: {publishedDate}</p>
-    {article.thumbnail && <img src={article.thumbnail.url} alt={article.title} />}
-    <div class="content" set:html={article.content} />
-  </article>
-</BaseLayout>
+<ArticleLayout
+  title={article.title}
+  description={article.description}
+  content={article.content}
+  categoryName={article.category?.name}
+  categorySlug={article.category?.slug}
+  publishedAt={article.publishedAt}
+  revisedAt={article.revisedAt}
+  thumbnailUrl={article.thumbnail?.url}
+  tags={article.tags ?? []}
+  related={related}
+/>

@@ -4,9 +4,20 @@ import '../styles/global.css';
 interface Props {
   title: string;
   description?: string;
+  /** 記事ページなど、追加のCSSを読ませたいページ用 */
+  ogImage?: string;
+  ogType?: string;
 }
 
-const { title, description = '山と生きる。山と挑む。実体験ベースのアウトドアメディア。' } = Astro.props;
+const {
+  title,
+  description = '山と生きる。山と挑む。実体験ベースのアウトドアメディア。',
+  ogImage,
+  ogType = 'website',
+} = Astro.props;
+
+const canonical = Astro.site ? new URL(Astro.url.pathname, Astro.site).href : Astro.url.pathname;
+const year = new Date().getFullYear();
 ---
 
 <!doctype html>
@@ -15,22 +26,63 @@ const { title, description = '山と生きる。山と挑む。実体験ベー�
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <meta name="description" content={description} />
+    <meta name="theme-color" content="#070a12" />
     <title>{title}</title>
+    <link rel="canonical" href={canonical} />
     <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+
+    <meta property="og:type" content={ogType} />
+    <meta property="og:title" content={title} />
+    <meta property="og:description" content={description} />
+    <meta property="og:url" content={canonical} />
+    {ogImage && <meta property="og:image" content={ogImage} />}
+    <meta name="twitter:card" content="summary_large_image" />
+
+    <!-- 和文=Zen Old Mincho / Zen Kaku Gothic New、欧文=Barlow Condensed -->
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      rel="stylesheet"
+      href="https://fonts.googleapis.com/css2?family=Zen+Old+Mincho:wght@400;500;700&family=Zen+Kaku+Gothic+New:wght@300;400;500&family=Barlow+Condensed:wght@300;400;500&display=swap"
+    />
+    <slot name="head" />
   </head>
   <body>
+    <!-- 夜明け前の稜線。画像を使わずCSSだけで描いている -->
+    <div class="scenery" aria-hidden="true">
+      <div class="scenery__stars"></div>
+      <div class="scenery__ridge ridge--far"></div>
+      <div class="scenery__mist mist--4"></div>
+      <div class="scenery__ridge ridge--mid"></div>
+      <div class="scenery__mist mist--1"></div>
+      <div class="scenery__ridge ridge--near"></div>
+      <div class="scenery__mist mist--2"></div>
+      <div class="scenery__ridge ridge--fore"></div>
+      <div class="scenery__mist mist--3"></div>
+      <div class="scenery__grain"></div>
+    </div>
+
     <header class="site-header">
-      <div class="container">
-        <a href="/" class="site-title">YAMATO OUTDOOR</a>
-        <span class="site-tagline">山と生きる。山と挑む。</span>
+      <div class="shell">
+        <a href="/" class="site-title">YAMATO<span>／</span>OUTDOOR</a>
+        <nav class="site-nav" aria-label="メインメニュー">
+          <a href="/">Articles</a>
+          <a href="/#gear">Gear</a>
+          <a href="/#route">Route</a>
+          <a href="/#about">About</a>
+        </nav>
       </div>
     </header>
+
     <main>
       <slot />
     </main>
+
     <footer class="site-footer">
-      <div class="container">
-        <p>&copy; {new Date().getFullYear()} YAMATO OUTDOOR</p>
+      <div class="shell">
+        <p class="footer-mark">YAMATO OUTDOOR</p>
+        <p>山と生きる。山と挑む。</p>
+        <p>&copy; {year} YAMATO OUTDOOR</p>
       </div>
     </footer>
   </body>
