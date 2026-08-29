@@ -107,16 +107,34 @@ docs/
   microcms-schema.md  microCMS側のAPI設計ドキュメント
 ```
 
+## ナビゲーションの区分
+
+| メニュー | 中身 | リンク先 |
+|---|---|---|
+| Articles | 全カテゴリの新着一覧 | `/` |
+| Gear | ウェア・テント・ザックなど装備の実地レビューと比較検証 | `/category/gear` |
+| Route | 実際に歩いた山行記録(コースタイム・水場・エスケープ) | `/category/route` |
+| About | 運営者とブランドの紹介 | `/about` |
+
+カテゴリページは `src/pages/category/[slug].astro` がmicroCMSのカテゴリから
+自動生成する。記事が0件でもリンクが404にならないよう、gear / route / how-to は
+常にページを用意している。
+
 ## 記事ページのデザインについて
 
-夜明け前の稜線をモチーフにしている。背景の空・星・稜線・霧・粒子はすべてCSSで
-描いていて、画像アセットは使っていない(`global.css` の `.scenery` 以下)。
+霧のかかった山の写真のトーンに寄せている。背景は写真素材を使わず、不規則なパスの
+シルエット(SVG)とぼかした霧の層、フィルム粒子だけで作っている
+(`BaseLayout.astro` の `.scenery` と `global.css`)。稜線は等間隔の三角形にしないこと
+——反復するとすぐ「図形の並び」に見えてしまう。
 見出しや本文の影は、霧越しに文字が浮かび上がる見え方を狙って二段の `text-shadow`
 で作っている。
 
-- フォント: 和文の見出しは Zen Old Mincho(明朝)、本文は Zen Kaku Gothic New、
+- フォント: ロゴは Big Shoulders Display(ヘビーコンデンス)を2段組みにしたロックアップ、
+  和文の見出しは Zen Old Mincho(明朝)、本文は Zen Kaku Gothic New、
   欧文・数字・ラベルは Barlow Condensed。Google Fontsから読み込む。
-- 目次: 本文の `h2` / `h3` から自動生成する(`src/lib/article.ts`)。
+  公式ロゴの画像データがある場合は `public/logo.svg` に置き、
+  `BaseLayout.astro` のロゴブロックを `<img>` 1行に差し替える。
+- 目次: 本文の `h2` から自動生成する(`src/lib/article.ts`)。アンカーリンクで該当見出しへ飛ぶ。
   広い画面では右側に追従表示し、いま読んでいる見出しをハイライトする。
   狭い画面では本文の先頭に置く。
 - 記事内で使える装飾クラス(microCMSのリッチエディタでHTMLとして貼れる):

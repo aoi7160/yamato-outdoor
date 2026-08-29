@@ -1,44 +1,32 @@
 /* =========================================================
    YAMATO OUTDOOR / base
-   夜明け前の稜線をモチーフにしたトーン。
-   背景・霧・地形はすべてCSSで描いている(画像アセットを使わない)。
+   霧のかかった山の写真のトーンに寄せている。
+   風景はSVGのシルエットとぼかした霧で作り、写真素材は使わない。
    ========================================================= */
 
 :root {
-  /* 夜明け前の空。上に行くほど夜、下に行くほど朝焼け */
-  --night-0: #070a12;   /* 天頂 */
-  --night-1: #0b111d;
-  --night-2: #121b2b;
-  --dawn-0:  #24263a;   /* 稜線の上、まだ青が残る帯 */
-  --dawn-1:  #3d3547;
-  --dawn-2:  #6b4a48;   /* 朝焼けの芯 */
-  --dawn-3:  #a8663f;
+  --ink:        #e7e5df;
+  --ink-strong: #fbfaf7;
+  --ink-mute:   #9ea6b0;
+  --ink-faint:  #6b747e;
 
-  --ridge-far:  #1a2233;
-  --ridge-mid:  #131a28;
-  --ridge-near: #0c111b;
-  --ridge-fore: #070a11;
+  --base:   #080b10;
+  --base-1: #0d1218;
+  --panel:  rgba(16, 22, 29, 0.62);
 
-  --ink:        #e9e6dd;  /* 本文 */
-  --ink-strong: #fbfaf6;
-  --ink-mute:   #9aa0ab;
-  --ink-faint:  #6d7480;
+  --ember:      #c2652f;   /* 差し色。使いすぎない */
+  --ember-soft: #d99a63;
+  --frost:      #cdd8e2;   /* 霧の白 */
 
-  --ember:  #d1683c;   /* 朝焼けのアクセント */
-  --ember-soft: #e0a06d;
-  --moss:   #7f9179;   /* 補助色。苔・ハイマツ */
-  --line:   rgba(233, 230, 221, 0.14);
-  --line-soft: rgba(233, 230, 221, 0.07);
+  --line:      rgba(231, 229, 223, 0.16);
+  --line-soft: rgba(231, 229, 223, 0.08);
 
-  --mist:   rgba(206, 214, 224, 0.5);
-
-  /* 和文は明朝で骨を出し、欧文・数字はコンデンスドで締める */
+  --font-logo:  'Big Shoulders Display', 'Barlow Condensed', 'Zen Kaku Gothic New', sans-serif;
   --font-serif: 'Zen Old Mincho', 'Shippori Mincho', 'Hiragino Mincho ProN', 'Yu Mincho', serif;
   --font-sans:  'Zen Kaku Gothic New', 'Hiragino Sans', 'Noto Sans JP', system-ui, sans-serif;
   --font-latin: 'Barlow Condensed', 'Zen Kaku Gothic New', system-ui, sans-serif;
 
-  --measure: 34rem;         /* 本文の一行の物理幅 */
-  --shell: 74rem;
+  --shell: 72rem;
   --ease: cubic-bezier(0.22, 0.61, 0.36, 1);
 }
 
@@ -50,7 +38,6 @@
 
 html {
   scroll-behavior: smooth;
-  /* 目次からジャンプしたとき見出しがヘッダーに潜らないように */
   scroll-padding-top: 6.5rem;
   -webkit-text-size-adjust: 100%;
 }
@@ -58,7 +45,7 @@ html {
 body {
   margin: 0;
   min-height: 100vh;
-  background: var(--night-0);
+  background: var(--base);
   color: var(--ink);
   font-family: var(--font-sans);
   font-weight: 350;
@@ -70,32 +57,16 @@ body {
   text-rendering: optimizeLegibility;
 }
 
-img {
-  max-width: 100%;
-  height: auto;
-  display: block;
-}
+img { max-width: 100%; height: auto; display: block; }
 
-a {
-  color: inherit;
-  text-underline-offset: 0.3em;
-  text-decoration-thickness: 1px;
-  text-decoration-color: rgba(209, 104, 60, 0.5);
-}
+a { color: inherit; text-underline-offset: 0.3em; text-decoration-thickness: 1px; }
 
-::selection {
-  background: rgba(209, 104, 60, 0.32);
-  color: var(--ink-strong);
-}
+::selection { background: rgba(194, 101, 47, 0.32); color: var(--ink-strong); }
 
-:focus-visible {
-  outline: 1px solid var(--ember-soft);
-  outline-offset: 4px;
-}
+:focus-visible { outline: 1px solid var(--ember-soft); outline-offset: 4px; }
 
 /* ---------------------------------------------------------
-   背景の山 —— 画像は一切使わず、
-   グラデーション + clip-path の稜線 + ぼかした霧の帯で作る
+   背景の風景
    --------------------------------------------------------- */
 
 .scenery {
@@ -104,144 +75,42 @@ a {
   z-index: -2;
   overflow: hidden;
   pointer-events: none;
-  background:
-    /* 月あかり */
-    radial-gradient(46rem 30rem at 78% 6%, rgba(180, 198, 226, 0.14), transparent 62%),
-    /* 東の空の焼け */
-    radial-gradient(64rem 26rem at 30% 78%, rgba(168, 102, 63, 0.34), transparent 68%),
-    radial-gradient(38rem 18rem at 24% 82%, rgba(209, 104, 60, 0.26), transparent 70%),
-    linear-gradient(
-      to bottom,
-      var(--night-0) 0%,
-      var(--night-1) 22%,
-      var(--night-2) 44%,
-      var(--dawn-0) 62%,
-      var(--dawn-1) 74%,
-      var(--dawn-2) 86%,
-      var(--dawn-3) 100%
-    );
+  background: var(--base);
 }
 
-/* 星。位置は手で置いている(等間隔に散らすと途端に嘘くさくなる) */
-.scenery__stars {
+.scenery__svg {
   position: absolute;
-  inset: 0 0 42% 0;
-  background-image:
-    radial-gradient(1.4px 1.4px at 12% 18%, rgba(255, 255, 255, 0.9), transparent),
-    radial-gradient(1px 1px at 23% 41%, rgba(255, 255, 255, 0.55), transparent),
-    radial-gradient(1.7px 1.7px at 31% 12%, rgba(233, 240, 255, 0.85), transparent),
-    radial-gradient(1px 1px at 44% 29%, rgba(255, 255, 255, 0.4), transparent),
-    radial-gradient(1.2px 1.2px at 57% 8%, rgba(255, 255, 255, 0.7), transparent),
-    radial-gradient(1px 1px at 63% 34%, rgba(255, 255, 255, 0.35), transparent),
-    radial-gradient(2px 2px at 71% 21%, rgba(255, 252, 240, 0.9), transparent),
-    radial-gradient(1px 1px at 82% 15%, rgba(255, 255, 255, 0.5), transparent),
-    radial-gradient(1.3px 1.3px at 88% 37%, rgba(255, 255, 255, 0.6), transparent),
-    radial-gradient(1px 1px at 94% 24%, rgba(255, 255, 255, 0.4), transparent),
-    radial-gradient(1px 1px at 8% 33%, rgba(255, 255, 255, 0.45), transparent),
-    radial-gradient(1.1px 1.1px at 37% 45%, rgba(255, 255, 255, 0.3), transparent);
-  -webkit-mask-image: linear-gradient(to bottom, #000 0%, #000 55%, transparent 100%);
-  mask-image: linear-gradient(to bottom, #000 0%, #000 55%, transparent 100%);
-  animation: twinkle 11s var(--ease) infinite alternate;
+  inset: 0;
+  width: 100%;
+  height: 100%;
 }
 
-@keyframes twinkle {
-  from { opacity: 0.55; }
-  to   { opacity: 0.95; }
+/* 霧はそれぞれ違う速さ・違う方向に流す。揃えると模様に見えてしまう */
+.fog { will-change: transform, opacity; transform-box: fill-box; transform-origin: center; }
+
+.fog--a { animation: fog-a 68s ease-in-out infinite; }
+.fog--b { animation: fog-b 92s ease-in-out infinite; }
+.fog--c { animation: fog-a 124s ease-in-out infinite reverse; }
+.fog--d { animation: fog-b 81s ease-in-out infinite reverse; }
+.fog--e { animation: fog-a 103s ease-in-out infinite; }
+
+@keyframes fog-a {
+  0%   { transform: translate(-4%, 0) scale(1, 1); }
+  50%  { transform: translate(5%, -2%) scale(1.12, 1.3); }
+  100% { transform: translate(-4%, 0) scale(1, 1); }
 }
 
-/* 稜線。奥ほど淡く、手前ほど黒く沈める(空気遠近) */
-.scenery__ridge {
-  position: absolute;
-  left: -6%;
-  right: -6%;
-  bottom: 0;
+@keyframes fog-b {
+  0%   { transform: translate(3%, 1%) scale(1.08, 1.15); }
+  50%  { transform: translate(-6%, -1%) scale(0.94, 0.85); }
+  100% { transform: translate(3%, 1%) scale(1.08, 1.15); }
 }
 
-.ridge--far {
-  height: 46vh;
-  background: linear-gradient(to bottom, var(--ridge-far), #10182600 88%);
-  opacity: 0.75;
-  clip-path: polygon(
-    0% 62%, 6% 48%, 11% 55%, 17% 33%, 22% 44%, 27% 27%,
-    33% 41%, 39% 22%, 44% 36%, 50% 18%, 56% 34%, 62% 25%,
-    68% 39%, 74% 21%, 80% 37%, 86% 28%, 92% 44%, 100% 34%,
-    100% 100%, 0% 100%
-  );
-}
-
-.ridge--mid {
-  height: 36vh;
-  background: linear-gradient(to bottom, var(--ridge-mid), #0b111d 92%);
-  opacity: 0.92;
-  clip-path: polygon(
-    0% 54%, 5% 61%, 9% 47%, 15% 58%, 21% 36%, 26% 51%,
-    31% 30%, 37% 49%, 43% 27%, 49% 46%, 54% 33%, 61% 52%,
-    67% 31%, 73% 48%, 79% 38%, 85% 55%, 91% 41%, 96% 58%, 100% 46%,
-    100% 100%, 0% 100%
-  );
-}
-
-.ridge--near {
-  height: 24vh;
-  background: linear-gradient(to bottom, var(--ridge-near), #05080e);
-  clip-path: polygon(
-    0% 70%, 7% 55%, 13% 66%, 19% 43%, 25% 60%, 32% 38%,
-    38% 57%, 45% 34%, 52% 55%, 58% 41%, 65% 62%, 71% 45%,
-    78% 64%, 84% 49%, 90% 67%, 96% 52%, 100% 63%,
-    100% 100%, 0% 100%
-  );
-}
-
-/* 手前の樹林帯。ギザギザを細かくして針葉樹に見せる */
-.ridge--fore {
-  height: 11vh;
-  background: var(--ridge-fore);
-  clip-path: polygon(
-    0% 60%, 2% 30%, 4% 62%, 6% 24%, 8% 58%, 10% 36%, 12% 66%, 14% 28%,
-    16% 61%, 18% 40%, 20% 22%, 22% 57%, 24% 33%, 26% 64%, 28% 26%,
-    30% 59%, 32% 38%, 34% 20%, 36% 55%, 38% 31%, 40% 63%, 42% 27%,
-    44% 60%, 46% 35%, 48% 18%, 50% 54%, 52% 30%, 54% 62%, 56% 25%,
-    58% 58%, 60% 37%, 62% 21%, 64% 56%, 66% 32%, 68% 65%, 70% 28%,
-    72% 60%, 74% 36%, 76% 23%, 78% 57%, 80% 31%, 82% 63%, 84% 26%,
-    86% 59%, 88% 38%, 90% 20%, 92% 55%, 94% 33%, 96% 61%, 98% 29%, 100% 58%,
-    100% 100%, 0% 100%
-  );
-}
-
-/* 霧。速度も高さも透明度も揃えない。揃えると"生成物"の顔になる */
-.scenery__mist {
-  position: absolute;
-  left: -30%;
-  width: 160%;
-  border-radius: 50%;
-  filter: blur(28px);
-  opacity: 0.5;
-  background: radial-gradient(closest-side, var(--mist), transparent 72%);
-  will-change: transform;
-}
-
-.mist--1 { bottom: 26vh; height: 13vh; opacity: 0.30; animation: drift-a 47s linear infinite; }
-.mist--2 { bottom: 17vh; height: 9vh;  opacity: 0.42; animation: drift-b 71s linear infinite; }
-.mist--3 { bottom: 8vh;  height: 16vh; opacity: 0.26; animation: drift-a 93s linear infinite reverse; }
-.mist--4 { bottom: 34vh; height: 6vh;  opacity: 0.18; animation: drift-b 61s linear infinite reverse; }
-
-@keyframes drift-a {
-  0%   { transform: translate3d(-8%, 0, 0) scaleY(1); }
-  50%  { transform: translate3d(6%, -1.5vh, 0) scaleY(1.18); }
-  100% { transform: translate3d(-8%, 0, 0) scaleY(1); }
-}
-
-@keyframes drift-b {
-  0%   { transform: translate3d(5%, 0.6vh, 0) scaleY(1.1); }
-  50%  { transform: translate3d(-7%, -0.8vh, 0) scaleY(0.92); }
-  100% { transform: translate3d(5%, 0.6vh, 0) scaleY(1.1); }
-}
-
-/* フィルムの粒子。のっぺりした面をざらつかせて機械っぽさを削る */
+/* フィルムの粒子。面がのっぺりしないように */
 .scenery__grain {
   position: absolute;
   inset: -50%;
-  opacity: 0.055;
+  opacity: 0.05;
   mix-blend-mode: overlay;
   background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='180' height='180'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='180' height='180' filter='url(%23n)'/%3E%3C/svg%3E");
   animation: grain 6s steps(6) infinite;
@@ -249,22 +118,13 @@ a {
 
 @keyframes grain {
   0%   { transform: translate(0, 0); }
-  20%  { transform: translate(-3%, 2%); }
-  40%  { transform: translate(2%, -3%); }
-  60%  { transform: translate(-2%, -2%); }
-  80%  { transform: translate(3%, 1%); }
+  25%  { transform: translate(-3%, 2%); }
+  50%  { transform: translate(2%, -3%); }
+  75%  { transform: translate(-2%, -1%); }
   100% { transform: translate(0, 0); }
 }
 
-@media (prefers-reduced-motion: reduce) {
-  html { scroll-behavior: auto; }
-  .scenery__stars,
-  .scenery__mist,
-  .scenery__grain { animation: none; }
-}
-
-/* 空が明るく焼けている帯の上でも本文が読めるように、
-   風景と内容のあいだに薄い暗幕を一枚入れる。 */
+/* 風景と本文のあいだに薄い暗幕。明るい霧の上でも文字が読めるように */
 body::before {
   content: '';
   position: fixed;
@@ -273,29 +133,64 @@ body::before {
   pointer-events: none;
   background: linear-gradient(
     to bottom,
-    rgba(7, 10, 18, 0.35) 0%,
-    rgba(7, 10, 18, 0.45) 45%,
-    rgba(7, 10, 18, 0.62) 78%,
-    rgba(7, 10, 18, 0.72) 100%
+    rgba(8, 11, 16, 0.42) 0%,
+    rgba(8, 11, 16, 0.52) 45%,
+    rgba(8, 11, 16, 0.68) 78%,
+    rgba(8, 11, 16, 0.78) 100%
   );
 }
 
+@media (prefers-reduced-motion: reduce) {
+  html { scroll-behavior: auto; }
+  .fog,
+  .scenery__grain { animation: none; }
+}
+
 /* ---------------------------------------------------------
-   共通レイアウト
+   ロゴ
    --------------------------------------------------------- */
 
-.shell {
-  width: min(100% - 2.5rem, var(--shell));
-  margin-inline: auto;
+.logo {
+  display: inline-grid;
+  justify-items: center;
+  gap: 0.18rem;
+  text-decoration: none;
+  color: var(--ink-strong);
+  line-height: 1;
 }
+
+.logo__main {
+  font-family: var(--font-logo);
+  font-weight: 800;
+  font-size: 1.55rem;
+  letter-spacing: 0.02em;
+  text-transform: uppercase;
+  transform: scaleY(1.06);
+}
+
+.logo__sub {
+  font-family: var(--font-logo);
+  font-weight: 700;
+  font-size: 0.6rem;
+  letter-spacing: 0.62em;
+  text-indent: 0.62em;
+  text-transform: uppercase;
+  color: var(--ink);
+}
+
+/* ---------------------------------------------------------
+   ヘッダー / フッター
+   --------------------------------------------------------- */
+
+.shell { width: min(100% - 2.5rem, var(--shell)); margin-inline: auto; }
 
 .site-header {
   position: sticky;
   top: 0;
   z-index: 40;
-  backdrop-filter: blur(14px) saturate(120%);
-  -webkit-backdrop-filter: blur(14px) saturate(120%);
-  background: linear-gradient(to bottom, rgba(7, 10, 18, 0.96), rgba(7, 10, 18, 0.88));
+  backdrop-filter: blur(14px) saturate(115%);
+  -webkit-backdrop-filter: blur(14px) saturate(115%);
+  background: linear-gradient(to bottom, rgba(8, 11, 16, 0.96), rgba(8, 11, 16, 0.86));
   border-bottom: 1px solid var(--line-soft);
 }
 
@@ -304,29 +199,14 @@ body::before {
   align-items: center;
   justify-content: space-between;
   gap: 1.5rem;
-  min-height: 4.25rem;
-}
-
-.site-title {
-  font-family: var(--font-latin);
-  font-size: 1.32rem;
-  font-weight: 500;
-  letter-spacing: 0.26em;
-  text-decoration: none;
-  color: var(--ink-strong);
-  text-shadow: 0 0 26px rgba(206, 214, 224, 0.28);
-  white-space: nowrap;
-}
-
-.site-title span {
-  color: var(--ember);
+  min-height: 4.5rem;
 }
 
 .site-nav {
   display: flex;
-  gap: 1.6rem;
+  gap: 1.75rem;
   font-family: var(--font-latin);
-  font-size: 0.86rem;
+  font-size: 0.88rem;
   letter-spacing: 0.2em;
   text-transform: uppercase;
   color: var(--ink-mute);
@@ -334,25 +214,23 @@ body::before {
 
 .site-nav a {
   text-decoration: none;
-  padding-block: 0.3rem;
+  padding-block: 0.35rem;
   border-bottom: 1px solid transparent;
   transition: color 0.25s var(--ease), border-color 0.25s var(--ease);
 }
 
-.site-nav a:hover {
-  color: var(--ink-strong);
-  border-bottom-color: var(--ember);
-}
+.site-nav a:hover { color: var(--ink-strong); border-bottom-color: var(--ember); }
 
 @media (max-width: 44rem) {
-  .site-nav { display: none; }
+  .site-nav { gap: 1rem; font-size: 0.78rem; letter-spacing: 0.12em; }
+  .site-nav a:nth-child(n + 3) { display: none; }
 }
 
 .site-footer {
   margin-top: 7rem;
   border-top: 1px solid var(--line-soft);
-  background: linear-gradient(to bottom, rgba(5, 8, 14, 0.5), rgba(5, 8, 14, 0.92));
-  padding: 3.5rem 0 2.5rem;
+  background: linear-gradient(to bottom, rgba(6, 9, 13, 0.55), rgba(6, 9, 13, 0.95));
+  padding: 3.5rem 0 2.75rem;
   color: var(--ink-faint);
   font-size: 0.85rem;
 }
@@ -360,24 +238,32 @@ body::before {
 .site-footer .shell {
   display: flex;
   flex-wrap: wrap;
-  gap: 1.5rem 3rem;
-  align-items: baseline;
+  gap: 1.75rem 3rem;
+  align-items: center;
   justify-content: space-between;
 }
 
-.site-footer .footer-mark {
+.footer-brand { display: grid; justify-items: center; gap: 0.18rem; color: var(--ink-mute); }
+
+.footer-nav {
+  display: flex;
+  gap: 1.5rem;
   font-family: var(--font-latin);
-  letter-spacing: 0.24em;
-  color: var(--ink-mute);
+  font-size: 0.82rem;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
 }
+
+.footer-nav a { text-decoration: none; color: var(--ink-mute); }
+.footer-nav a:hover { color: var(--ink-strong); }
+
+.footer-copy { margin: 0; font-family: var(--font-latin); letter-spacing: 0.14em; }
 
 /* ---------------------------------------------------------
-   トップページ
+   トップページ / 一覧
    --------------------------------------------------------- */
 
-.hero {
-  padding: 8rem 0 5rem;
-}
+.hero { padding: 8rem 0 4.5rem; }
 
 .hero__eyebrow {
   font-family: var(--font-latin);
@@ -391,64 +277,128 @@ body::before {
 .hero h1 {
   font-family: var(--font-serif);
   font-weight: 400;
-  font-size: clamp(2.1rem, 6vw, 3.4rem);
+  font-size: clamp(2.1rem, 6vw, 3.3rem);
   line-height: 1.55;
   letter-spacing: 0.1em;
   margin: 0 0 1.4rem;
   color: var(--ink-strong);
-  text-shadow: 0 0 40px rgba(190, 205, 226, 0.22);
+  text-shadow: 0 0 42px rgba(190, 205, 226, 0.2);
 }
 
-.hero p {
-  max-width: var(--measure);
-  color: var(--ink-mute);
-  margin: 0;
+.hero p { max-width: 34rem; color: var(--ink-mute); margin: 0; }
+
+.section-head {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 1.5rem;
+  padding-bottom: 1.1rem;
+  border-bottom: 1px solid var(--line);
 }
 
-.article-list {
-  list-style: none;
+.section-head h2 {
   margin: 0;
-  padding: 0 0 4rem;
-  display: grid;
-  gap: 1px;
-  background: var(--line-soft);
-  border-block: 1px solid var(--line-soft);
+  font-family: var(--font-latin);
+  font-size: 0.86rem;
+  font-weight: 400;
+  letter-spacing: 0.3em;
+  text-transform: uppercase;
+  color: var(--ink-strong);
 }
+
+.section-head .count {
+  font-family: var(--font-latin);
+  font-size: 0.82rem;
+  letter-spacing: 0.16em;
+  color: var(--ink-faint);
+}
+
+/* 一覧は行組み。カードを並べるより誌面らしくなる */
+.article-list { list-style: none; margin: 0; padding: 0 0 4rem; }
+
+.article-list > li { border-bottom: 1px solid var(--line-soft); }
 
 .article-card {
   display: grid;
-  gap: 0.5rem;
-  padding: 2rem 1.5rem;
+  grid-template-columns: 4.5rem minmax(0, 1fr) 2rem;
+  align-items: start;
+  gap: 0 1.75rem;
+  padding: 2.1rem 0;
   text-decoration: none;
-  background: rgba(7, 10, 18, 0.35);
-  transition: background 0.3s var(--ease), padding-left 0.3s var(--ease);
+  transition: background 0.3s var(--ease);
 }
 
-.article-card:hover {
-  background: rgba(18, 27, 43, 0.6);
-  padding-left: 2.25rem;
+.article-card__index {
+  font-family: var(--font-latin);
+  font-size: 0.82rem;
+  letter-spacing: 0.16em;
+  color: var(--ink-faint);
+  padding-top: 0.35rem;
 }
 
 .article-card .card-meta {
+  display: block;
   font-family: var(--font-latin);
-  font-size: 0.82rem;
-  letter-spacing: 0.18em;
+  font-size: 0.8rem;
+  letter-spacing: 0.2em;
   text-transform: uppercase;
   color: var(--ember-soft);
+  margin-bottom: 0.4rem;
 }
 
 .article-card h2 {
   font-family: var(--font-serif);
   font-weight: 400;
-  font-size: 1.28rem;
+  font-size: 1.3rem;
   line-height: 1.7;
   letter-spacing: 0.06em;
-  margin: 0;
+  margin: 0 0 0.5rem;
   color: var(--ink-strong);
+  transition: color 0.25s var(--ease);
 }
 
 .article-card .description {
   margin: 0;
   color: var(--ink-mute);
   font-size: 0.9rem;
+  max-width: 44rem;
 }
+
+.article-card__arrow {
+  align-self: center;
+  justify-self: end;
+  font-family: var(--font-latin);
+  color: var(--ink-faint);
+  transition: transform 0.3s var(--ease), color 0.25s var(--ease);
+}
+
+.article-card:hover h2 { color: var(--ember-soft); }
+.article-card:hover .article-card__arrow { transform: translateX(6px); color: var(--ember-soft); }
+
+@media (max-width: 44rem) {
+  .article-card { grid-template-columns: 2.6rem minmax(0, 1fr); }
+  .article-card__arrow { display: none; }
+}
+
+/* ---------------------------------------------------------
+   汎用の本文ページ(About など)
+   --------------------------------------------------------- */
+
+.page-body {
+  max-width: 40rem;
+  padding-bottom: 3rem;
+  font-size: 1rem;
+}
+
+.page-body h2 {
+  font-family: var(--font-serif);
+  font-weight: 400;
+  font-size: 1.35rem;
+  letter-spacing: 0.07em;
+  margin: 3rem 0 1rem;
+  padding-bottom: 0.8rem;
+  border-bottom: 1px solid var(--line-soft);
+  color: var(--ink-strong);
+}
+
+.page-body p { margin: 0 0 1.4rem; }

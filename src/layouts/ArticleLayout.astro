@@ -19,7 +19,7 @@ interface Props {
   tags?: string[];
   faq?: FaqItem[];
   related?: RelatedItem[];
-  author?: { name: string; role: string; bio: string; initials?: string };
+  author?: { name: string; role: string; bio: string };
 }
 
 const {
@@ -36,10 +36,9 @@ const {
   faq = [],
   related = [],
   author = {
-    name: '大和 蒼一',
-    role: 'Editor / 登山ガイド',
-    bio: '北アルプスを中心に年間70日ほど山に入る。低山の夜歩きと、雪が消えたばかりの沢筋が好き。装備は「持って行って後悔したもの」から書くことにしている。',
-    initials: 'YO',
+    name: '濵地 蒼麗',
+    role: 'Founder / Editor',
+    bio: '月に一度は必ず山に入る。平日はIT企業でEC・SaaS領域の仕事をしていて、道具の話もつい仕様と検証データから入ってしまう。オフの日はジムで、担ぎ続けるための体を作っている。山が好きすぎて、自分たちでアウトドアブランドを立ち上げた。',
   },
 } = Astro.props;
 
@@ -91,8 +90,8 @@ if (faq.length) {
   });
 }
 
-const renderToc = (items: TocItem[]) => items;
-const tocItems = renderToc(toc);
+// 目次に出すのはh2のみ。h3まで並べると項目が増えすぎて一覧性が落ちる。
+const tocItems: TocItem[] = toc.filter((item) => item.level === 2);
 ---
 
 <BaseLayout title={`${title} | YAMATO OUTDOOR`} description={description} ogImage={thumbnailUrl} ogType="article">
@@ -148,9 +147,7 @@ const tocItems = renderToc(toc);
               <p class="toc__sub">この記事の目次</p>
               <ol>
                 {tocItems.map((item) => (
-                  <li class={item.level === 3 ? 'toc-sub' : ''}>
-                    <a href={`#${item.id}`}>{item.text}</a>
-                  </li>
+                  <li><a href={`#${item.id}`}>{item.text}</a></li>
                 ))}
               </ol>
             </nav>
@@ -171,7 +168,7 @@ const tocItems = renderToc(toc);
           )}
 
           <aside class="author">
-            <div class="author__mark" aria-hidden="true">{author.initials ?? 'YO'}</div>
+            <p class="author__label">Author</p>
             <div>
               <p class="author__role">{author.role}</p>
               <p class="author__name">{author.name}</p>
@@ -200,9 +197,7 @@ const tocItems = renderToc(toc);
             <p class="toc__sub">読んでいる位置</p>
             <ol>
               {tocItems.map((item) => (
-                <li class={item.level === 3 ? 'toc-sub' : ''}>
-                  <a href={`#${item.id}`}>{item.text}</a>
-                </li>
+                <li><a href={`#${item.id}`}>{item.text}</a></li>
               ))}
             </ol>
           </nav>
@@ -211,17 +206,21 @@ const tocItems = renderToc(toc);
 
       {related.length > 0 && (
         <section class="related" aria-labelledby="related-heading">
-          <h2 class="related__heading" id="related-heading">Related</h2>
-          <ul class="related__list">
+          <div class="related__head">
+            <h2 class="related__heading" id="related-heading">Related reading</h2>
+            <a class="related__all" href="/">View all</a>
+          </div>
+          <ol class="related__list">
             {related.map((item) => (
               <li>
                 <a href={item.href}>
-                  {item.meta && <span class="card-meta">{item.meta}</span>}
                   <h3>{item.title}</h3>
+                  <span class="card-meta">{item.meta ?? ''}</span>
+                  <span class="arrow" aria-hidden="true">→</span>
                 </a>
               </li>
             ))}
-          </ul>
+          </ol>
         </section>
       )}
     </div>
@@ -266,7 +265,7 @@ const tocItems = renderToc(toc);
 
       // --- 追従目次の現在地表示 ---
       const aside = document.getElementById('tocAside');
-      const headings = Array.from(document.querySelectorAll('.prose h2[id], .prose h3[id]'));
+      const headings = Array.from(document.querySelectorAll('.prose h2[id]'));
       if (aside && headings.length) {
         const links = new Map();
         aside.querySelectorAll('a[href^="#"]').forEach((a) => {

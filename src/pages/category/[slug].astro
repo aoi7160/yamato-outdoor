@@ -1,0 +1,71 @@
+---
+// カテゴリ別の記事一覧。ヘッダーの Gear / Route などはここに着地する。
+import BaseLayout from '../../layouts/BaseLayout.astro';
+import { getArticles } from '../../lib/microcms';
+import { formatDate } from '../../lib/article';
+
+export async function getStaticPaths() {
+  const res = await getArticles({ limit: 100, fields: ['slug', 'category'] });
+  const map = new Map<string, string>();
+  res.contents.forEach((a) => {
+    if (a.category?.slug) map.set(a.category.slug, a.category.name);
+  });
+  // 記事がまだ無くてもナビゲーションのリンク先が404にならないようにしておく
+  ['gear', 'route', 'how-to'].forEach((slug) => {
+    if (!map.has(slug)) map.set(slug, slug === 'how-to' ? 'How to' : slug === 'gear' ? 'Gear' : 'Route');
+  });
+  return [...map].map(([slug, name]) => ({ params: { slug }, props: { name } }));
+}
+
+const { slug } = Astro.params;
+const { name } = Astro.props;
+const { contents: articles } = await getArticles({
+  filters: `category[equals]${slug}`,
+  orders: '-publishedAt',
+  limit: 50,
+});
+
+const labels: Record<string, string> = {
+  gear: 'テント・ウェア・ギアの実地レビューと検証。買う前に知りたかったことを書く。',
+  route: '実際に歩いたルートの記録。コースタイム、水場、エスケープの判断。',
+  'how-to': '技術と考え方。読図、レイヤリング、計画の立て方。',
+};
+---
+
+<BaseLayout title={`${name} | YAMATO OUTDOOR`} description={labels[slug!] ?? `${name}の記事一覧`}>
+  <section class="hero">
+    <div class="shell">
+      <p class="hero__eyebrow">Category</p>
+      <h1>{name}</h1>
+      <p>{labels[slug!] ?? ''}</p>
+    </div>
+  </section>
+
+  <section class="shell">
+    <div class="section-head">
+      <h2>Articles</h2>
+      <span class="count">{String(articles.length).padStart(2, '0')} articles</span>
+    </div>
+    {articles.length === 0 ? (
+      <p style="color: var(--ink-faint); padding: 2.5rem 0 4rem;">
+        このカテゴリの記事は準備中です。
+      </p>
+    ) : (
+      <ul class="article-list">
+        {articles.map((article, i) => (
+          <li>
+            <a class="article-card" href={`/articles/${article.slug}/`}>
+              <span class="article-card__index">{String(i + 1).padStart(2, '0')}</span>
+              <span>
+                <span class="card-meta">{formatDate(article.publishedAt)}</span>
+                <h2>{article.title}</h2>
+                <p class="description">{article.description}</p>
+              </span>
+              <span class="article-card__arrow" aria-hidden="true">→</span>
+            </a>
+          </li>
+        ))}
+      </ul>
+    )}
+  </section>
+</BaseLayout>

@@ -4,7 +4,6 @@ import '../styles/global.css';
 interface Props {
   title: string;
   description?: string;
-  /** 記事ページなど、追加のCSSを読ませたいページ用 */
   ogImage?: string;
   ogType?: string;
 }
@@ -26,7 +25,7 @@ const year = new Date().getFullYear();
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <meta name="description" content={description} />
-    <meta name="theme-color" content="#070a12" />
+    <meta name="theme-color" content="#080b10" />
     <title>{title}</title>
     <link rel="canonical" href={canonical} />
     <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
@@ -38,38 +37,88 @@ const year = new Date().getFullYear();
     {ogImage && <meta property="og:image" content={ogImage} />}
     <meta name="twitter:card" content="summary_large_image" />
 
-    <!-- 和文=Zen Old Mincho / Zen Kaku Gothic New、欧文=Barlow Condensed -->
+    <!-- ロゴ=Big Shoulders Display / 和文見出し=Zen Old Mincho / 本文=Zen Kaku Gothic New / 欧文=Barlow Condensed -->
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link
       rel="stylesheet"
-      href="https://fonts.googleapis.com/css2?family=Zen+Old+Mincho:wght@400;500;700&family=Zen+Kaku+Gothic+New:wght@300;400;500&family=Barlow+Condensed:wght@300;400;500&display=swap"
+      href="https://fonts.googleapis.com/css2?family=Big+Shoulders+Display:wght@700;800&family=Zen+Old+Mincho:wght@400;500;700&family=Zen+Kaku+Gothic+New:wght@300;400;500&family=Barlow+Condensed:wght@300;400;500&display=swap"
     />
     <slot name="head" />
   </head>
   <body>
-    <!-- 夜明け前の稜線。画像を使わずCSSだけで描いている -->
+    <!--
+      霧の山。写真は使わず、不規則なパスのシルエットと、ぼかした霧の層だけで作っている。
+      稜線は等間隔の三角形にしないこと(すぐに図形の反復に見えてしまう)。
+    -->
     <div class="scenery" aria-hidden="true">
-      <div class="scenery__stars"></div>
-      <div class="scenery__ridge ridge--far"></div>
-      <div class="scenery__mist mist--4"></div>
-      <div class="scenery__ridge ridge--mid"></div>
-      <div class="scenery__mist mist--1"></div>
-      <div class="scenery__ridge ridge--near"></div>
-      <div class="scenery__mist mist--2"></div>
-      <div class="scenery__ridge ridge--fore"></div>
-      <div class="scenery__mist mist--3"></div>
+      <svg class="scenery__svg" viewBox="0 0 1600 900" preserveAspectRatio="xMidYMax slice" role="presentation">
+        <defs>
+          <linearGradient id="skyGrad" x1="0" y1="0" x2="0" y2="1">
+            <stop offset="0%" stop-color="#070a0f" />
+            <stop offset="38%" stop-color="#0d131b" />
+            <stop offset="66%" stop-color="#18212b" />
+            <stop offset="86%" stop-color="#28323c" />
+            <stop offset="100%" stop-color="#3a444e" />
+          </linearGradient>
+          <radialGradient id="moonGlow" cx="0.72" cy="0.12" r="0.55">
+            <stop offset="0%" stop-color="#c8d6e4" stop-opacity="0.20" />
+            <stop offset="100%" stop-color="#c8d6e4" stop-opacity="0" />
+          </radialGradient>
+          <radialGradient id="dawnGlow" cx="0.26" cy="0.86" r="0.6">
+            <stop offset="0%" stop-color="#b08a6a" stop-opacity="0.16" />
+            <stop offset="100%" stop-color="#b08a6a" stop-opacity="0" />
+          </radialGradient>
+          <filter id="soft" x="-20%" y="-20%" width="140%" height="140%">
+            <feGaussianBlur stdDeviation="5" />
+          </filter>
+          <filter id="softer" x="-20%" y="-20%" width="140%" height="140%">
+            <feGaussianBlur stdDeviation="2.4" />
+          </filter>
+          <filter id="fogBlur" x="-30%" y="-60%" width="160%" height="220%">
+            <feGaussianBlur stdDeviation="48" />
+          </filter>
+        </defs>
+
+        <rect width="1600" height="900" fill="url(#skyGrad)" />
+        <rect width="1600" height="900" fill="url(#moonGlow)" />
+        <rect width="1600" height="900" fill="url(#dawnGlow)" />
+
+        <!-- 奥の稜線。霧に飲まれかけている -->
+        <path d="M 0.0 430 Q 0.0 430 52.5 364.8 Q 105.1 299.5 144.5 358.6 Q 183.9 417.8 236.2 366.1 Q 288.6 314.5 354.2 356.2 Q 419.8 397.9 447.4 352.3 Q 474.9 306.7 536.4 364.5 Q 597.9 422.3 639.1 383.4 Q 680.4 344.4 776.3 379.2 Q 872.3 414.1 931.8 364.8 Q 991.3 315.4 1030.5 385.6 Q 1069.8 455.8 1109.6 387.1 Q 1149.4 318.5 1193.7 381.8 Q 1238.0 445.1 1280.6 422.0 Q 1323.2 398.8 1378.5 428.4 Q 1433.8 458.0 1516.9 469.0 L 1600.0 900 L 0 900 Z" fill="#2c3945" opacity="0.5" filter="url(#soft)" />
+
+        <!-- 霧の層(奥) -->
+        <ellipse class="fog fog--a" cx="700" cy="470" rx="900" ry="70" fill="#c9d4de" opacity="0.10" filter="url(#fogBlur)" />
+
+        <!-- 中景の稜線 -->
+        <path d="M 0.0 560 Q 0.0 560 28.6 507.5 Q 57.2 455.0 110.8 506.0 Q 164.3 557.0 203.5 525.1 Q 242.7 493.2 297.5 514.0 Q 352.3 534.8 381.3 511.2 Q 410.3 487.7 447.4 517.5 Q 484.5 547.4 534.0 514.0 Q 583.6 480.5 621.8 509.6 Q 660.0 538.6 719.8 491.1 Q 779.6 443.7 819.0 485.4 Q 858.3 527.0 895.6 472.9 Q 933.0 418.7 1014.3 472.6 Q 1095.6 526.5 1119.9 489.3 Q 1144.3 452.1 1192.0 475.4 Q 1239.8 498.7 1275.8 461.8 Q 1311.9 424.8 1350.0 469.1 Q 1388.0 513.5 1418.3 488.0 Q 1448.7 462.5 1513.1 489.6 Q 1577.4 516.7 1588.7 518.4 L 1600.0 900 L 0 900 Z" fill="#1a242e" opacity="0.78" filter="url(#softer)" />
+
+        <!-- 斜めに流れる霧。写真で言えば谷から湧いてくる帯 -->
+        <ellipse class="fog fog--b" cx="820" cy="620" rx="1000" ry="90" fill="#dbe3ea" opacity="0.13" filter="url(#fogBlur)" transform="rotate(-7 820 620)" />
+
+        <!-- 手前の樹林帯。木の高さも間隔も揃えていない -->
+        <path class="treeline" filter="url(#softer)" d="M 0 900 L 0 640 L 4.8 610.7 L 15.5 640.7 L 24.4 627.3 L 34.7 644.3 L 44.9 625.6 L 48.8 648.5 L 59.6 602.0 L 66.4 649.0 L 73.8 639.9 L 80.0 645.9 L 86.1 640.8 L 92.9 650.3 L 105.9 620.3 L 115.6 654.3 L 124.1 609.6 L 133.4 658.0 L 142.2 640.2 L 148.9 654.0 L 161.5 619.8 L 169.5 663.3 L 180.1 645.8 L 186.3 661.9 L 198.1 652.7 L 207.0 666.2 L 212.6 645.2 L 219.8 668.0 L 223.7 654.8 L 228.8 669.5 L 238.4 643.9 L 247.2 670.5 L 256.3 658.0 L 266.8 668.4 L 277.8 635.8 L 291.1 676.2 L 299.1 637.1 L 308.0 672.8 L 319.9 661.0 L 327.6 677.2 L 332.8 668.6 L 338.4 678.1 L 348.2 657.5 L 358.3 681.7 L 369.0 669.2 L 380.6 687.3 L 393.3 672.3 L 401.3 690.8 L 410.3 650.0 L 424.5 688.2 L 428.6 650.2 L 432.5 693.2 L 443.4 664.1 L 455.1 690.2 L 465.5 680.0 L 471.0 698.8 L 480.6 658.2 L 486.7 693.7 L 495.8 689.1 L 503.4 698.3 L 513.4 681.3 L 520.8 705.4 L 531.6 675.7 L 541.4 699.7 L 551.2 674.1 L 566.5 701.8 L 575.7 676.5 L 584.3 712.8 L 591.9 678.3 L 603.4 712.6 L 615.0 675.2 L 626.7 714.7 L 642.5 694.9 L 656.7 719.4 L 666.9 699.2 L 677.9 720.4 L 685.0 681.7 L 697.3 723.5 L 706.2 697.6 L 717.7 726.8 L 726.0 717.8 L 738.2 726.3 L 746.8 705.4 L 758.6 732.3 L 763.7 714.2 L 769.1 729.0 L 777.9 704.0 L 791.1 735.7 L 800.9 721.6 L 811.6 737.8 L 827.3 718.9 L 840.8 736.9 L 847.6 707.6 L 858.4 742.7 L 869.5 731.1 L 876.5 742.0 L 884.1 718.8 L 892.6 744.0 L 908.0 726.7 L 920.4 744.2 L 932.7 722.6 L 938.0 749.9 L 947.6 741.8 L 952.1 749.4 L 963.6 743.4 L 968.7 756.0 L 980.8 729.9 L 992.8 760.5 L 1001.5 738.1 L 1006.7 755.6 L 1019.0 748.7 L 1029.6 760.0 L 1042.2 738.9 L 1052.9 763.3 L 1066.4 757.1 L 1081.5 768.6 L 1086.7 744.2 L 1097.3 768.5 L 1108.3 741.7 L 1123.2 771.5 L 1131.1 747.2 L 1138.9 776.0 L 1148.0 744.3 L 1156.5 780.7 L 1166.5 762.7 L 1180.4 781.6 L 1185.4 762.1 L 1191.0 783.6 L 1198.3 753.4 L 1201.4 785.4 L 1209.7 755.2 L 1216.1 781.3 L 1228.9 755.9 L 1241.3 789.8 L 1252.9 779.7 L 1265.6 789.1 L 1276.3 767.5 L 1288.0 794.6 L 1297.5 777.5 L 1306.5 797.8 L 1314.7 763.3 L 1327.6 796.9 L 1335.4 778.7 L 1345.6 795.2 L 1359.1 784.4 L 1369.9 802.3 L 1379.7 795.8 L 1391.1 803.4 L 1406.9 793.6 L 1420.4 804.2 L 1431.7 780.2 L 1444.1 808.7 L 1452.4 782.3 L 1461.5 815.0 L 1467.6 802.6 L 1474.8 813.4 L 1483.6 807.4 L 1495.1 813.5 L 1503.1 807.6 L 1510.2 818.5 L 1518.7 801.0 L 1525.9 818.4 L 1539.1 803.4 L 1551.3 824.0 L 1561.4 801.1 L 1569.5 829.2 L 1575.9 798.4 L 1582.3 831.6 L 1594.7 817.9 L 1601.5 828.1 L 1600 830 L 1600 900 Z" fill="#070a0e" opacity="0.96" />
+
+        <ellipse class="fog fog--c" cx="500" cy="790" rx="1100" ry="110" fill="#e3e9ef" opacity="0.09" filter="url(#fogBlur)" transform="rotate(-5 500 790)" />
+        <ellipse class="fog fog--e" cx="380" cy="690" rx="820" ry="70" fill="#d5dee6" opacity="0.13" filter="url(#fogBlur)" transform="rotate(-6 380 690)" />
+        <ellipse class="fog fog--d" cx="1150" cy="700" rx="620" ry="60" fill="#ffffff" opacity="0.06" filter="url(#fogBlur)" />
+      </svg>
       <div class="scenery__grain"></div>
     </div>
 
     <header class="site-header">
       <div class="shell">
-        <a href="/" class="site-title">YAMATO<span>／</span>OUTDOOR</a>
+        <!-- ロゴ。支給のワードマーク(公式ロゴ画像)に差し替える場合は
+             public/logo.svg を置いて、このブロックを <img> 1行にすればよい -->
+        <a href="/" class="logo" aria-label="YAMATO OUTDOOR トップへ">
+          <span class="logo__main">YAMATO</span>
+          <span class="logo__sub">OUTDOOR</span>
+        </a>
         <nav class="site-nav" aria-label="メインメニュー">
           <a href="/">Articles</a>
-          <a href="/#gear">Gear</a>
-          <a href="/#route">Route</a>
-          <a href="/#about">About</a>
+          <a href="/category/gear">Gear</a>
+          <a href="/category/route">Route</a>
+          <a href="/about">About</a>
         </nav>
       </div>
     </header>
@@ -80,9 +129,17 @@ const year = new Date().getFullYear();
 
     <footer class="site-footer">
       <div class="shell">
-        <p class="footer-mark">YAMATO OUTDOOR</p>
-        <p>山と生きる。山と挑む。</p>
-        <p>&copy; {year} YAMATO OUTDOOR</p>
+        <div class="footer-brand">
+          <span class="logo__main">YAMATO</span>
+          <span class="logo__sub">OUTDOOR</span>
+        </div>
+        <nav class="footer-nav" aria-label="フッターメニュー">
+          <a href="/">Articles</a>
+          <a href="/category/gear">Gear</a>
+          <a href="/category/route">Route</a>
+          <a href="/about">About</a>
+        </nav>
+        <p class="footer-copy">&copy; {year} YAMATO OUTDOOR</p>
       </div>
     </footer>
   </body>

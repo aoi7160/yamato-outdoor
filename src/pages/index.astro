@@ -4,6 +4,20 @@ import { getArticles } from '../lib/microcms';
 import { formatDate } from '../lib/article';
 
 const { contents: articles } = await getArticles({ orders: '-publishedAt', limit: 20 });
+
+// microCMS未接続でも一覧の見え方が確認できるように、見本記事を1本だけ差し込む
+const fallback = [
+  {
+    slug: 'night-hike-basics',
+    title: '夜明け前に歩き出す。ナイトハイクで山頂に立つための装備と歩き方',
+    description:
+      '暗いうちに登り始めて、稜線で朝を迎える。出発時刻の逆算からヘッドランプ選び、汗の管理、山頂での待ち方、下山までを、実際の失敗をたどりながら順にまとめました。',
+    category: { name: 'How to' },
+    publishedAt: '2026-08-07T00:00:00.000Z',
+  },
+];
+
+const items = articles.length > 0 ? articles : fallback;
 ---
 
 <BaseLayout title="YAMATO OUTDOOR | 山と生きる。山と挑む。">
@@ -16,35 +30,26 @@ const { contents: articles } = await getArticles({ orders: '-publishedAt', limit
   </section>
 
   <section class="shell">
-    {
-      articles.length === 0 ? (
-        <ul class="article-list">
-          <li>
-            <a class="article-card" href="/articles/night-hike-basics/">
-              <span class="card-meta">How to — 2026.08.07</span>
-              <h2>夜明け前に歩き出す。ナイトハイクで山頂に立つための装備と歩き方</h2>
-              <p class="description">
-                暗いうちに登り始めて、稜線で朝を迎える。ヘッドランプの選び方から低体温症の避け方まで、
-                実際に何度も失敗しながら固めた手順をまとめた。
-              </p>
-            </a>
-          </li>
-        </ul>
-      ) : (
-        <ul class="article-list">
-          {articles.map((article) => (
-            <li>
-              <a class="article-card" href={`/articles/${article.slug}/`}>
-                <span class="card-meta">
-                  {article.category?.name ?? 'Journal'} — {formatDate(article.publishedAt)}
-                </span>
-                <h2>{article.title}</h2>
-                <p class="description">{article.description}</p>
-              </a>
-            </li>
-          ))}
-        </ul>
-      )
-    }
+    <div class="section-head">
+      <h2>Latest</h2>
+      <span class="count">{String(items.length).padStart(2, '0')} articles</span>
+    </div>
+    <ul class="article-list">
+      {items.map((article, i) => (
+        <li>
+          <a class="article-card" href={`/articles/${article.slug}/`}>
+            <span class="article-card__index">{String(i + 1).padStart(2, '0')}</span>
+            <span>
+              <span class="card-meta">
+                {article.category?.name ?? 'Journal'} — {formatDate(article.publishedAt)}
+              </span>
+              <h2>{article.title}</h2>
+              <p class="description">{article.description}</p>
+            </span>
+            <span class="article-card__arrow" aria-hidden="true">→</span>
+          </a>
+        </li>
+      ))}
+    </ul>
   </section>
 </BaseLayout>
