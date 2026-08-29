@@ -120,6 +120,23 @@ docs/
 自動生成する。記事が0件でもリンクが404にならないよう、gear / route / how-to は
 常にページを用意している。
 
+## SNS
+
+アカウントのURLは `src/lib/site.ts` の `SOCIALS` にまとめてある。ここを書き換えれば
+フッターのフォローリンクと記事末尾のシェア/フォロー欄に反映される
+(URLを空文字にしたものは表示されない)。
+
+アイコンは `src/components/SocialIcon.astro` にパスを持たせた単色SVG。
+各社が配布しているロゴパック(`__MACOSX` や `Dev Portal Logo Pack` などが同梱された
+zip)をそのまま置く必要はない。形式もサイズもばらつくうえ、単色・同一サイズに
+揃えるほうがデザイン上も扱いやすいため。
+
+- シェア(記事末尾): X / Facebook / Threads / LINE / リンクコピー
+- フォロー(記事末尾・フッター): X / Instagram / TikTok / Threads / Facebook
+
+Instagram と TikTok にはWebからの投稿共有の導線が無いため、シェアではなく
+フォローリンクとしてのみ設置している。
+
 ## 記事ページのデザインについて
 
 霧のかかった山の写真のトーンに寄せている。背景は写真素材を使わず、不規則なパスの
@@ -129,11 +146,13 @@ docs/
 見出しや本文の影は、霧越しに文字が浮かび上がる見え方を狙って二段の `text-shadow`
 で作っている。
 
-- フォント: ロゴは Big Shoulders Display(ヘビーコンデンス)を2段組みにしたロックアップ、
-  和文の見出しは Zen Old Mincho(明朝)、本文は Zen Kaku Gothic New、
+- ロゴ: `src/components/Logo.astro`(SVG、色は `currentColor` で継承)。
+  ヘッダー・フッターはこのコンポーネントを読んでいるので、公式ロゴのベクターデータを
+  受け取ったらこのファイルのSVGを差し替えるだけでよい(`fill`/`stroke` は
+  `currentColor` のままにしておくと、配色を変えても追従する)。
+  色を継承できない用途(OGP画像・メールなど)向けに `public/logo.svg` も同じ形で置いている。
+- フォント: 和文の見出しは Zen Old Mincho(明朝)、本文は Zen Kaku Gothic New、
   欧文・数字・ラベルは Barlow Condensed。Google Fontsから読み込む。
-  公式ロゴの画像データがある場合は `public/logo.svg` に置き、
-  `BaseLayout.astro` のロゴブロックを `<img>` 1行に差し替える。
 - 目次: 本文の `h2` から自動生成する(`src/lib/article.ts`)。アンカーリンクで該当見出しへ飛ぶ。
   広い画面では右側に追従表示し、いま読んでいる見出しをハイライトする。
   狭い画面では本文の先頭に置く。

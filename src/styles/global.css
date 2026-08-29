@@ -150,33 +150,35 @@ body::before {
    ロゴ
    --------------------------------------------------------- */
 
-.logo {
-  display: inline-grid;
-  justify-items: center;
-  gap: 0.18rem;
-  text-decoration: none;
-  color: var(--ink-strong);
-  line-height: 1;
+.logo { display: inline-flex; text-decoration: none; color: var(--ink-strong); }
+
+.logo__mark { width: 9.5rem; height: auto; display: block; }
+
+@media (max-width: 44rem) {
+  .logo__mark { width: 8.25rem; }
 }
 
-.logo__main {
-  font-family: var(--font-logo);
-  font-weight: 800;
-  font-size: 1.55rem;
-  letter-spacing: 0.02em;
-  text-transform: uppercase;
-  transform: scaleY(1.06);
+/* SNS。アイコンだけを等間隔に並べる */
+.social {
+  display: flex;
+  gap: 1.1rem;
+  list-style: none;
+  margin: 0;
+  padding: 0;
 }
 
-.logo__sub {
-  font-family: var(--font-logo);
-  font-weight: 700;
-  font-size: 0.6rem;
-  letter-spacing: 0.62em;
-  text-indent: 0.62em;
-  text-transform: uppercase;
-  color: var(--ink);
+.social a {
+  display: grid;
+  place-items: center;
+  width: 2rem;
+  height: 2rem;
+  color: var(--ink-mute);
+  border: 1px solid var(--line-soft);
+  border-radius: 50%;
+  transition: color 0.2s var(--ease), border-color 0.2s var(--ease);
 }
+
+.social a:hover { color: var(--ink-strong); border-color: var(--line); }
 
 /* ---------------------------------------------------------
    ヘッダー / フッター
@@ -243,7 +245,8 @@ body::before {
   justify-content: space-between;
 }
 
-.footer-brand { display: grid; justify-items: center; gap: 0.18rem; color: var(--ink-mute); }
+.footer-brand { color: var(--ink-mute); }
+.footer-brand .logo__mark { width: 9.5rem; }
 
 .footer-nav {
   display: flex;

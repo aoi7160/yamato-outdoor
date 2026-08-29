@@ -1,5 +1,8 @@
 ---
 import '../styles/global.css';
+import Logo from '../components/Logo.astro';
+import SocialIcon from '../components/SocialIcon.astro';
+import { SOCIALS } from '../lib/site';
 
 interface Props {
   title: string;
@@ -108,11 +111,8 @@ const year = new Date().getFullYear();
 
     <header class="site-header">
       <div class="shell">
-        <!-- ロゴ。支給のワードマーク(公式ロゴ画像)に差し替える場合は
-             public/logo.svg を置いて、このブロックを <img> 1行にすればよい -->
         <a href="/" class="logo" aria-label="YAMATO OUTDOOR トップへ">
-          <span class="logo__main">YAMATO</span>
-          <span class="logo__sub">OUTDOOR</span>
+          <Logo class="logo__mark" />
         </a>
         <nav class="site-nav" aria-label="メインメニュー">
           <a href="/">Articles</a>
@@ -130,8 +130,7 @@ const year = new Date().getFullYear();
     <footer class="site-footer">
       <div class="shell">
         <div class="footer-brand">
-          <span class="logo__main">YAMATO</span>
-          <span class="logo__sub">OUTDOOR</span>
+          <Logo class="logo__mark" />
         </div>
         <nav class="footer-nav" aria-label="フッターメニュー">
           <a href="/">Articles</a>
@@ -139,6 +138,15 @@ const year = new Date().getFullYear();
           <a href="/category/route">Route</a>
           <a href="/about">About</a>
         </nav>
+        <ul class="social" aria-label="公式SNS">
+          {SOCIALS.filter((s) => s.href).map((s) => (
+            <li>
+              <a href={s.href} target="_blank" rel="noopener noreferrer" aria-label={s.label} title={s.label}>
+                <SocialIcon name={s.name} />
+              </a>
+            </li>
+          ))}
+        </ul>
         <p class="footer-copy">&copy; {year} YAMATO OUTDOOR</p>
       </div>
     </footer>

@@ -2,6 +2,8 @@
 import BaseLayout from './BaseLayout.astro';
 import '../styles/article.css';
 import { prepareArticle, formatDate, type TocItem } from '../lib/article';
+import SocialIcon from '../components/SocialIcon.astro';
+import { SOCIALS } from '../lib/site';
 
 export type FaqItem = { q: string; a: string };
 export type RelatedItem = { title: string; href: string; meta?: string };
@@ -38,7 +40,7 @@ const {
   author = {
     name: '濵地 蒼麗',
     role: 'Founder / Editor',
-    bio: '月に一度は必ず山に入る。平日はIT企業でEC・SaaS領域の仕事をしていて、道具の話もつい仕様と検証データから入ってしまう。オフの日はジムで、担ぎ続けるための体を作っている。山が好きすぎて、自分たちでアウトドアブランドを立ち上げた。',
+    bio: '月に一度は必ず山に入る。六甲、比良、大峰、大台ヶ原といった関西の山を軸にしながら、季節ごとに北アルプスや八ヶ岳、九州まで足を伸ばす。日帰りの低山も、テントを担ぐ縦走も、区別なく歩く。道具の話になると、つい仕様と検証データから入ってしまう質。山が好きすぎて、とうとう自分たちでアウトドアブランドまで立ち上げてしまった。',
   },
 } = Astro.props;
 
@@ -48,9 +50,30 @@ const published = formatDate(publishedAt);
 const revised = formatDate(revisedAt);
 const canonical = Astro.site ? new URL(Astro.url.pathname, Astro.site).href : Astro.url.pathname;
 
-const shareX = `https://twitter.com/intent/tweet?text=${encodeURIComponent(title)}&url=${encodeURIComponent(canonical)}`;
-const shareFb = `https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(canonical)}`;
-const shareLine = `https://social-plugins.line.me/lineit/share?url=${encodeURIComponent(canonical)}`;
+// シェア先。Instagram / TikTok にはWebからの共有導線が無いので、
+// ここには置かず、フォロー用リンクとして別に並べている。
+const shares = [
+  {
+    name: 'x' as const,
+    label: 'X',
+    href: `https://x.com/intent/post?text=${encodeURIComponent(title)}&url=${encodeURIComponent(canonical)}`,
+  },
+  {
+    name: 'facebook' as const,
+    label: 'Facebook',
+    href: `https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(canonical)}`,
+  },
+  {
+    name: 'threads' as const,
+    label: 'Threads',
+    href: `https://www.threads.net/intent/post?text=${encodeURIComponent(`${title} ${canonical}`)}`,
+  },
+  {
+    name: 'line' as const,
+    label: 'LINE',
+    href: `https://social-plugins.line.me/lineit/share?url=${encodeURIComponent(canonical)}`,
+  },
+];
 
 const jsonLd: Record<string, unknown>[] = [
   {
@@ -184,9 +207,33 @@ const tocItems: TocItem[] = toc.filter((item) => item.level === 2);
             )}
             <div class="share">
               <span class="share__label">Share</span>
-              <a href={shareX} target="_blank" rel="noopener noreferrer">X</a>
-              <a href={shareFb} target="_blank" rel="noopener noreferrer">Facebook</a>
-              <a href={shareLine} target="_blank" rel="noopener noreferrer">LINE</a>
+              <ul class="social social--share">
+                {shares.map((item) => (
+                  <li>
+                    <a href={item.href} target="_blank" rel="noopener noreferrer" aria-label={`${item.label}でシェア`} title={item.label}>
+                      <SocialIcon name={item.name} />
+                    </a>
+                  </li>
+                ))}
+                <li>
+                  <button type="button" class="share__copy" id="copyLink" aria-label="リンクをコピー" title="リンクをコピー">
+                    <span aria-hidden="true">⧉</span>
+                  </button>
+                </li>
+              </ul>
+            </div>
+
+            <div class="share follow">
+              <span class="share__label">Follow</span>
+              <ul class="social">
+                {SOCIALS.filter((item) => item.href).map((item) => (
+                  <li>
+                    <a href={item.href} target="_blank" rel="noopener noreferrer" aria-label={item.label} title={item.label}>
+                      <SocialIcon name={item.name} />
+                    </a>
+                  </li>
+                ))}
+              </ul>
             </div>
           </div>
         </div>
@@ -260,6 +307,20 @@ const tocItems: TocItem[] = toc.filter((item) => item.level === 2);
         toTop.addEventListener('click', (e) => {
           e.preventDefault();
           window.scrollTo({ top: 0, behavior: reduce ? 'auto' : 'smooth' });
+        });
+      }
+
+      // --- リンクのコピー ---
+      const copy = document.getElementById('copyLink');
+      if (copy && navigator.clipboard) {
+        copy.addEventListener('click', async () => {
+          try {
+            await navigator.clipboard.writeText(location.href);
+            copy.classList.add('is-done');
+            setTimeout(() => copy.classList.remove('is-done'), 1600);
+          } catch {
+            /* クリップボードが使えない環境では何もしない */
+          }
         });
       }
 

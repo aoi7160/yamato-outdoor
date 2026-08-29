@@ -710,26 +710,38 @@
   border-top: 1px solid var(--line-soft);
 }
 
+.share.follow { border-top: 0; padding-top: 1rem; }
+
 .share__label {
   font-family: var(--font-latin);
   font-size: 0.8rem;
   letter-spacing: 0.24em;
   text-transform: uppercase;
   color: var(--ink-faint);
+  min-width: 4rem;
 }
 
-.share a {
-  font-family: var(--font-latin);
-  font-size: 0.86rem;
-  letter-spacing: 0.16em;
-  text-transform: uppercase;
+.share__copy {
+  display: grid;
+  place-items: center;
+  width: 2rem;
+  height: 2rem;
+  padding: 0;
+  font: inherit;
+  font-size: 0.95rem;
+  line-height: 1;
   color: var(--ink-mute);
-  text-decoration: none;
-  border-bottom: 1px solid transparent;
+  background: transparent;
+  border: 1px solid var(--line-soft);
+  border-radius: 50%;
+  cursor: pointer;
   transition: color 0.2s var(--ease), border-color 0.2s var(--ease);
 }
 
-.share a:hover { color: var(--ember-soft); border-bottom-color: var(--ember); }
+.share__copy:hover { color: var(--ink-strong); border-color: var(--line); }
+
+/* コピー完了は色だけで短く知らせる。トーストを出すほどのことではない */
+.share__copy.is-done { color: var(--ember-soft); border-color: var(--ember); }
 
 .related {
   margin-top: 6rem;
