@@ -45,6 +45,12 @@ export const getArticleBySlug = async (slug: string): Promise<Article | null> =>
   return res.contents[0] ?? null;
 };
 
+export const getCategories = async (): Promise<Category[]> => {
+  if (!client) return [];
+  const res = await client.getList<Category>({ endpoint: 'categories', queries: { limit: 100 } });
+  return res.contents;
+};
+
 export const getAllArticleSlugs = async (): Promise<string[]> => {
   if (!client) return [];
   const res = await client.getList<Article>({
