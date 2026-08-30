@@ -50,8 +50,10 @@ microCMSで公開しても、再ビルドが走らなければサイトは変わ
 
 1. Cloudflare Pages → プロジェクト → 「設定」→「ビルド」→ **デプロイフック**を作成
    (名前: `microcms`、ブランチ: `main`)→ 発行されたURLをコピー
-2. microCMS → 「サービス設定」→「Webhook」→ `articles` API に追加
+2. microCMS → 「コンテンツ(API)」→ **記事(articles)** → 「API設定」→「Webhook」→「追加」
    → 「カスタム通知」を選び、URLに1のデプロイフックURLを貼る
+   ※ Webhookは**API単位**の設定。カテゴリを変えたときも再ビルドしたいなら、
+     カテゴリ(categories)側にも同じWebhookを追加する
 3. 通知タイミングは「コンテンツの公開・更新・削除」にチェック
 
 これで、microCMSで公開ボタンを押すだけでサイトが更新される。
@@ -107,6 +109,74 @@ Claude Codeに頼むときは「作業ブランチで作業して、確認でき
 - ビルドコマンド: `npm run build`
 - 出力ディレクトリ: `dist/client` (`dist` ではない)
 - 環境変数(本番・プレビュー両方): `MICROCMS_SERVICE_DOMAIN` / `MICROCMS_API_KEY`
+
+---
+
+## 環境変数とAPIキー
+
+### 値の中身
+
+| 変数名 | 値 | 種別 |
+|---|---|---|
+| `MICROCMS_SERVICE_DOMAIN` | `yamato-outdoor` | 公開情報。Cloudflareでは Text でよい |
+| `MICROCMS_API_KEY` | microCMSで発行したキー | **秘密情報。Cloudflareでは必ず Secret** |
+
+`MICROCMS_SERVICE_DOMAIN` はmicroCMSのサービスID(管理画面URL `https://yamato-outdoor.microcms.io`
+の先頭部分)であって、サイトの独自ドメイン `yamato-outdoor.com` とは別物。
+`.microcms.io` や `https://` は付けない。
+
+### APIキーの発行(microCMS)
+
+「サービス設定 → APIキー」で**新規発行**する。デフォルトキーは使い回さない。
+権限は次のように最小限にする。
+
+- GET: ON(記事の取得)
+- GET(下書き): ON(`/preview` の下書き確認)
+- POST / PUT / PATCH / DELETE: **OFF**(サイトは書き込まない)
+- 管理画面API: OFF
+- 対象APIは `articles` と `categories` だけに絞る
+
+万一漏れても「公開済み記事が読まれる」以上のことが起きない状態にしておく。
+
+### 置き場所
+
+- ローカル: `.env`(`.gitignore` 済み。実値をコミットしない)
+- 本番: Cloudflare Pages →「設定」→「Variables and secrets」
+  **Production と Preview の両方**に登録する。片方だけだとPRプレビューが壊れる
+- 登録・変更後は**再デプロイしないと反映されない**
+
+コード側は `import.meta.env.MICROCMS_*` で読む(`src/lib/microcms.ts`)。
+**変数名に `PUBLIC_` を付けないこと。** Astroは `PUBLIC_` で始まる値をブラウザ向けの
+JSに埋め込むため、APIキーが公開されてしまう。
+現構成はSSGなので、キーが使われるのはビルドサーバーの中だけで、生成後のHTMLには残らない。
+
+### キーのローテーション(漏洩時・担当交代時)
+
+1. microCMSで新しいキーを発行する(古いキーはまだ消さない)
+2. Cloudflareの `MICROCMS_API_KEY` を新しい値に更新 → 再デプロイ
+3. サイトが正常に表示されることを確認
+4. microCMSで古いキーを削除する
+
+この順番なら無停止で切り替わる。先に削除するとビルドが落ちる。
+
+---
+
+## microCMSの「API設定」はどこの話か
+
+同じ「API設定」という言葉が2箇所に出てくるので、混同しやすい。
+
+| 場所 | 何を設定するか |
+|---|---|
+| サービス設定 → APIキー | **認証キーの発行と権限**。サービス全体で1箇所 |
+| コンテンツ(API) → 各API → API設定 | **そのAPI自体の設定**。スキーマ(フィールド)、エンドポイント名、画面プレビュー、Webhook |
+
+このサイトが読んでいるのは **`articles` と `categories` の2つだけ**。
+`news` や `blog` などのAPIがサービス内にあっても、コードからは参照していないので
+サイトには出ない(消す必要もない)。
+
+エンドポイント名は表示名ではなく**エンドポイントID(英字)**で判定される。
+`src/lib/microcms.ts` が `articles` / `categories` を前提にしているため、
+IDが違うとビルドしても記事が0件になる。
 
 ---
 
