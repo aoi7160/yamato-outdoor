@@ -10,6 +10,21 @@ Astro(SSG) + microCMS + Cloudflare Pages のアウトドアメディア。
   事業ロードマップは社内の検討用ドキュメントであり、公開リポジトリの本流には載せない方針。
 - `main` へ入れる前に必ず `npm run build` が通ることを確認する。
 
+## サイトの階層
+
+```
+/                                      トップ(ジャンルを選ぶ)
+/mountain-climbing/                    ジャンル(登山 / 釣り fishing / キャンプ camp)
+/mountain-climbing/gear/               ジャンル内のカテゴリ
+/mountain-climbing/gear/<記事slug>/     記事
+```
+
+- ジャンルは `src/lib/taxonomy.ts` で固定(3つ。写真とコピーが要るため)。
+- カテゴリはmicroCMSの `categories` で増やす。どのジャンルに属するかは
+  カテゴリの `genre` フィールド(`mountain-climbing` / `fishing` / `camp`)で決まる。
+  未設定のときは `taxonomy.ts` のフォールバック表で解決する。
+- 旧URL(`/articles/...` `/category/...`)は `public/_redirects` で301転送している。
+
 ## 記事の追加
 
 - **記事本文はmicroCMSに入れる。** リポジトリ側にはページを作らない。

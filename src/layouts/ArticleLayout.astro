@@ -12,6 +12,8 @@ interface Props {
   title: string;
   description?: string;
   content: string;
+  genreName?: string;
+  genreSlug?: string;
   categoryName?: string;
   categorySlug?: string;
   publishedAt?: string;
@@ -28,6 +30,8 @@ const {
   title,
   description = '',
   content,
+  genreName,
+  genreSlug,
   categoryName,
   categorySlug,
   publishedAt,
@@ -95,10 +99,25 @@ const jsonLd: Record<string, unknown>[] = [
     '@type': 'BreadcrumbList',
     itemListElement: [
       { '@type': 'ListItem', position: 1, name: 'TOP', item: Astro.site?.href ?? '/' },
-      categoryName
-        ? { '@type': 'ListItem', position: 2, name: categoryName }
+      genreName && genreSlug
+        ? {
+            '@type': 'ListItem',
+            position: 2,
+            name: genreName,
+            item: Astro.site ? new URL(`/${genreSlug}/`, Astro.site).href : `/${genreSlug}/`,
+          }
         : undefined,
-      { '@type': 'ListItem', position: categoryName ? 3 : 2, name: title, item: canonical },
+      categoryName && categorySlug && genreSlug
+        ? {
+            '@type': 'ListItem',
+            position: genreName ? 3 : 2,
+            name: categoryName,
+            item: Astro.site
+              ? new URL(`/${genreSlug}/${categorySlug}/`, Astro.site).href
+              : `/${genreSlug}/${categorySlug}/`,
+          }
+        : undefined,
+      { '@type': 'ListItem', position: genreName && categoryName ? 4 : 3, name: title, item: canonical },
     ].filter(Boolean),
   },
 ];
@@ -154,8 +173,15 @@ const tocItems: TocItem[] = toc.filter((item) => item.level === 2);
       <header class="article-head">
         <ol class="breadcrumb">
           <li><a href="/">TOP</a></li>
+          {genreName && genreSlug && <li><a href={`/${genreSlug}/`}>{genreName}</a></li>}
           {categoryName && (
-            <li>{categorySlug ? <a href={`/category/${categorySlug}`}>{categoryName}</a> : categoryName}</li>
+            <li>
+              {categorySlug && genreSlug ? (
+                <a href={`/${genreSlug}/${categorySlug}/`}>{categoryName}</a>
+              ) : (
+                categoryName
+              )}
+            </li>
           )}
           <li aria-current="page">この記事</li>
         </ol>

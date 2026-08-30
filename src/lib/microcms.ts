@@ -14,6 +14,9 @@ export type Category = {
   id: string;
   name: string;
   slug: string;
+  /** microCMS側で「ジャンル」を持たせる場合に使う(mountain-climbing / fishing / camp)。
+      未設定でも src/lib/taxonomy.ts のフォールバックで解決される。 */
+  genre?: string;
 };
 
 export type Article = {

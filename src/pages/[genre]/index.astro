@@ -1,0 +1,89 @@
+---
+// ジャンルページ(登山 / 釣り / キャンプ)。配下のカテゴリと新着記事を出す。
+import BaseLayout from '../../layouts/BaseLayout.astro';
+import { getArticles, getCategories } from '../../lib/microcms';
+import { formatDate } from '../../lib/article';
+import { GENRES, genreSlugOf, articlePath, categoryPath } from '../../lib/taxonomy';
+
+export async function getStaticPaths() {
+  // importはgetStaticPathsからも参照できる(フロントマター本体のconstは参照できない)
+  return GENRES.map((g) => ({ params: { genre: g.slug }, props: { genre: g } }));
+}
+
+const { genre } = Astro.props;
+
+const categories = (await getCategories()).filter((c) => genreSlugOf(c) === genre.slug);
+const { contents: all } = await getArticles({ orders: '-publishedAt', limit: 100 });
+const articles = all.filter((a) => genreSlugOf(a.category) === genre.slug);
+---
+
+<BaseLayout title={`${genre.name} | YAMATO OUTDOOR`} description={genre.description}>
+  <section class="cover cover--genre">
+    <img
+      class="cover__image"
+      src={genre.image}
+      alt={genre.imageAlt}
+      width={genre.imageSize.w}
+      height={genre.imageSize.h}
+      fetchpriority="high"
+      decoding="async"
+    />
+    <div class="cover__scrim"></div>
+    <div class="shell cover__inner">
+      <ol class="breadcrumb">
+        <li><a href="/">TOP</a></li>
+        <li aria-current="page">{genre.name}</li>
+      </ol>
+      <h1>{genre.name}</h1>
+      <p class="cover__lead">{genre.tagline}</p>
+    </div>
+  </section>
+
+  <section class="shell">
+    <div class="section-head">
+      <h2>Categories</h2>
+      <span class="count">{String(categories.length).padStart(2, '0')} categories</span>
+    </div>
+    {categories.length === 0 ? (
+      <p style="color: var(--ink-faint); padding: 2.5rem 0;">
+        カテゴリを準備中です。
+      </p>
+    ) : (
+      <ul class="chip-list">
+        {categories.map((c) => (
+          <li><a href={categoryPath(c)}>{c.name}</a></li>
+        ))}
+      </ul>
+    )}
+  </section>
+
+  <section class="shell">
+    <div class="section-head">
+      <h2>Articles</h2>
+      <span class="count">{String(articles.length).padStart(2, '0')} articles</span>
+    </div>
+    {articles.length === 0 ? (
+      <p style="color: var(--ink-faint); padding: 2.5rem 0 4rem;">
+        このジャンルの記事は準備中です。
+      </p>
+    ) : (
+      <ul class="article-list">
+        {articles.map((article, i) => (
+          <li>
+            <a class="article-card" href={articlePath(article)}>
+              <span class="article-card__index">{String(i + 1).padStart(2, '0')}</span>
+              <span>
+                <span class="card-meta">
+                  {article.category?.name ?? ''} — {formatDate(article.publishedAt)}
+                </span>
+                <h2>{article.title}</h2>
+                <p class="description">{article.description}</p>
+              </span>
+              <span class="article-card__arrow" aria-hidden="true">→</span>
+            </a>
+          </li>
+        ))}
+      </ul>
+    )}
+  </section>
+</BaseLayout>

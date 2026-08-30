@@ -2,54 +2,111 @@
 import BaseLayout from '../layouts/BaseLayout.astro';
 import { getArticles } from '../lib/microcms';
 import { formatDate } from '../lib/article';
+import { GENRES, articlePath, genrePath } from '../lib/taxonomy';
 
-const { contents: articles } = await getArticles({ orders: '-publishedAt', limit: 20 });
+const { contents: articles } = await getArticles({ orders: '-publishedAt', limit: 6 });
 
-// microCMS未接続でも一覧の見え方が確認できるように、見本記事を1本だけ差し込む
-const fallback = [
-  {
-    slug: 'night-hike-basics',
-    title: '夜明け前に歩き出す。ナイトハイクで山頂に立つための装備と歩き方',
-    description:
-      '暗いうちに登り始めて、稜線で朝を迎える。出発時刻の逆算からヘッドランプ選び、汗の管理、山頂での待ち方、下山までを、実際の失敗をたどりながら順にまとめました。',
-    category: { name: 'How to' },
-    publishedAt: '2026-08-07T00:00:00.000Z',
-  },
-];
-
-const items = articles.length > 0 ? articles : fallback;
+const siteUrl = Astro.site?.toString().replace(/\/$/, '') ?? 'https://yamato-outdoor.com';
+const jsonLd = {
+  '@context': 'https://schema.org',
+  '@type': 'ItemList',
+  name: 'YAMATO OUTDORのジャンル',
+  itemListElement: GENRES.map((g, i) => ({
+    '@type': 'ListItem',
+    position: i + 1,
+    name: g.name,
+    description: g.description,
+    url: `${siteUrl}${genrePath(g.slug)}`,
+  })),
+};
 ---
 
 <BaseLayout title="YAMATO OUTDOOR | 山と生きる。山と挑む。">
-  <section class="hero">
-    <div class="shell">
-      <p class="hero__eyebrow">Field notes from the ridge</p>
+  <Fragment slot="head">
+    <script type="application/ld+json" set:html={JSON.stringify(jsonLd)} is:inline />
+  </Fragment>
+
+  <section class="cover">
+    <img
+      class="cover__image"
+      src="/media/hero/01.webp"
+      alt="夜明け前の稜線"
+      width="1600"
+      height="900"
+      fetchpriority="high"
+      decoding="async"
+    />
+    <div class="cover__scrim"></div>
+    <div class="shell cover__inner">
+      <p class="cover__eyebrow">YAMATO OUTDOOR</p>
       <h1>山と生きる。<br />山と挑む。</h1>
-      <p>準備に、妥協はない。実際に担いで、濡らして、凍らせた装備だけを書く。</p>
+      <p class="cover__lead">実体験ベースの装備検証・レビューを届ける<br />アウトドアメディア。</p>
     </div>
+    <span class="cover__cue" aria-hidden="true">SCROLL</span>
+  </section>
+
+  <section class="shell genre-section">
+    <div class="section-head">
+      <h2>Explore</h2>
+      <span class="count">ジャンルから探す</span>
+    </div>
+
+    <ul class="genre-grid">
+      {GENRES.map((g, i) => (
+        <li>
+          <a class="genre-card" href={genrePath(g.slug)}>
+            <span class="genre-card__media">
+              <img
+                src={g.image}
+                alt={g.imageAlt}
+                width={g.imageSize.w}
+                height={g.imageSize.h}
+                loading={i === 0 ? 'eager' : 'lazy'}
+                decoding="async"
+              />
+            </span>
+            <span class="genre-card__body">
+              <span class="genre-card__num">{String(i + 1).padStart(2, '0')}</span>
+              <span class="genre-card__name">
+                {g.name}
+                {g.status === 'upcoming' && <span class="badge">準備中</span>}
+              </span>
+              <span class="genre-card__tagline">{g.tagline}</span>
+              <span class="genre-card__link">詳しく見る →</span>
+            </span>
+          </a>
+        </li>
+      ))}
+    </ul>
   </section>
 
   <section class="shell">
     <div class="section-head">
       <h2>Latest</h2>
-      <span class="count">{String(items.length).padStart(2, '0')} articles</span>
+      <span class="count">{String(articles.length).padStart(2, '0')} articles</span>
     </div>
-    <ul class="article-list">
-      {items.map((article, i) => (
-        <li>
-          <a class="article-card" href={`/articles/${article.slug}/`}>
-            <span class="article-card__index">{String(i + 1).padStart(2, '0')}</span>
-            <span>
-              <span class="card-meta">
-                {article.category?.name ?? 'Journal'} — {formatDate(article.publishedAt)}
+    {articles.length === 0 ? (
+      <p style="color: var(--ink-faint); padding: 2.5rem 0 4rem;">
+        記事を準備中です。microCMSで記事を公開するとここに並びます。
+      </p>
+    ) : (
+      <ul class="article-list">
+        {articles.map((article, i) => (
+          <li>
+            <a class="article-card" href={articlePath(article)}>
+              <span class="article-card__index">{String(i + 1).padStart(2, '0')}</span>
+              <span>
+                <span class="card-meta">
+                  {article.category?.name ?? 'Journal'} — {formatDate(article.publishedAt)}
+                </span>
+                <h2>{article.title}</h2>
+                <p class="description">{article.description}</p>
               </span>
-              <h2>{article.title}</h2>
-              <p class="description">{article.description}</p>
-            </span>
-            <span class="article-card__arrow" aria-hidden="true">→</span>
-          </a>
-        </li>
-      ))}
-    </ul>
+              <span class="article-card__arrow" aria-hidden="true">→</span>
+            </a>
+          </li>
+        ))}
+      </ul>
+    )}
   </section>
 </BaseLayout>

@@ -1,7 +1,7 @@
 ---
 // microCMSに記事が入る前でも記事ページのデザイン・目次・記事の分量を確認できるようにした
 // 見本ページ。本番運用ではmicroCMS側の記事に置き換わる(このファイルを消せばよい)。
-import ArticleLayout from '../../layouts/ArticleLayout.astro';
+import ArticleLayout from '../../../layouts/ArticleLayout.astro';
 
 const content = `
 <p>三時十五分。駐車場の温度計は四度を指していた。車のドアを閉める音が、思ったより遠くまで響く。ここから山頂まで、コースタイムで二時間四十分。日の出は五時二十二分。計算上は四十分近く余裕があるはずなのに、この時間になるとどうしても足が急ぐ。</p>
@@ -193,9 +193,11 @@ const faq = [
 ];
 
 const related = [
-  { title: '雨の日の山を、それでも歩くためのレインウェア選び', href: '/', meta: 'Gear' },
-  { title: '低山の道迷いはなぜ起きるのか。地図アプリに頼りきらない読図の基本', href: '/', meta: 'How to' },
-  { title: '行動食は「食べられるか」で選ぶ。標高と食欲の話', href: '/', meta: 'Food' },
+  {
+    title: '3万円以下で選ぶ登山用レインウェア。関西の低山で使うなら、どこを見て決めるか',
+    href: '/mountain-climbing/gear/rainwear-under-30000/',
+    meta: 'ギア',
+  },
 ];
 ---
 
@@ -203,7 +205,9 @@ const related = [
   title="夜明け前に歩き出す。ナイトハイクで山頂に立つための装備と歩き方"
   description="暗いうちに登り始めて、稜線で朝を迎える。出発時刻の逆算からヘッドランプ選び、汗の管理、山頂での待ち方、下山までを、実際の失敗をたどりながら順にまとめました。"
   content={content}
-  categoryName="How to"
+  genreName="登山"
+  genreSlug="mountain-climbing"
+  categoryName="ハウツー"
   categorySlug="how-to"
   publishedAt="2026-08-07T00:00:00.000Z"
   revisedAt="2026-08-24T00:00:00.000Z"

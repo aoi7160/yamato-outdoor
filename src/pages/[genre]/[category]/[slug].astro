@@ -1,0 +1,56 @@
+---
+// 記事ページ(例: /mountain-climbing/gear/rainwear-under-30000/)
+import ArticleLayout from '../../../layouts/ArticleLayout.astro';
+import { getArticles, getArticleBySlug } from '../../../lib/microcms';
+import { normalizeTags } from '../../../lib/article';
+import { GENRES, genreSlugOf, articlePath, getGenre } from '../../../lib/taxonomy';
+
+export async function getStaticPaths() {
+  const res = await getArticles({ limit: 100 });
+  return res.contents
+    .filter((a) => a.slug)
+    .map((a) => ({
+      params: {
+        genre: genreSlugOf(a.category),
+        category: a.category?.slug ?? 'gear',
+        slug: a.slug,
+      },
+      props: { siblings: res.contents.filter((b) => b.slug !== a.slug) },
+    }))
+    .filter((p) => GENRES.some((g) => g.slug === p.params.genre));
+}
+
+const { slug, genre: genreSlug } = Astro.params;
+const { siblings = [] } = Astro.props;
+const article = await getArticleBySlug(slug!);
+
+if (!article) {
+  return Astro.redirect('/404');
+}
+
+const genre = getGenre(genreSlug);
+
+// 関連記事は同カテゴリを優先して3本。足りなければ新着で埋める。
+const related = siblings
+  .sort((a, b) => {
+    const same = (x: typeof a) => (x.category?.id && x.category.id === article.category?.id ? 0 : 1);
+    return same(a) - same(b);
+  })
+  .slice(0, 3)
+  .map((a) => ({ title: a.title, href: articlePath(a), meta: a.category?.name }));
+---
+
+<ArticleLayout
+  title={article.title}
+  description={article.description}
+  content={article.content}
+  genreName={genre?.name}
+  genreSlug={genreSlug}
+  categoryName={article.category?.name}
+  categorySlug={article.category?.slug}
+  publishedAt={article.publishedAt}
+  revisedAt={article.revisedAt}
+  thumbnailUrl={article.thumbnail?.url}
+  tags={normalizeTags(article.tags)}
+  related={related}
+/>

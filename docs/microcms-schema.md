@@ -8,6 +8,10 @@ microCMSの管理画面で以下の2つのAPI(コンテンツタイプ)を作成
 |---|---|---|
 | name | カテゴリ名 | テキストフィールド |
 | slug | スラッグ | テキストフィールド(URL用、英数字とハイフン) |
+| genre | ジャンル | セレクトフィールド。`mountain-climbing` / `fishing` / `camp` |
+
+`genre` はURLの第1階層になる(`/mountain-climbing/gear/`)。
+未設定の場合は `src/lib/taxonomy.ts` のフォールバック表で登山扱いになる。
 
 ## 2. 記事 (articles) — リスト形式
 

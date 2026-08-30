@@ -1,0 +1,86 @@
+---
+// カテゴリページ(例: /mountain-climbing/gear/)
+import BaseLayout from '../../../layouts/BaseLayout.astro';
+import { getArticles, getCategories } from '../../../lib/microcms';
+import { formatDate } from '../../../lib/article';
+import { GENRES, genreSlugOf, articlePath, getGenre } from '../../../lib/taxonomy';
+
+export async function getStaticPaths() {
+  const categories = await getCategories();
+
+  const paths = categories
+    .filter((c) => c.slug)
+    .map((c) => ({
+      params: { genre: genreSlugOf(c), category: c.slug },
+      props: { categoryId: c.id, categoryName: c.name },
+    }));
+
+  // 記事が無くてもリンク切れにしないための最低限のカテゴリ
+  const known = new Set(paths.map((p) => `${p.params.genre}/${p.params.category}`));
+  const seed: [string, string, string][] = [
+    ['mountain-climbing', 'gear', 'ギア'],
+    ['mountain-climbing', 'route', 'ルート'],
+    ['mountain-climbing', 'how-to', 'ハウツー'],
+  ];
+  seed.forEach(([genre, category, name]) => {
+    if (!known.has(`${genre}/${category}`)) {
+      paths.push({ params: { genre, category }, props: { categoryId: '', categoryName: name } });
+    }
+  });
+
+  return paths.filter((p) => GENRES.some((g) => g.slug === p.params.genre));
+}
+
+const { genre: genreSlug, category: categorySlug } = Astro.params;
+const { categoryId, categoryName } = Astro.props;
+const genre = getGenre(genreSlug);
+
+const { contents: articles } = categoryId
+  ? await getArticles({ filters: `category[equals]${categoryId}`, orders: '-publishedAt', limit: 50 })
+  : { contents: [] };
+
+const description = `${genre?.name ?? ''}の${categoryName}に関する記事一覧。実際に使い、歩いたうえで書いています。`;
+---
+
+<BaseLayout title={`${categoryName} | ${genre?.name} | YAMATO OUTDOOR`} description={description}>
+  <section class="hero hero--sub">
+    <div class="shell">
+      <ol class="breadcrumb">
+        <li><a href="/">TOP</a></li>
+        <li><a href={`/${genreSlug}/`}>{genre?.name}</a></li>
+        <li aria-current="page">{categoryName}</li>
+      </ol>
+      <p class="hero__eyebrow">{genre?.name} / Category</p>
+      <h1>{categoryName}</h1>
+      <p>{description}</p>
+    </div>
+  </section>
+
+  <section class="shell">
+    <div class="section-head">
+      <h2>Articles</h2>
+      <span class="count">{String(articles.length).padStart(2, '0')} articles</span>
+    </div>
+    {articles.length === 0 ? (
+      <p style="color: var(--ink-faint); padding: 2.5rem 0 4rem;">
+        このカテゴリの記事は準備中です。
+      </p>
+    ) : (
+      <ul class="article-list">
+        {articles.map((article, i) => (
+          <li>
+            <a class="article-card" href={articlePath(article)}>
+              <span class="article-card__index">{String(i + 1).padStart(2, '0')}</span>
+              <span>
+                <span class="card-meta">{formatDate(article.publishedAt)}</span>
+                <h2>{article.title}</h2>
+                <p class="description">{article.description}</p>
+              </span>
+              <span class="article-card__arrow" aria-hidden="true">→</span>
+            </a>
+          </li>
+        ))}
+      </ul>
+    )}
+  </section>
+</BaseLayout>
