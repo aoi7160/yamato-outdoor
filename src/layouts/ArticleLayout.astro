@@ -1,7 +1,7 @@
 ---
 import BaseLayout from './BaseLayout.astro';
 import '../styles/article.css';
-import { prepareArticle, formatDate, type TocItem } from '../lib/article';
+import { prepareArticle, formatDate, microcmsImage, microcmsSrcSet, type TocItem } from '../lib/article';
 import SocialIcon from '../components/SocialIcon.astro';
 import { SOCIALS, SOCIAL_ORDER, socialLink } from '../lib/site';
 
@@ -182,7 +182,17 @@ const tocItems: TocItem[] = toc.filter((item) => item.level === 2);
 
       {thumbnailUrl && (
         <figure class="article-figure">
-          <img src={thumbnailUrl} alt={title} width="1600" height="900" />
+          {/* 主写真はページ内で最初に見える画像なので、遅延読み込みせず優先的に取りに行く */}
+          <img
+            src={microcmsImage(thumbnailUrl, 1280)}
+            srcset={microcmsSrcSet(thumbnailUrl)}
+            sizes="(max-width: 62rem) 100vw, 62rem"
+            alt={title}
+            width="1600"
+            height="900"
+            fetchpriority="high"
+            decoding="async"
+          />
           {thumbnailCaption && <figcaption>{thumbnailCaption}</figcaption>}
         </figure>
       )}

@@ -36,6 +36,9 @@ Astro(SSG) + microCMS + Cloudflare Pages のアウトドアメディア。
   **等間隔の三角形を並べない**(反復するとすぐ図形の並びに見える)。
 - フォントは 見出し=Zen Old Mincho / 本文=Zen Kaku Gothic New / 欧文=Barlow Condensed。
 - 目次に出すのは `h2` のみ。
+- **背景に重い処理を足さない。** SVGのぼかしフィルタ(`feGaussianBlur`)や
+  全画面の `mix-blend-mode` をアニメーションさせると、スクロールが5fpsまで落ちる。
+  背景は `public/scenery.svg` に焼き込んだ静止画とし、動かすのは transform だけにする。
 - SNSの並び順は `SOCIAL_ORDER` に従い、シェアもフォローも同じ順にする。
 
 ## その他

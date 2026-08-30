@@ -7,6 +7,23 @@
  * DOMParserはビルド時(Node)に無いので、素直に正規表現で処理している。
  */
 
+/**
+ * microCMSの画像URLにWebP変換と幅指定を付ける。
+ * microCMSの画像APIはクエリで変換できるので、アップロード時の形式が
+ * JPEGやPNGでも、配信はWebPになる(対応していない古い環境向けにはfm指定を外せばよい)。
+ */
+export const microcmsImage = (url: string, width: number, quality = 78): string => {
+  if (!url.includes('microcms-assets.io')) return url;
+  const [base] = url.split('?');
+  return `${base}?fm=webp&w=${width}&q=${quality}`;
+};
+
+/** 幅違いの候補を並べたsrcset。表示幅に合った画像だけが落ちてくる。 */
+export const microcmsSrcSet = (url: string, widths: number[] = [640, 960, 1280, 1600]): string => {
+  if (!url.includes('microcms-assets.io')) return '';
+  return widths.map((w) => `${microcmsImage(url, w)} ${w}w`).join(', ');
+};
+
 export type TocItem = {
   id: string;
   text: string;
@@ -69,10 +86,21 @@ export const prepareArticle = (source: string | undefined | null): PreparedArtic
   // 表は必ず横スクロールできる箱に入れる
   html = html.replace(/<table([\s\S]*?)<\/table>/gi, (match) => `<div class="table-scroll">${match}</div>`);
 
-  // 画像の遅延読み込み(既にloading指定があるものは触らない)
-  html = html.replace(/<img\b([^>]*?)\/?>/gi, (match, attrs: string) => {
-    if (/\bloading\s*=/i.test(attrs)) return match;
-    return `<img${attrs.replace(/\s+$/, '')} loading="lazy" decoding="async">`;
+  // 本文中の画像: WebP配信 + srcset + 遅延読み込み。
+  // 記事の重さはほとんど画像で決まるので、ここは自動で効かせる。
+  html = html.replace(/<img\b([^>]*?)\/?>/gi, (match, rawAttrs: string) => {
+    let attrs = rawAttrs.replace(/\s+$/, '');
+    const src = /\ssrc=["']([^"']+)["']/i.exec(attrs)?.[1];
+
+    if (src && src.includes('microcms-assets.io')) {
+      const srcset = microcmsSrcSet(src);
+      attrs = attrs.replace(src, microcmsImage(src, 1280));
+      if (srcset && !/\ssrcset=/i.test(attrs)) {
+        attrs += ` srcset="${srcset}" sizes="(max-width: 48rem) 100vw, 40rem"`;
+      }
+    }
+    if (!/\bloading\s*=/i.test(attrs)) attrs += ' loading="lazy" decoding="async"';
+    return `<img${attrs}>`;
   });
 
   // 日本語の読む速度をおよそ600文字/分として概算
