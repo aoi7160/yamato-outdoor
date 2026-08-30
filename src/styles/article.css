@@ -42,30 +42,6 @@
   filter: blur(18px);
 }
 
-.breadcrumb {
-  display: flex;
-  flex-wrap: wrap;
-  align-items: center;
-  gap: 0.55rem;
-  margin: 0 0 2.4rem;
-  padding: 0;
-  list-style: none;
-  font-family: var(--font-latin);
-  font-size: 0.82rem;
-  letter-spacing: 0.16em;
-  text-transform: uppercase;
-  color: var(--ink-faint);
-}
-
-.breadcrumb li::after {
-  content: '/';
-  margin-left: 0.55rem;
-  color: rgba(233, 230, 221, 0.22);
-}
-
-.breadcrumb li:last-child::after { content: none; }
-.breadcrumb a { text-decoration: none; }
-.breadcrumb a:hover { color: var(--ember-soft); }
 
 .article-labels {
   display: flex;

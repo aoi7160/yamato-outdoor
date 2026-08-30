@@ -1,46 +1,238 @@
 ---
 import BaseLayout from '../layouts/BaseLayout.astro';
+import { GENRES, genrePath } from '../lib/taxonomy';
+
+// 説明的な文章は画面に置かず、検索エンジン向けの構造化データとmeta descriptionに寄せる。
+const seoDescription =
+  'YAMATO OUTDOORは、関西の山を軸に、実際に使った装備とルートだけを記録するアウトドアメディアです。実測値と複数回の使用にもとづく装備レビュー、山行記録、道具選びのハウツーを掲載しています。';
+
+const siteUrl = Astro.site?.toString().replace(/\/$/, '') ?? 'https://yamato-outdoor.com';
+
+const jsonLd = [
+  {
+    '@context': 'https://schema.org',
+    '@type': 'AboutPage',
+    name: 'YAMATO OUTDOORについて',
+    description: seoDescription,
+    url: `${siteUrl}/about`,
+  },
+  {
+    '@context': 'https://schema.org',
+    '@type': 'Organization',
+    name: 'YAMATO OUTDOOR',
+    url: siteUrl,
+    logo: `${siteUrl}/logo.svg`,
+    description: seoDescription,
+    founder: { '@type': 'Person', name: '濵地 蒼麗', jobTitle: 'Founder / Editor' },
+    areaServed: '日本',
+    knowsAbout: ['登山', '登山装備', 'アウトドアギア', '関西の山', 'キャンプ', '釣り'],
+  },
+];
+
+const principles = [
+  {
+    num: '01',
+    title: '買わない理由まで書く',
+    body: '欠点のないレビューは、広告と同じです。合わなかった点、返品した理由、二度と使っていない道具のことも、同じ分量で書きます。',
+    image: '/media/category/mountain-climbing.webp',
+    alt: '霧に包まれた稜線を歩く登山者たち',
+  },
+  {
+    num: '02',
+    title: '数字は自分で量る',
+    body: 'カタログの重量と、実際にザックに入る重量は一致しません。掲載する重さ・サイズは、手元の実測値です。違えば違うと書きます。',
+    image: '/media/category/camp.webp',
+    alt: '星空の下に張られたテント',
+  },
+  {
+    num: '03',
+    title: '一度で判断しない',
+    body: '晴れの日だけで分かることは、ほとんどありません。雨の日、風の日、汗をかいた登り返し。条件を変えて使ってから書きます。',
+    image: '/media/category/fishing.webp',
+    alt: '水辺に置かれた釣り椅子と竿',
+  },
+];
+
+const facts = [
+  { label: '山に入る頻度', value: '月1〜2回' },
+  { label: '主なフィールド', value: '関西の山' },
+  { label: '装備レビューの条件', value: '3回以上' },
+  { label: '広告での評価変更', value: 'なし' },
+];
+
+const steps = [
+  { num: '01', title: '使う', body: '実際の山行に持ち込む。天候と季節を変えて、最低3回。' },
+  { num: '02', title: '量る', body: '重量、サイズ、電池の持ち。数値は手元で測り直す。' },
+  { num: '03', title: '書く', body: '良かった点と、合わなかった点。判断の分かれ目まで書く。' },
+  { num: '04', title: '直す', body: '使い続けて印象が変わったら、記事を更新する。書きっぱなしにしない。' },
+];
+
+const readers = [
+  '働きながら、月に1〜2回のペースで山に行く人',
+  '一度、道具選びで失敗したことがある人',
+  '六甲や金剛山など、関西の山をよく歩く人',
+  'カタログの数字より、使った人の言葉で決めたい人',
+];
 ---
 
-<BaseLayout
-  title="About | YAMATO OUTDOOR"
-  description="YAMATO OUTDOORは、実際に山で使った装備だけを書くアウトドアメディアです。"
->
-  <section class="hero">
-    <div class="shell">
-      <p class="hero__eyebrow">About</p>
-      <h1>使った道具の話しか、<br />書かない。</h1>
-      <p>YAMATO OUTDOORは、実地で検証した装備とルートの記録だけを載せるメディアです。</p>
+<BaseLayout title="ABOUT | YAMATO OUTDOOR" description={seoDescription}>
+  <Fragment slot="head">
+    <script type="application/ld+json" set:html={JSON.stringify(jsonLd)} is:inline />
+  </Fragment>
+
+  <section class="cover cover--genre">
+    <img
+      class="cover__image"
+      src="/media/hero/01.webp"
+      alt="霧の稜線"
+      width="1600"
+      height="900"
+      fetchpriority="high"
+      decoding="async"
+    />
+    <div class="cover__scrim"></div>
+    <div class="shell cover__inner">
+      <p class="cover__eyebrow">About</p>
+      <h1>担いで、濡らして、<br />凍らせて。</h1>
+      <p class="cover__lead">それでも使い続けているものだけを、書く。</p>
+    </div>
+  </section>
+
+  <!-- 導入。中央に寄せて、ここだけは読ませる -->
+  <section class="shell about-lead">
+    <p class="about-lead__eyebrow">YAMATO OUTDOOR</p>
+    <p class="about-lead__text">
+      山の道具は、店では分からない。<br />
+      分かるのは、雨が降りはじめてから。<br />
+      風が変わって、指がかじかんでから。
+    </p>
+    <p class="about-lead__sub">だから、書く前にまず山へ行く。</p>
+  </section>
+
+  <section class="shell">
+    <div class="section-head">
+      <h2>YAMATO OUTDOORについて</h2>
+      <span class="count">Who we are</span>
+    </div>
+    <div class="about-body">
+      <p>
+        関西の山を軸に、実際に使った装備とルートだけを記録しています。六甲、金剛山、比良、大峰。
+        日帰りで歩ける山ばかりですが、道具の良し悪しはそこで充分に出ます。
+      </p>
+      <p>
+        レビューは、晴れの日に一度使っただけでは書きません。雨に降られて、汗をかいて、
+        指がかじかんで。条件を変えて三度は使ってから、ようやく書きはじめます。
+      </p>
+      <p>
+        だから更新は速くありません。そのかわり、ここに載っている道具は、書いた本人がいまも使っています。
+      </p>
+    </div>
+
+    <dl class="fact-strip">
+      {facts.map((f) => (
+        <div>
+          <dt>{f.label}</dt>
+          <dd>{f.value}</dd>
+        </div>
+      ))}
+    </dl>
+  </section>
+
+  <section class="shell">
+    <div class="section-head">
+      <h2>書くときに守っていること</h2>
+      <span class="count">Principles</span>
+    </div>
+    <div class="principles">
+      {principles.map((p) => (
+        <article class="principle">
+          <div class="principle__media">
+            <img src={p.image} alt={p.alt} width="1200" height="900" loading="lazy" decoding="async" />
+          </div>
+          <div class="principle__body">
+            <span class="principle__num">{p.num}</span>
+            <h3>{p.title}</h3>
+            <p>{p.body}</p>
+          </div>
+        </article>
+      ))}
     </div>
   </section>
 
   <section class="shell">
-    <div class="page-body">
-      <h2>このメディアについて</h2>
-      <p>
-        カタログの数字を並べ替えた記事は、もう充分にあります。ここで書くのは、実際に担いで、
-        濡らして、凍らせて、それでも使い続けているかどうかです。良かったところと同じ量だけ、
-        合わなかったところも書きます。
-      </p>
-
-      <h2>コンテンツの区分</h2>
-      <p>
-        <strong>Articles</strong> — すべての記事の新着一覧。<br />
-        <strong>Gear</strong> — ウェア、テント、ザック、小物の実地レビューと比較検証。<br />
-        <strong>Route</strong> — 実際に歩いた山行の記録。コースタイム、水場、エスケープの判断。<br />
-        <strong>About</strong> — 運営者とブランドについて。このページです。
-      </p>
-
-      <h2>運営者</h2>
-      <p>
-        濵地 蒼麗。会社勤めの傍ら、月1〜2回のペースで山に入ります。
-        六甲、金剛山、大山など関西の山を中心に、スタイルを問わず足繁く通っています。
-      </p>
-      <p>
-        カタログスペックに頼るのではなく、実際の山行で実測重量や耐候性を自ら確かめることを
-        大切にしています。数々の失敗を経て得た知見をもとに記事を監修し、自身が納得できる道具を
-        追い求めた結果、アウトドアブランド「YAMATO OUTDOOR」の立ち上げに至りました。
-      </p>
+    <div class="section-head">
+      <h2>記事ができるまで</h2>
+      <span class="count">Process</span>
     </div>
+    <ol class="steps">
+      {steps.map((s) => (
+        <li>
+          <span class="steps__num">{s.num}</span>
+          <h3>{s.title}</h3>
+          <p>{s.body}</p>
+        </li>
+      ))}
+    </ol>
+  </section>
+
+  <section class="shell">
+    <div class="section-head">
+      <h2>こんな人に読んでほしい</h2>
+      <span class="count">Readers</span>
+    </div>
+    <ul class="reader-list">
+      {readers.map((r) => <li>{r}</li>)}
+    </ul>
+    <p class="about-note">
+      初心者向けの入口記事と、上級者向けの専門記事は、すでに世の中に充分あります。
+      足りていないのは、その中間——何度か山に行って、道具を買い替えはじめた人のための情報だと考えています。
+    </p>
+  </section>
+
+  <section class="shell">
+    <div class="section-head">
+      <h2>運営者</h2>
+      <span class="count">Editor</span>
+    </div>
+    <div class="editor">
+      <div class="editor__head">
+        <p class="editor__role">Founder / Editor</p>
+        <p class="editor__name">濵地 蒼麗</p>
+      </div>
+      <div class="editor__body">
+        <p>
+          会社勤めの傍ら、月1〜2回のペースで山に入る。六甲、金剛山、大山など関西の山を中心に、
+          スタイルを問わず足繁く通う。
+        </p>
+        <p>
+          カタログスペックに頼るのではなく、実際の山行で実測重量や耐候性を自ら確かめることを大切にしている。
+          数々の失敗を経て得た知見をもとに記事を監修し、自身が納得できる道具を追い求めた結果、
+          アウトドアブランド「YAMATO OUTDOOR」の立ち上げに至る。
+        </p>
+      </div>
+    </div>
+  </section>
+
+  <section class="shell about-outro">
+    <p class="about-outro__lead">まずは、歩く場所から。</p>
+    <ul class="genre-grid genre-grid--compact">
+      {GENRES.map((g, i) => (
+        <li>
+          <a class="genre-card" href={genrePath(g.slug)}>
+            <span class="genre-card__media">
+              <img src={g.image} alt={g.imageAlt} width={g.imageSize.w} height={g.imageSize.h} loading="lazy" decoding="async" />
+            </span>
+            <span class="genre-card__body">
+              <span class="genre-card__num">{String(i + 1).padStart(2, '0')}</span>
+              <span class="genre-card__name">
+                {g.name}
+                {g.status === 'upcoming' && <span class="badge">準備中</span>}
+              </span>
+              <span class="genre-card__tagline">{g.tagline}</span>
+            </span>
+          </a>
+        </li>
+      ))}
+    </ul>
   </section>
 </BaseLayout>
