@@ -180,6 +180,10 @@ body::before {
 
 .social a:hover { color: var(--ink-strong); border-color: var(--line); }
 
+/* アカウント開設前のリンク。押せるが、少し落として現状を伝える */
+.social a.is-pending { color: var(--ink-faint); }
+.social a.is-pending:hover { color: var(--ink-mute); }
+
 /* ---------------------------------------------------------
    ヘッダー / フッター
    --------------------------------------------------------- */

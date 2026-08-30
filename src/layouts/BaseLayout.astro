@@ -2,13 +2,15 @@
 import '../styles/global.css';
 import Logo from '../components/Logo.astro';
 import SocialIcon from '../components/SocialIcon.astro';
-import { SOCIALS } from '../lib/site';
+import { SOCIALS, socialLink } from '../lib/site';
 
 interface Props {
   title: string;
   description?: string;
   ogImage?: string;
   ogType?: string;
+  /** 検索結果に載せたくないページ(準備中の案内など)で true にする */
+  noindex?: boolean;
 }
 
 const {
@@ -16,6 +18,7 @@ const {
   description = '山と生きる。山と挑む。実体験ベースのアウトドアメディア。',
   ogImage,
   ogType = 'website',
+  noindex = false,
 } = Astro.props;
 
 const canonical = Astro.site ? new URL(Astro.url.pathname, Astro.site).href : Astro.url.pathname;
@@ -31,6 +34,7 @@ const year = new Date().getFullYear();
     <meta name="theme-color" content="#080b10" />
     <title>{title}</title>
     <link rel="canonical" href={canonical} />
+    {noindex && <meta name="robots" content="noindex, nofollow" />}
     <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
 
     <meta property="og:type" content={ogType} />
@@ -139,10 +143,17 @@ const year = new Date().getFullYear();
           <a href="/about">About</a>
         </nav>
         <ul class="social" aria-label="公式SNS">
-          {SOCIALS.filter((s) => s.href).map((s) => (
+          {SOCIALS.map((s) => socialLink(s)).map((link, i) => (
             <li>
-              <a href={s.href} target="_blank" rel="noopener noreferrer" aria-label={s.label} title={s.label}>
-                <SocialIcon name={s.name} />
+              <a
+                href={link.href}
+                target={link.target}
+                rel={link.rel}
+                aria-label={link.label}
+                title={link.label}
+                class={link.pending ? 'is-pending' : ''}
+              >
+                <SocialIcon name={SOCIALS[i].name} />
               </a>
             </li>
           ))}

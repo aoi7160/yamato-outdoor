@@ -3,7 +3,7 @@ import BaseLayout from './BaseLayout.astro';
 import '../styles/article.css';
 import { prepareArticle, formatDate, type TocItem } from '../lib/article';
 import SocialIcon from '../components/SocialIcon.astro';
-import { SOCIALS, SOCIAL_ORDER } from '../lib/site';
+import { SOCIALS, SOCIAL_ORDER, socialLink } from '../lib/site';
 
 export type FaqItem = { q: string; a: string };
 export type RelatedItem = { title: string; href: string; meta?: string };
@@ -72,9 +72,10 @@ const shares = SOCIAL_ORDER.filter((name): name is keyof typeof shareTargets => 
     },
   ]);
 
-const follows = SOCIAL_ORDER.map((name) => SOCIALS.find((s) => s.name === name)).filter(
-  (s): s is (typeof SOCIALS)[number] => Boolean(s?.href),
-);
+// アカウント未開設のものは「準備中」ページに向ける(リンク切れを作らない)
+const follows = SOCIAL_ORDER.map((name) => SOCIALS.find((s) => s.name === name))
+  .filter((s): s is (typeof SOCIALS)[number] => Boolean(s))
+  .map((s) => ({ name: s.name, ...socialLink(s) }));
 
 const jsonLd: Record<string, unknown>[] = [
   {
@@ -132,7 +133,14 @@ const tocItems: TocItem[] = toc.filter((item) => item.level === 2);
       <ul>
         {follows.map((item) => (
           <li>
-            <a href={item.href} target="_blank" rel="noopener noreferrer" aria-label={item.label} title={item.label}>
+            <a
+              href={item.href}
+              target={item.target}
+              rel={item.rel}
+              aria-label={item.label}
+              title={item.label}
+              class={item.pending ? 'is-pending' : ''}
+            >
               <SocialIcon name={item.name} />
             </a>
           </li>

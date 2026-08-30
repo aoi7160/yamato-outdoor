@@ -1,0 +1,87 @@
+---
+// SNSアカウントの準備中ページ。
+// リンク切れ(404)を作らないために200を返し、noindex + nofollow で
+// 検索エンジンには渡さない。アカウント開設後は src/lib/site.ts にURLを入れれば、
+// 各リンクの行き先が自動的に本物に切り替わる。
+import BaseLayout from '../layouts/BaseLayout.astro';
+import SocialIcon from '../components/SocialIcon.astro';
+import { SOCIALS, SOCIAL_ORDER, socialLink } from '../lib/site';
+
+const items = SOCIAL_ORDER.map((name) => SOCIALS.find((s) => s.name === name)!).map((s) => ({
+  name: s.name,
+  ...socialLink(s),
+  label: s.label, // 一覧では素の名前を出す(状態は右側に別で書く)
+}));
+---
+
+<BaseLayout
+  title="SNSは準備中です | YAMATO OUTDOOR"
+  description="YAMATO OUTDOORの公式SNSアカウントは現在準備中です。開設までは記事の更新をサイトでご確認ください。"
+  noindex={true}
+>
+  <section class="hero">
+    <div class="shell">
+      <p class="hero__eyebrow">Social — Coming soon</p>
+      <h1>SNSは準備中です。</h1>
+      <p>
+        公式アカウントの開設を準備しています。開設までのあいだは、記事の更新をこのサイトでご確認ください。
+      </p>
+    </div>
+  </section>
+
+  <section class="shell">
+    <div class="page-body">
+      <ul class="pending-list">
+        {items.map((item) => (
+          <li>
+            <span class="pending-list__icon" aria-hidden="true"><SocialIcon name={item.name} /></span>
+            <span class="pending-list__name">{item.label}</span>
+            {item.pending ? (
+              <span class="pending-list__state">準備中</span>
+            ) : (
+              <a class="pending-list__state is-live" href={item.href} target="_blank" rel="noopener noreferrer">
+                開設済み →
+              </a>
+            )}
+          </li>
+        ))}
+      </ul>
+
+      <p style="margin-top:2.5rem;">
+        <a href="/">記事一覧へ戻る</a>
+      </p>
+    </div>
+  </section>
+</BaseLayout>
+
+<style>
+  .pending-list {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    border-top: 1px solid var(--line-soft);
+  }
+
+  .pending-list li {
+    display: grid;
+    grid-template-columns: 2rem minmax(0, 1fr) auto;
+    align-items: center;
+    gap: 1rem;
+    padding: 1.1rem 0;
+    border-bottom: 1px solid var(--line-soft);
+  }
+
+  .pending-list__icon { color: var(--ink-mute); display: grid; place-items: center; }
+
+  .pending-list__name { letter-spacing: 0.06em; }
+
+  .pending-list__state {
+    font-family: var(--font-latin);
+    font-size: 0.82rem;
+    letter-spacing: 0.2em;
+    text-transform: uppercase;
+    color: var(--ink-faint);
+  }
+
+  .pending-list__state.is-live { color: var(--ember-soft); text-decoration: none; }
+</style>
