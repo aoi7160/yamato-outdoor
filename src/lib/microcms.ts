@@ -26,7 +26,8 @@ export type Article = {
   thumbnail?: MicroCMSImage;
   content: string;
   category?: Category;
-  tags?: string[];
+  /** microCMS側が「複数テキスト」でも「テキストフィールド」でも受け取れるようにしておく */
+  tags?: string[] | string;
 };
 
 export const getArticles = async (

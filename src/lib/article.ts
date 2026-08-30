@@ -90,3 +90,14 @@ export const formatDate = (value: string | undefined): string => {
   const p = (n: number) => String(n).padStart(2, '0');
   return `${d.getFullYear()}.${p(d.getMonth() + 1)}.${p(d.getDate())}`;
 };
+
+/**
+ * タグの正規化。
+ * microCMSのフィールドが「複数テキスト」なら配列、「テキストフィールド」なら
+ * 「A, B, C」のような1本の文字列で届く。どちらでも同じ形にして返す。
+ */
+export const normalizeTags = (value: string[] | string | undefined | null): string[] => {
+  if (!value) return [];
+  const list = Array.isArray(value) ? value : value.split(/[,、\/｜|]/);
+  return list.map((t) => t.trim().replace(/^#/, '')).filter(Boolean);
+};
