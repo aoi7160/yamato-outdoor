@@ -9,6 +9,12 @@ export const SITE = {
 
 export type SocialName = 'x' | 'instagram' | 'tiktok' | 'threads' | 'facebook';
 
+/**
+ * SNSの並び順。フォローもシェアもこの順に揃える
+ * (場所によって順番が入れ替わると、それだけで雑に見える)。
+ */
+export const SOCIAL_ORDER: SocialName[] = ['x', 'instagram', 'tiktok', 'threads', 'facebook'];
+
 export const SOCIALS: { name: SocialName; label: string; href: string }[] = [
   { name: 'x', label: 'X', href: 'https://x.com/yamato_outdoor' },
   { name: 'instagram', label: 'Instagram', href: 'https://www.instagram.com/yamato_outdoor/' },

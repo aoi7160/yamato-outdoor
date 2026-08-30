@@ -3,7 +3,7 @@ import BaseLayout from './BaseLayout.astro';
 import '../styles/article.css';
 import { prepareArticle, formatDate, type TocItem } from '../lib/article';
 import SocialIcon from '../components/SocialIcon.astro';
-import { SOCIALS } from '../lib/site';
+import { SOCIALS, SOCIAL_ORDER } from '../lib/site';
 
 export type FaqItem = { q: string; a: string };
 export type RelatedItem = { title: string; href: string; meta?: string };
@@ -52,28 +52,28 @@ const canonical = Astro.site ? new URL(Astro.url.pathname, Astro.site).href : As
 
 // シェア先。Instagram / TikTok にはWebからの共有導線が無いので、
 // ここには置かず、フォロー用リンクとして別に並べている。
-const shares = [
-  {
-    name: 'x' as const,
-    label: 'X',
-    href: `https://x.com/intent/post?text=${encodeURIComponent(title)}&url=${encodeURIComponent(canonical)}`,
-  },
-  {
-    name: 'facebook' as const,
-    label: 'Facebook',
-    href: `https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(canonical)}`,
-  },
-  {
-    name: 'threads' as const,
-    label: 'Threads',
-    href: `https://www.threads.net/intent/post?text=${encodeURIComponent(`${title} ${canonical}`)}`,
-  },
-  {
-    name: 'line' as const,
-    label: 'LINE',
-    href: `https://social-plugins.line.me/lineit/share?url=${encodeURIComponent(canonical)}`,
-  },
-];
+const shareTargets = {
+  x: `https://x.com/intent/post?text=${encodeURIComponent(title)}&url=${encodeURIComponent(canonical)}`,
+  threads: `https://www.threads.net/intent/post?text=${encodeURIComponent(`${title} ${canonical}`)}`,
+  facebook: `https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(canonical)}`,
+} as const;
+
+const labels: Record<string, string> = { x: 'X', threads: 'Threads', facebook: 'Facebook' };
+
+// フォロー欄と同じ並び順で出す。LINEは共有専用なので最後に足す。
+const shares = SOCIAL_ORDER.filter((name): name is keyof typeof shareTargets => name in shareTargets)
+  .map((name) => ({ name, label: labels[name], href: shareTargets[name] }))
+  .concat([
+    {
+      name: 'line' as never,
+      label: 'LINE',
+      href: `https://social-plugins.line.me/lineit/share?url=${encodeURIComponent(canonical)}`,
+    },
+  ]);
+
+const follows = SOCIAL_ORDER.map((name) => SOCIALS.find((s) => s.name === name)).filter(
+  (s): s is (typeof SOCIALS)[number] => Boolean(s?.href),
+);
 
 const jsonLd: Record<string, unknown>[] = [
   {
@@ -123,6 +123,22 @@ const tocItems: TocItem[] = toc.filter((item) => item.level === 2);
   </Fragment>
 
   <div class="read-progress" id="readProgress" aria-hidden="true"></div>
+
+  {follows.length > 0 && (
+    <aside class="follow-rail" aria-label="公式SNS">
+      <span class="follow-rail__label">Follow</span>
+      <span class="follow-rail__line" aria-hidden="true"></span>
+      <ul>
+        {follows.map((item) => (
+          <li>
+            <a href={item.href} target="_blank" rel="noopener noreferrer" aria-label={item.label} title={item.label}>
+              <SocialIcon name={item.name} />
+            </a>
+          </li>
+        ))}
+      </ul>
+    </aside>
+  )}
 
   <article class="article-page">
     <div class="shell">
@@ -223,18 +239,6 @@ const tocItems: TocItem[] = toc.filter((item) => item.level === 2);
               </ul>
             </div>
 
-            <div class="share follow">
-              <span class="share__label">Follow</span>
-              <ul class="social">
-                {SOCIALS.filter((item) => item.href).map((item) => (
-                  <li>
-                    <a href={item.href} target="_blank" rel="noopener noreferrer" aria-label={item.label} title={item.label}>
-                      <SocialIcon name={item.name} />
-                    </a>
-                  </li>
-                ))}
-              </ul>
-            </div>
           </div>
         </div>
 

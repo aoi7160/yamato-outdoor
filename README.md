@@ -131,8 +131,12 @@ docs/
 zip)をそのまま置く必要はない。形式もサイズもばらつくうえ、単色・同一サイズに
 揃えるほうがデザイン上も扱いやすいため。
 
-- シェア(記事末尾): X / Facebook / Threads / LINE / リンクコピー
-- フォロー(記事末尾・フッター): X / Instagram / TikTok / Threads / Facebook
+- シェア(記事末尾): X / Threads / Facebook / LINE / リンクコピー
+- フォロー(記事ページ左端の追従レール・フッター): X / Instagram / TikTok / Threads / Facebook
+
+並び順は `SOCIAL_ORDER` で一元管理していて、シェアもフォローも同じ順に出る
+(場所によって順番が入れ替わると、それだけで雑に見えるため)。
+左端のフォローレールは画面幅80rem未満では非表示になり、フッターのリンクが受け皿になる。
 
 Instagram と TikTok にはWebからの投稿共有の導線が無いため、シェアではなく
 フォローリンクとしてのみ設置している。
