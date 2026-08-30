@@ -48,10 +48,9 @@ const jsonLd = {
   <!-- 私たちについて。ジャンル選択の前に、メディアの立ち位置を一度だけ挟む -->
   <section class="shell about-intro">
     <p class="about-intro__eyebrow">About YAMATO OUTDOOR</p>
-    <h2>担いで、濡らして、凍らせて。<br />それでも使い続けているものだけを、書く。</h2>
+    <h2>知っているほど、荷物は軽い。</h2>
     <p>
-      関西の山を軸に、実際に使った装備とルートだけを記録しています。
-      晴れの日に一度使っただけでは、書きません。
+      使って、量って、また使う。実際に持ち出したものだけを書いています。
     </p>
     <a class="about-intro__link" href="/about">私たちについて →</a>
   </section>
@@ -74,6 +73,7 @@ const jsonLd = {
                 height={g.imageSize.h}
                 loading={i === 0 ? 'eager' : 'lazy'}
                 decoding="async"
+                style={`object-position:${g.coverPosition}`}
               />
             </span>
             <span class="genre-card__body">

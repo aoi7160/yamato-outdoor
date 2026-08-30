@@ -25,6 +25,7 @@ const articles = all.filter((a) => genreSlugOf(a.category) === genre.slug);
       alt={genre.imageAlt}
       width={genre.imageSize.w}
       height={genre.imageSize.h}
+      style={`object-position:${genre.coverPosition}`}
       fetchpriority="high"
       decoding="async"
     />

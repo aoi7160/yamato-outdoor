@@ -25,6 +25,8 @@ export type GenreDef = {
   image: string;
   imageAlt: string;
   imageSize: { w: number; h: number };
+  /** カバーで大きく使うときの表示位置。縦長写真は中央だと空しか映らない */
+  coverPosition: string;
 };
 
 export const GENRES: GenreDef[] = [
@@ -38,6 +40,7 @@ export const GENRES: GenreDef[] = [
     image: '/media/category/mountain-climbing.webp',
     imageAlt: '霧に包まれた稜線を歩く登山者たち',
     imageSize: { w: 1500, h: 2000 },
+    coverPosition: 'center 42%',
   },
   {
     slug: 'fishing',
@@ -48,6 +51,7 @@ export const GENRES: GenreDef[] = [
     image: '/media/category/fishing.webp',
     imageAlt: '水辺に置かれた釣り椅子と竿',
     imageSize: { w: 1125, h: 2000 },
+    coverPosition: 'center 58%',
   },
   {
     slug: 'camp',
@@ -56,8 +60,9 @@ export const GENRES: GenreDef[] = [
     description: 'キャンプカテゴリ。実際に泊まり、検証した上でコンテンツ化していく領域。',
     status: 'upcoming',
     image: '/media/category/camp.webp',
-    imageAlt: '満天の星空の下に張られたテント',
+    imageAlt: '星空の下に張られたテント',
     imageSize: { w: 1459, h: 2000 },
+    coverPosition: 'center 80%',
   },
 ];
 
