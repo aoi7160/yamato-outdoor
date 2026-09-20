@@ -54,6 +54,11 @@ Astro(SSG) + microCMS + Cloudflare Pages のアウトドアメディア。
 - **背景に重い処理を足さない。** SVGのぼかしフィルタ(`feGaussianBlur`)や
   全画面の `mix-blend-mode` をアニメーションさせると、スクロールが5fpsまで落ちる。
   背景は `public/scenery.svg` に焼き込んだ静止画とし、動かすのは transform だけにする。
+  `mix-blend-mode` と `scale` を使ったtransformアニメーションは、GPUが弱い環境だと
+  それだけでfpsが半分以下になることを実測済み(`.cover::after` の霧は
+  `mix-blend-mode`なし・`scale`なし・単一グラデーション1層に抑えている)。
+  背景アニメーションのレイヤー数は「`.scenery__drift`3層 + カバー写真の霧1層」の
+  4層までで動作確認済み。増やす場合は必ずスクロール中のfpsを計測してから入れる。
 - SNSの並び順は `SOCIAL_ORDER` に従い、シェアもフォローも同じ順にする。
 
 ## その他
