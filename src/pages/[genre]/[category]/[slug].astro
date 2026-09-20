@@ -2,7 +2,7 @@
 // 記事ページ(例: /mountain-climbing/gear/rainwear-under-30000/)
 import ArticleLayout from '../../../layouts/ArticleLayout.astro';
 import { getArticles, getArticleBySlug } from '../../../lib/microcms';
-import { normalizeTags } from '../../../lib/article';
+import { normalizeTags, normalizeFaq } from '../../../lib/article';
 import { GENRES, genreSlugOf, articlePath, getGenre } from '../../../lib/taxonomy';
 
 export async function getStaticPaths() {
@@ -52,5 +52,13 @@ const related = siblings
   revisedAt={article.revisedAt}
   thumbnailUrl={article.thumbnail?.url}
   tags={normalizeTags(article.tags)}
+  faq={normalizeFaq(article.faq)}
+  review={article.reviewItem
+    ? {
+        item: article.reviewItem,
+        brand: article.reviewBrand,
+        rating: article.reviewRating ? Number(article.reviewRating) : undefined,
+      }
+    : undefined}
   related={related}
 />

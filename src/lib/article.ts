@@ -120,6 +120,24 @@ export const formatDate = (value: string | undefined): string => {
 };
 
 /**
+ * よくある質問の正規化。
+ * microCMSの繰り返しフィールドは `question` / `answer` で作ることが多いが、
+ * `q` / `a` で作ってしまった場合でも拾えるようにしておく。
+ * 質問と回答が両方そろっている項目だけを返す(片方だけだと構造化データが不正になる)。
+ */
+export const normalizeFaq = (
+  value: { question?: string; answer?: string; q?: string; a?: string }[] | undefined | null,
+): { q: string; a: string }[] => {
+  if (!Array.isArray(value)) return [];
+  return value
+    .map((item) => ({
+      q: (item.question ?? item.q ?? '').trim(),
+      a: (item.answer ?? item.a ?? '').trim(),
+    }))
+    .filter((item) => item.q && item.a);
+};
+
+/**
  * タグの正規化。
  * microCMSのフィールドが「複数テキスト」なら配列、「テキストフィールド」なら
  * 「A, B, C」のような1本の文字列で届く。どちらでも同じ形にして返す。

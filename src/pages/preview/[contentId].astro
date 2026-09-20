@@ -5,7 +5,7 @@ export const prerender = false;
 
 import ArticleLayout from '../../layouts/ArticleLayout.astro';
 import { getArticleDraft } from '../../lib/microcms';
-import { normalizeTags } from '../../lib/article';
+import { normalizeTags, normalizeFaq } from '../../lib/article';
 
 const { contentId } = Astro.params;
 const draftKey = Astro.url.searchParams.get('draftKey');
@@ -30,4 +30,5 @@ if (!article) {
   revisedAt={article.revisedAt}
   thumbnailUrl={article.thumbnail?.url}
   tags={normalizeTags(article.tags)}
+  faq={normalizeFaq(article.faq)}
 />

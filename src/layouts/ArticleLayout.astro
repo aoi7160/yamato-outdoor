@@ -7,6 +7,8 @@ import { SOCIALS, SOCIAL_ORDER, socialLink } from '../lib/site';
 
 export type FaqItem = { q: string; a: string };
 export type RelatedItem = { title: string; href: string; meta?: string };
+/** 製品レビュー記事のときだけ渡す。Reviewの構造化データになる。 */
+export type ReviewInfo = { item: string; brand?: string; rating?: number };
 
 interface Props {
   title: string;
@@ -24,6 +26,7 @@ interface Props {
   faq?: FaqItem[];
   related?: RelatedItem[];
   author?: { name: string; role: string; bio: string };
+  review?: ReviewInfo;
 }
 
 const {
@@ -41,6 +44,7 @@ const {
   tags = [],
   faq = [],
   related = [],
+  review,
   author = {
     name: '濵地 蒼麗',
     role: 'Founder / Editor',
@@ -81,6 +85,28 @@ const follows = SOCIAL_ORDER.map((name) => SOCIALS.find((s) => s.name === name))
   .filter((s): s is (typeof SOCIALS)[number] => Boolean(s))
   .map((s) => ({ name: s.name, ...socialLink(s) }));
 
+const siteUrl = Astro.site?.toString().replace(/\/$/, '') ?? 'https://yamato-outdoor.com';
+
+// 書き手の実在性(E-E-A-T)を機械にも読める形にする。
+// SNSは開設済みのものだけをsameAsに載せる(準備中の /sns を入れても意味がない)。
+const authorSameAs = SOCIALS.map((s) => s.href).filter(Boolean);
+
+const authorEntity = {
+  '@type': 'Person',
+  name: author.name,
+  jobTitle: author.role,
+  description: author.bio,
+  url: `${siteUrl}/about`,
+  ...(authorSameAs.length ? { sameAs: authorSameAs } : {}),
+};
+
+const publisherEntity = {
+  '@type': 'Organization',
+  name: 'YAMATO OUTDOOR',
+  url: siteUrl,
+  logo: { '@type': 'ImageObject', url: `${siteUrl}/logo.svg` },
+};
+
 const jsonLd: Record<string, unknown>[] = [
   {
     '@context': 'https://schema.org',
@@ -90,9 +116,13 @@ const jsonLd: Record<string, unknown>[] = [
     datePublished: publishedAt,
     dateModified: revisedAt ?? publishedAt,
     image: thumbnailUrl ? [thumbnailUrl] : undefined,
-    author: { '@type': 'Person', name: author.name },
-    publisher: { '@type': 'Organization', name: 'YAMATO OUTDOOR' },
-    mainEntityOfPage: canonical,
+    author: authorEntity,
+    publisher: publisherEntity,
+    mainEntityOfPage: { '@type': 'WebPage', '@id': canonical },
+    inLanguage: 'ja',
+    isAccessibleForFree: true,
+    articleSection: categoryName,
+    keywords: tags.length ? tags.join(', ') : undefined,
   },
   {
     '@context': 'https://schema.org',
@@ -131,6 +161,36 @@ if (faq.length) {
       name: f.q,
       acceptedAnswer: { '@type': 'Answer', text: f.a },
     })),
+  });
+}
+
+// 製品レビュー記事だけ。「誰が・どの製品を・何点で」評価したのかを機械にも渡す。
+// 評価を入れない(rating未指定の)レビューも成立するので、点数は任意にしてある。
+if (review?.item) {
+  jsonLd.push({
+    '@context': 'https://schema.org',
+    '@type': 'Review',
+    name: title,
+    reviewBody: description,
+    url: canonical,
+    datePublished: publishedAt,
+    author: authorEntity,
+    publisher: publisherEntity,
+    itemReviewed: {
+      '@type': 'Product',
+      name: review.item,
+      ...(review.brand ? { brand: { '@type': 'Brand', name: review.brand } } : {}),
+    },
+    ...(review.rating
+      ? {
+          reviewRating: {
+            '@type': 'Rating',
+            ratingValue: review.rating,
+            bestRating: 5,
+            worstRating: 1,
+          },
+        }
+      : {}),
   });
 }
 

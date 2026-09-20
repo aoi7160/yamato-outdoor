@@ -19,6 +19,15 @@ export type Category = {
   genre?: string;
 };
 
+/** microCMSの繰り返しフィールドで作るQ&A。フィールドIDの揺れを吸収したいので広めに受ける。 */
+export type FaqEntry = {
+  fieldId?: string;
+  question?: string;
+  answer?: string;
+  q?: string;
+  a?: string;
+};
+
 export type Article = {
   id: string;
   publishedAt: string;
@@ -31,6 +40,12 @@ export type Article = {
   category?: Category;
   /** microCMS側が「複数テキスト」でも「テキストフィールド」でも受け取れるようにしておく */
   tags?: string[] | string;
+  /** よくある質問。入れた記事だけFAQPageの構造化データとQ&A欄が出る */
+  faq?: FaqEntry[];
+  /** レビュー記事のときだけ入れる。埋めるとReviewの構造化データが出る */
+  reviewItem?: string;
+  reviewBrand?: string;
+  reviewRating?: number | string;
 };
 
 export const getArticles = async (
