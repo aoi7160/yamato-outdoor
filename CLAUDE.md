@@ -46,6 +46,7 @@ Astro(SSG) + microCMS + Cloudflare Pages のアウトドアメディア。
 | 公開までの手順 | `docs/workflow.md` |
 | トップのスクロール連動セクション(story) | `src/pages/index.astro` + `src/styles/global.css` の`.story-*` |
 | トップの背景グレイン(スモッグ)演出 | `src/layouts/BaseLayout.astro` の`grainDrift`props + `.scenery__grain-drift` |
+| トップのカバー動画(雲が動くシネマグラフ) | `src/pages/index.astro` の`<section class="cover cover--video">` + `public/media/hero/01-mist.mp4` |
 
 ## 過去デザインのアーカイブ
 
@@ -91,6 +92,19 @@ A/Bテストや見比べ用に、過去のトップページ構成をブラン�
   「stickyヘッダーの近くで動いている」こと自体にあるらしい。カバー写真で
   何かを動かすときは、上から30〜40%より下に置く。
 - SNSの並び順は `SOCIAL_ORDER` に従い、シェアもフォローも同じ順にする。
+- **トップのカバー写真の霧は動画(シネマグラフ)で動かしている。** `public/media/hero/01.webp`
+  を元にGemini(Veo)で生成した「山頂の雲だけがゆっくり流れる」動画を
+  `public/media/hero/01-mist.mp4` に置き、`.cover--video` 修飾クラスを付けた
+  トップのカバーだけ `<video autoplay muted loop playsinline poster="01.webp">` に
+  差し替えている。動画自体に動きがあるため、写真用のCSS霧(`.cover::after`)は
+  `.cover--video::after { content: none; }` で止めている(ジャンルページ・About等、
+  動画のない`.cover`にはこれまで通り`.cover::after`の霧が効く)。
+  動画は`ffmpeg`で音声を除去し`-movflags +faststart`を付けて配信用に軽量化(約670KB、
+  1280x720/24fps/10秒)。実測でトップ・ジャンル各ページとも idle/scroll とも60fps前後を
+  維持できており、動画を1本(サイズを絞った上で)敷くだけなら上記のレイヤー予算の
+  対象外(rAFで動かす自前アニメーションではないため)。新しい素材に差し替える際も
+  同じ手順(Veoでカバー写真から生成→ffmpegで軽量化→`ffmpeg -i <file>`で
+  コーデック/解像度/尺を確認)で問題ない。
 
 ## その他
 

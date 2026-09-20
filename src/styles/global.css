@@ -353,6 +353,10 @@ body::before {
 
 .cover--genre { min-height: min(62vh, 34rem); padding-top: 7rem; }
 
+/* トップだけ静止画の代わりに動画(雲が動くシネマグラフ)を敷く。
+   動画そのものに動きがあるので、写真用のCSS霧(.cover::after)は二重になり無駄なため止める。 */
+.cover--video::after { content: none; }
+
 .cover__image {
   position: absolute;
   inset: 0;

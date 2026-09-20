@@ -26,16 +26,21 @@ const jsonLd = {
     <script type="application/ld+json" set:html={JSON.stringify(jsonLd)} is:inline />
   </Fragment>
 
-  <section class="cover">
-    <img
+  <section class="cover cover--video">
+    <video
       class="cover__image"
-      src="/media/hero/01.webp"
-      alt="夜明け前の稜線"
+      poster="/media/hero/01.webp"
+      autoplay
+      muted
+      loop
+      playsinline
+      preload="auto"
       width="1600"
       height="900"
-      fetchpriority="high"
-      decoding="async"
-    />
+      aria-hidden="true"
+    >
+      <source src="/media/hero/01-mist.mp4" type="video/mp4" />
+    </video>
     <div class="cover__scrim"></div>
     <div class="shell cover__inner">
       <p class="cover__eyebrow">YAMATO OUTDOOR</p>
