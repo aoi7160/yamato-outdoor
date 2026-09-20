@@ -129,6 +129,45 @@ a { color: inherit; text-underline-offset: 0.3em; text-decoration-thickness: 1px
   100% { transform: translate3d(-2%, 0, 0) scale(1.05); }
 }
 
+/* スモッグ/グレイン。トップページ限定(grainDrift=trueのときだけ描画)。
+   検証の経緯(この環境=ソフトウェアレンダリングで実測):
+     - inset:0(画面全面)でtransform移動 → fps 60→31。大きな繰り返し画像を
+       transformで動かすのは、この環境ではかなり高くつく
+     - inset:0のままopacityアニメーションに変えても 60→29.5。面積が
+       画面全体だと、動かし方を変えても重いままだった
+     - 高さを35vh程度に絞ったら 60fpsに復帰。レイヤー数を1枚に絞ったら
+       さらに安定した(2枚に分けると、面積を半分にしても1枚45vhより遅かった
+       ため、"合計面積"だけでなく"アニメーションするレイヤーの枚数"自体にも
+       固定コストがある)
+   結論: 画面全面を覆う演出は避け、帯状(35vh程度)・1枚に絞る。
+   粒子のテクスチャ自体は静止したノイズ画像(一度だけラスタライズ)で、
+   動かすのはopacityだけ。mix-blend-modeやfeTurbulenceのランタイム
+   再計算は使わない(CLAUDE.mdの「背景に重い処理を足さない」を参照)。 */
+.scenery__grain-drift {
+  /* .sceneryの子ではなく独立した要素にして、body::beforeの暗幕(z-index:-1)より
+     手前(z-index:0)に出す。position:fixedなので置き場所はどこでもよい。 */
+  position: fixed;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  height: 35vh;
+  z-index: 0;
+  pointer-events: none;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='220' height='220'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='2' stitchTiles='stitch'/%3E%3CfeColorMatrix type='matrix' values='0 0 0 0 1  0 0 0 0 1  0 0 0 0 1  0 0 0 0.5 0'/%3E%3C/filter%3E%3Crect width='220' height='220' filter='url(%23n)'/%3E%3C/svg%3E");
+  background-repeat: repeat;
+  -webkit-mask-image: linear-gradient(to top, black, transparent);
+  mask-image: linear-gradient(to top, black, transparent);
+  opacity: 0.16;
+  will-change: opacity;
+  animation: grain-flicker 6.4s ease-in-out infinite;
+}
+
+@keyframes grain-flicker {
+  0%   { opacity: 0.12; }
+  50%  { opacity: 0.28; }
+  100% { opacity: 0.12; }
+}
+
 /* 風景と本文のあいだに薄い暗幕。明るい霧の上でも文字が読めるように */
 body::before {
   content: '';
@@ -148,6 +187,7 @@ body::before {
 @media (prefers-reduced-motion: reduce) {
   html { scroll-behavior: auto; }
   .scenery__drift,
+  .scenery__grain-drift,
   .cover::after { animation: none; }
 }
 

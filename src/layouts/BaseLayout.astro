@@ -11,6 +11,9 @@ interface Props {
   ogType?: string;
   /** 検索結果に載せたくないページ(準備中の案内など)で true にする */
   noindex?: boolean;
+  /** トップページ限定の演出。背景に粒子(グレイン)が漂うレイヤーを1枚足す。
+      レイヤーが増えるほど重くなるので、全ページには付けない。 */
+  grainDrift?: boolean;
 }
 
 const {
@@ -19,6 +22,7 @@ const {
   ogImage,
   ogType = 'website',
   noindex = false,
+  grainDrift = false,
 } = Astro.props;
 
 const canonical = Astro.site ? new URL(Astro.url.pathname, Astro.site).href : Astro.url.pathname;
@@ -75,6 +79,11 @@ const year = new Date().getFullYear();
       <div class="scenery__drift drift--2"></div>
       <div class="scenery__drift drift--3"></div>
     </div>
+
+    <!-- グレイン層は.sceneryの外に出している。body::beforeの暗幕(z-index:-1)が
+         .scenery(z-index:-2)を覆っているため、中に置くと不透明度を上げても
+         暗幕の下に沈んで見えなくなる。 -->
+    {grainDrift && <div class="scenery__grain-drift" aria-hidden="true"></div>}
 
     <header class="site-header">
       <div class="shell">

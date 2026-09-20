@@ -45,6 +45,7 @@ Astro(SSG) + microCMS + Cloudflare Pages のアウトドアメディア。
 | 読者ペルソナ・編集方針 | `docs/persona.md` |
 | 公開までの手順 | `docs/workflow.md` |
 | トップのスクロール連動セクション(story) | `src/pages/index.astro` + `src/styles/global.css` の`.story-*` |
+| トップの背景グレイン(スモッグ)演出 | `src/layouts/BaseLayout.astro` の`grainDrift`props + `.scenery__grain-drift` |
 
 ## 過去デザインのアーカイブ
 
@@ -72,6 +73,17 @@ A/Bテストや見比べ用に、過去のトップページ構成をブラン�
   `mix-blend-mode`なし・`scale`なし・単一グラデーション1層に抑えている)。
   背景アニメーションのレイヤー数は「`.scenery__drift`3層 + カバー写真の霧1層」の
   4層までで動作確認済み。増やす場合は必ずスクロール中のfpsを計測してから入れる。
+  **アニメーションする層の「合計面積」にも要注意。** ノイズ/グレイン画像を
+  画面全面(inset:0)でopacityアニメーションさせただけで、transformもblendも
+  使っていないのに 60fps→30fps 前後まで落ちることを実測した(GPUが弱い環境)。
+  高さを35vh程度の帯に絞ったら60fpsに戻った。また、同じ合計面積でも
+  「1枚の大きいレイヤー」より「2枚に分けたレイヤー」の方が遅かった
+  (レイヤーを増やすこと自体にも固定コストがある)ので、演出は面積を絞った
+  1枚にまとめるのが安全。`.scenery__grain-drift`(トップページ限定の
+  背景グレイン)はこの制約に沿って「35vh・1枚・opacityのみ」で実装している。
+  また、`body::before`の暗幕(z-index:-1)が`.scenery`(z-index:-2)を覆うため、
+  `.scenery`の中に置いた要素は不透明度をいくら上げても暗幕の下に沈んで見えない。
+  暗幕より視認性を出したい演出は`.scenery`の外に出し、`z-index:0`以上にする。
 - SNSの並び順は `SOCIAL_ORDER` に従い、シェアもフォローも同じ順にする。
 
 ## その他
