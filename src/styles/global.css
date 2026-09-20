@@ -483,6 +483,133 @@ body::before {
   margin-top: 0.4rem;
 }
 
+/* ---------------------------------------------------------
+   ジャンル選択(スクロール連動)
+   右のパネルを読み進めると、左の写真がクロスフェードする。
+   opacity/transformのトランジションはパネルが切り替わった瞬間だけ発生し、
+   .scenery__driftのような常時ループのrAFアニメーションより軽い。
+   --------------------------------------------------------- */
+
+.story-section { padding-top: 0; }
+
+.story {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+  gap: 3rem;
+  align-items: start;
+  margin-top: 2.5rem;
+}
+
+.story-visual {
+  position: sticky;
+  top: 6rem;
+  height: 64vh;
+  min-height: 26rem;
+}
+
+.story-visual-inner {
+  position: relative;
+  height: 100%;
+  overflow: hidden;
+  border: 1px solid var(--line-soft);
+  background: var(--base-1);
+}
+
+.story-image {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  opacity: 0;
+  filter: saturate(0.8) brightness(0.84);
+  transition: opacity 0.9s var(--ease);
+}
+
+.story-image.is-active { opacity: 1; }
+
+.story-index-badge {
+  position: absolute;
+  left: 1.2rem;
+  bottom: 1.2rem;
+  z-index: 2;
+  font-family: var(--font-latin);
+  font-size: 0.78rem;
+  letter-spacing: 0.14em;
+  color: var(--ink-strong);
+  background: rgba(8, 11, 16, 0.55);
+  padding: 0.35rem 0.8rem;
+  border: 1px solid var(--line-soft);
+}
+
+.story-panels {
+  display: flex;
+  flex-direction: column;
+  gap: 30vh;
+  padding: 6vh 0;
+}
+
+.story-panel {
+  display: block;
+  text-decoration: none;
+  color: inherit;
+  padding: 1.6rem 1.7rem;
+  border: 1px solid transparent;
+  opacity: 0.4;
+  transform: translateY(8px);
+  transition: opacity 0.5s var(--ease), transform 0.5s var(--ease), border-color 0.3s var(--ease), background 0.3s var(--ease);
+}
+
+.story-panel.is-active {
+  opacity: 1;
+  transform: translateY(0);
+  border-color: var(--line-soft);
+  background: rgba(12, 17, 27, 0.5);
+}
+
+.story-num {
+  display: block;
+  font-family: var(--font-latin);
+  font-size: 0.82rem;
+  letter-spacing: 0.16em;
+  color: var(--ember);
+  margin-bottom: 0.9rem;
+}
+
+.story-panel h3 {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  font-family: var(--font-serif);
+  font-weight: 400;
+  font-size: 1.7rem;
+  letter-spacing: 0.06em;
+  margin: 0 0 0.9rem;
+  color: var(--ink-strong);
+}
+
+.story-panel p {
+  margin: 0 0 1.2rem;
+  color: var(--ink-mute);
+  font-size: 0.95rem;
+  line-height: 1.9;
+}
+
+.story-link {
+  font-family: var(--font-latin);
+  font-size: 0.82rem;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: var(--ember-soft);
+}
+
+@media (max-width: 56rem) {
+  .story { grid-template-columns: minmax(0, 1fr); }
+  .story-visual { position: static; height: 48vh; }
+  .story-panels { gap: 2.5rem; padding: 2rem 0; }
+  .story-panel { opacity: 1; transform: none; }
+}
+
 /* カテゴリのチップ一覧 */
 .chip-list {
   list-style: none;

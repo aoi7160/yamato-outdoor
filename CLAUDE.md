@@ -44,6 +44,19 @@ Astro(SSG) + microCMS + Cloudflare Pages のアウトドアメディア。
 | スタイル | `src/styles/global.css`(全体) / `src/styles/article.css`(記事) |
 | 読者ペルソナ・編集方針 | `docs/persona.md` |
 | 公開までの手順 | `docs/workflow.md` |
+| トップのスクロール連動セクション(story) | `src/pages/index.astro` + `src/styles/global.css` の`.story-*` |
+
+## 過去デザインのアーカイブ
+
+A/Bテストや見比べ用に、過去のトップページ構成をブランチで保存してある。
+`main` にはマージしないが、Cloudflare Pagesの自動プレビューでいつでも見られる。
+
+| ブランチ | 内容 |
+|---|---|
+| `design-archive/static-grid-top` | ジャンル選択が3枚の静止カードだったバージョン(スクロール連動にする直前の状態) |
+
+新しいバリエーションを保存したいときは、同じ要領で `design-archive/<内容>` ブランチを
+`main` から切って push する。
 
 ## デザインの約束
 

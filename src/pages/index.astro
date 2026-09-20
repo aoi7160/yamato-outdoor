@@ -55,41 +55,83 @@ const jsonLd = {
     <a class="about-intro__link" href="/about">私たちについて →</a>
   </section>
 
-  <section class="shell genre-section">
+  <!-- ジャンル選択をスクロール連動で見せる。右のパネルをスクロールで通過すると
+       左の写真がクロスフェードする(IntersectionObserverでの切り替え+CSSトランジションのみ。
+       .scenery__driftのような常時rAFアニメーションではないので、スクロール時だけの
+       一過性のコストで済み、CLAUDE.mdの「背景アニメーション4層まで」の制約の対象外)。 -->
+  <section class="shell story-section">
     <div class="section-head">
       <h2>Explore</h2>
       <span class="count">ジャンルから探す</span>
     </div>
 
-    <ul class="genre-grid">
-      {GENRES.map((g, i) => (
-        <li>
-          <a class="genre-card" href={genrePath(g.slug)}>
-            <span class="genre-card__media">
-              <img
-                src={g.image}
-                alt={g.imageAlt}
-                width={g.imageSize.w}
-                height={g.imageSize.h}
-                loading={i === 0 ? 'eager' : 'lazy'}
-                decoding="async"
-                style={`object-position:${g.coverPosition}`}
-              />
-            </span>
-            <span class="genre-card__body">
-              <span class="genre-card__num">{String(i + 1).padStart(2, '0')}</span>
-              <span class="genre-card__name">
-                {g.name}
-                {g.status === 'upcoming' && <span class="badge">準備中</span>}
-              </span>
-              <span class="genre-card__tagline">{g.tagline}</span>
-              <span class="genre-card__link">詳しく見る →</span>
-            </span>
+    <div class="story" id="story">
+      <div class="story-visual">
+        <div class="story-visual-inner">
+          {GENRES.map((g, i) => (
+            <img
+              class:list={['story-image', { 'is-active': i === 0 }]}
+              data-story-image={i}
+              src={g.image}
+              alt={g.imageAlt}
+              width={g.imageSize.w}
+              height={g.imageSize.h}
+              loading={i === 0 ? 'eager' : 'lazy'}
+              decoding="async"
+              style={`object-position:${g.coverPosition}`}
+            />
+          ))}
+          <span class="story-index-badge" id="story-index-badge">
+            01 / {String(GENRES.length).padStart(2, '0')}
+          </span>
+        </div>
+      </div>
+
+      <div class="story-panels">
+        {GENRES.map((g, i) => (
+          <a
+            href={genrePath(g.slug)}
+            class:list={['story-panel', { 'is-active': i === 0 }]}
+            data-story-panel={i}
+          >
+            <span class="story-num">{String(i + 1).padStart(2, '0')}</span>
+            <h3>
+              {g.name}
+              {g.status === 'upcoming' && <span class="badge">準備中</span>}
+            </h3>
+            <p>{g.tagline}</p>
+            <span class="story-link">詳しく見る →</span>
           </a>
-        </li>
-      ))}
-    </ul>
+        ))}
+      </div>
+    </div>
   </section>
+
+  <script is:inline>
+    (() => {
+      const panels = document.querySelectorAll('[data-story-panel]');
+      const images = document.querySelectorAll('[data-story-image]');
+      const badge = document.getElementById('story-index-badge');
+      const total = panels.length;
+      if (!panels.length || !images.length) return;
+
+      const activate = (idx) => {
+        images.forEach((img, i) => img.classList.toggle('is-active', i === idx));
+        panels.forEach((p, i) => p.classList.toggle('is-active', i === idx));
+        if (badge) badge.textContent = `${String(idx + 1).padStart(2, '0')} / ${String(total).padStart(2, '0')}`;
+      };
+
+      const io = new IntersectionObserver(
+        (entries) => {
+          entries.forEach((entry) => {
+            if (entry.isIntersecting) activate(Number(entry.target.dataset.storyPanel));
+          });
+        },
+        { rootMargin: '-45% 0px -45% 0px', threshold: 0 },
+      );
+      panels.forEach((p) => io.observe(p));
+    })();
+  </script>
 
   <section class="shell">
     <div class="section-head">
