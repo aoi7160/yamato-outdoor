@@ -363,31 +363,38 @@ body::before {
   filter: saturate(0.8) contrast(1.05) brightness(0.72);
 }
 
-/* 写真の上を流れる霧。写真そのものは静止画なので、これが無いとカバーだけ
-   「止まって」見える。.scenery__drift と同じ軽量な作り方(transformのみ・
-   mix-blend-modeやscaleは使わない)に揃えている——blendやscaleを足すと、
-   GPUが弱い環境で一気にfpsが落ちることを実測で確認したため
-   (CLAUDE.mdの「背景に重い処理を足さない」はこの意味)。
-   ::before/::afterはCSSだけで足せるので、cover--genre・aboutのカバーにも自動で効く。 */
+/* 写真の上を流れる霧。写真そのものが静止画でも、山頂にかかっている雲の
+   あたりだけ実際に流れているように見せる。写っている雲の位置(カバーの
+   上から15%〜60%あたり)を狙って、そこだけ明るい霧の塊を重ねてゆっくり
+   動かす。.scenery__drift と同じ軽量な作り方(transformのみ・
+   mix-blend-modeやscaleは使わない・1枚のレイヤーに収める)に揃えている
+   ——blendやscaleを足す、レイヤーを複数に分ける、面積を画面全体にする、
+   のどれかをやると、GPUが弱い環境で一気にfpsが落ちることを実測で確認済み
+   (CLAUDE.mdの「背景に重い処理を足さない」を参照)。
+   ::afterはCSSだけで足せるので、cover--genre・aboutのカバーにも自動で効く。 */
 .cover::after {
   content: '';
   position: absolute;
   left: -35%;
   right: -35%;
-  bottom: -12%;
-  height: 58%;
+  /* position:stickyのヘッダーに近い帯(top 30%未満)に置くと、opacityや
+     アニメ速度を変えても実測でfpsが60→40台まで落ちることを確認した。
+     ヘッダーからはっきり離し、かつ面積も絞る(高さ34%)ことで60fpsを維持。
+     この位置は写真の山頂とその周りの雲がかかっているあたりに合う。 */
+  top: 40%;
+  height: 30%;
   z-index: 1;
   pointer-events: none;
   will-change: transform;
   transform: translate3d(0, 0, 0);
-  background: radial-gradient(60% 60% at 52% 58%, rgba(255, 255, 255, 0.17), transparent 72%);
-  animation: cover-mist 72s ease-in-out infinite reverse;
+  background: radial-gradient(52% 58% at 46% 48%, rgba(255, 255, 255, 0.28), transparent 68%);
+  animation: cover-mist 46s ease-in-out infinite;
 }
 
 @keyframes cover-mist {
-  0%   { transform: translate3d(5%, 1%, 0); }
-  50%  { transform: translate3d(-6%, -1.5%, 0); }
-  100% { transform: translate3d(5%, 1%, 0); }
+  0%   { transform: translate3d(-3%, 0, 0); }
+  50%  { transform: translate3d(3.5%, -1%, 0); }
+  100% { transform: translate3d(-3%, 0, 0); }
 }
 
 /* 写真の上に文字を置くので、下半分を確実に沈める */
