@@ -951,49 +951,29 @@ main > section:first-of-type .section-head,
     opacity 0.3s ease 0.5s;
 }
 
-/* 等高線と霧の粒。線は描き足されるように、粒は時間差で浮かび上がる */
+/* 大小のドット群。時間差でポンと現れ、出し終わったら静止する */
 .about-hero__figure svg {
   display: block;
   width: 100%;
   height: auto;
-  overflow: visible;
 }
 
-.contour {
-  fill: none;
-  stroke: rgba(205, 216, 226, 0.26);
-  stroke-width: 1;
-}
+.dot { fill: var(--frost); opacity: var(--o, 0.35); }
+.dot--ember { fill: var(--ember-soft); }
 
-.contour:nth-child(2n) { stroke: rgba(205, 216, 226, 0.15); }
-.contour:nth-child(-n + 2) { stroke: rgba(217, 154, 99, 0.5); }
-
-.mist { fill: var(--frost); opacity: var(--o, 0.3); }
-.mist--ember { fill: var(--ember-soft); }
-
-.motion-ready [data-anim='figure'] .contour {
-  stroke-dasharray: 1;
-  stroke-dashoffset: 1;
-}
-
-.motion-ready [data-anim='figure'].is-in .contour {
-  stroke-dashoffset: 0;
-  transition: stroke-dashoffset 2.2s var(--ease) var(--d, 0s);
-}
-
-.motion-ready [data-anim='figure'] .mist {
+.motion-ready [data-anim='figure'] .dot {
   opacity: 0;
-  transform: translateY(10px) scale(0.5);
+  transform: scale(0.2);
   transform-box: fill-box;
   transform-origin: center;
 }
 
-.motion-ready [data-anim='figure'].is-in .mist {
-  opacity: var(--o, 0.3);
+.motion-ready [data-anim='figure'].is-in .dot {
+  opacity: var(--o, 0.35);
   transform: none;
   transition:
-    opacity 0.7s ease var(--d, 0s),
-    transform 0.9s cubic-bezier(0.22, 1.2, 0.36, 1) var(--d, 0s);
+    opacity 0.45s ease var(--d, 0s),
+    transform 0.7s cubic-bezier(0.22, 1.35, 0.36, 1) var(--d, 0s);
 }
 
 @media (max-width: 58rem) {
