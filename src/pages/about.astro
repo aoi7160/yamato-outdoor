@@ -2,9 +2,8 @@
 import BaseLayout from '../layouts/BaseLayout.astro';
 import { GENRES, genrePath } from '../lib/taxonomy';
 
-// 説明的な文章は画面に置かず、検索エンジン向けの構造化データとmeta descriptionに寄せる。
 const seoDescription =
-  'YAMATO OUTDOORは、関西の山を軸に、実際に使った装備とルートだけを記録するアウトドアメディアです。実測値と複数回の使用にもとづく装備レビュー、山行記録、道具選びのハウツーを掲載しています。';
+  'YAMATO OUTDOORは、関西の山を軸に、実際に持ち込んだ装備と歩いたルートだけを記録するアウトドアメディアです。挑戦のベースキャンプとして、装備レビュー、山行記録、道具選びのハウツーを掲載しています。';
 
 const siteUrl = Astro.site?.toString().replace(/\/$/, '') ?? 'https://yamato-outdoor.com';
 
@@ -23,73 +22,68 @@ const jsonLd = [
     url: siteUrl,
     logo: `${siteUrl}/logo.svg`,
     description: seoDescription,
+    slogan: '挑戦の、ベースキャンプになる。',
     founder: { '@type': 'Person', name: '濵地 蒼麗', jobTitle: 'Founder / Editor' },
     areaServed: '日本',
     knowsAbout: ['登山', '登山装備', 'アウトドアギア', '関西の山', 'キャンプ', '釣り'],
   },
 ];
 
-// 行ごとに下からせり上がるので、見出し系のコピーは1行=1要素で持つ。
-// 改行位置を変えたいときは、この配列の要素を足し引きする。
-const heroTitleLines = ['知っているほど、', '荷物は軽い。'];
-const heroLead = '試した数だけ、迷いは減っていく。';
+// 大きいコピーは行ごとに下からせり上げるので、1行=1要素で持つ。
+// 改行位置を変えたいときは、配列の要素を足し引きする。
+const statement = '次の一歩は、ここで決まる。';
 
-const introLines = [
-  '後悔するのは、いつも荷物のことだ。',
-  '軽すぎて震えた日も、',
-  '重すぎて足が止まった日もある。',
-];
-const introSub = 'だから、書く前にまず持っていく。';
-
-const missionLines = ['次の休みが、', '待ち遠しくなるように。'];
-
-const principles = [
-  {
-    num: '01',
-    title: '買わない理由まで書く',
-    body: '欠点のないレビューは、広告と同じです。合わなかった点、返品した理由、二度と使っていない道具のことも、同じ分量で書きます。',
-    image: '/media/category/mountain-climbing.webp',
-    alt: '霧に包まれた稜線を歩く登山者たち',
-  },
-  {
-    num: '02',
-    title: '数字は自分で量る',
-    body: 'カタログの重量と、実際にザックに入る重量は一致しません。掲載する重さ・サイズは、手元の実測値です。違えば違うと書きます。',
-    image: '/media/category/camp.webp',
-    alt: '星空の下に張られたテント',
-  },
-  {
-    num: '03',
-    title: '一度で判断しない',
-    body: '晴れの日だけで分かることは、ほとんどありません。雨の日、風の日、汗をかいた登り返し。条件を変えて使ってから書きます。',
-    image: '/media/category/fishing.webp',
-    alt: '水辺に置かれた釣り椅子と竿',
-  },
+const missionCopy = ['挑戦の、', 'ベースキャンプになる。'];
+const missionNote = [
+  'ベースキャンプは、頂上に立つための場所ではない。',
+  '荷を整え、天候を読み、次の一歩を決める場所だ。',
+  '挑む人が、出ていける状態をつくる。',
 ];
 
-const facts = [
-  { label: '山に入る頻度', value: '月1〜2回' },
-  { label: '主なフィールド', value: '関西の山' },
-  { label: '装備レビューの条件', value: '3回以上' },
-  { label: '広告での評価変更', value: 'なし' },
+const visionCopy = ['終わりなき成長に、', '挑む輪を広げていく。'];
+const visionNote = [
+  '到達点を決めた時点で、成長は止まる。',
+  '終わりがないから、人はどこまでも行ける。',
+  '誰が、いつ始めてもいい。',
+  'その輪を、社会に広げていく。',
 ];
 
-const steps = [
-  { num: '01', title: '使う', body: '実際の山行に持ち込む。天候と季節を変えて、最低3回。' },
-  { num: '02', title: '量る', body: '重量、サイズ、電池の持ち。数値は手元で測り直す。' },
-  { num: '03', title: '書く', body: '良かった点と、合わなかった点。判断の分かれ目まで書く。' },
-  { num: '04', title: '直す', body: '使い続けて印象が変わったら、記事を更新する。書きっぱなしにしない。' },
+const values = [
+  { num: '01', name: '名実一体', body: '誰に聞いても一流と認められる自分たちでいる。' },
+  { num: '02', name: '大胆自責', body: '責任を取れる範囲が、挑戦の大きさを決める。' },
+  { num: '03', name: '敢為邁往', body: '分かれ道では、険しい方へ。楽に着いた場所に、見たい景色はない。' },
+  { num: '04', name: '格物致知', body: '誰かの地図を、そのまま歩かない。人が動く理由は、自分で読み解く。' },
+  { num: '05', name: '好学不倦', body: '考えるのをやめた瞬間、毎日はただの繰り返しになる。' },
+];
+
+const aboutUs = [
+  'YAMATO OUTDOORは、関西の山を軸にしたアウトドアメディアです。',
+  '実際に持ち込んだ装備と、歩いたルートだけを記録しています。',
+  '記事を書くことから始めて、道具を作る側にも回ります。',
 ];
 
 const readers = [
   '働きながら、月に1〜2回のペースで山に行く人',
   '一度、道具選びで失敗したことがある人',
-  '六甲や金剛山など、関西の山をよく歩く人',
   'カタログの数字より、使った人の言葉で決めたい人',
+  '誰かのおすすめではなく、自分の基準で決めたい人',
+];
+
+const editorBody = [
+  '会社勤めの傍ら、月1〜2回のペースで山に入る。六甲、金剛山、大山など関西の山を中心に、スタイルを問わず足繁く通う。',
+  'カタログスペックに頼らず、自らの体験と考えを基に記事を監修。',
+  '納得できる道具を追い求めた結果、人の挑戦が始まる場所をつくるべく、アウトドアブランド「YAMATO OUTDOOR」の立ち上げに至る。',
+];
+
+const mediaData = [
+  { label: '媒体名', value: 'YAMATO OUTDOOR' },
+  { label: '領域', value: '登山 / 釣り / キャンプ' },
+  { label: '扱う内容', value: '装備レビュー、山行記録、道具選びのハウツー' },
+  { label: '運営', value: '濵地 蒼麗' },
 ];
 ---
 
-<BaseLayout title="ABOUT | YAMATO OUTDOOR" description={seoDescription}>
+<BaseLayout title="ABOUT | YAMATO OUTDOOR" description={seoDescription} plain>
   <Fragment slot="head">
     <script type="application/ld+json" set:html={JSON.stringify(jsonLd)} is:inline />
     <!-- 登場アニメーションを有効にする印。JSが動かない/視差効果を減らす設定のときは
@@ -101,326 +95,281 @@ const readers = [
     </script>
   </Fragment>
 
-  <!-- カバー。写真ではなく、左にコピー・右に大小のドット群を置いて、
-       読み込み直後に一度だけ動かす(以降は静止) -->
-  <section class="about-hero">
-    <div class="shell about-hero__inner">
-      <div class="about-hero__copy" data-anim="lines">
-        <p class="about-hero__eyebrow line-mask" style="--d: 0s"><span>About</span></p>
-        <h1 class="about-hero__title">
-          {heroTitleLines.map((line, i) => (
-            <span class="line-mask" style={`--d: ${0.12 + i * 0.12}s`}><span>{line}</span></span>
-          ))}
+  <div class="about-page">
+    <div class="dots-layer" aria-hidden="true"></div>
+
+    <!-- カバー。タイトル・写真3枚・Statementを同じ正方グリッドに載せる -->
+    <div class="about-grid">
+      <div class="about-title-area" data-anim="lines">
+        <h1 class="about-title">
+          <span class="line-mask"><span>About</span></span>
+          <span class="line-mask" style="--d: 0.12s"><span>YAMATO OUTDOOR</span></span>
         </h1>
-        <p class="about-hero__lead line-mask" style={`--d: ${0.12 + heroTitleLines.length * 0.12}s`}>
-          <span>{heroLead}</span>
-        </p>
-        <a class="pill about-hero__cta" href="#principles">
-          書くときに守っていること
-          <span class="pill__arrow" aria-hidden="true">→</span>
-        </a>
       </div>
 
-      <div class="about-hero__figure" data-anim="figure" aria-hidden="true">
-        <svg viewBox="0 0 520 520" role="presentation" focusable="false">
-          <g class="dots">
-            <circle class="dot" cx="68.0" cy="31.3" r="1.8" style="--d: 1.30s; --o: 0.30" />
-            <circle class="dot" cx="244.5" cy="25.8" r="2.3" style="--d: 1.08s; --o: 0.39" />
-            <circle class="dot" cx="291.0" cy="15.6" r="2.5" style="--d: 1.08s; --o: 0.37" />
-            <circle class="dot" cx="330.1" cy="33.8" r="3.3" style="--d: 1.05s; --o: 0.39" />
-            <circle class="dot" cx="392.7" cy="38.9" r="3.0" style="--d: 1.08s; --o: 0.35" />
-            <circle class="dot" cx="254.7" cy="80.9" r="4.2" style="--d: 1.08s; --o: 0.50" />
-            <circle class="dot" cx="296.9" cy="63.0" r="4.6" style="--d: 1.13s; --o: 0.46" />
-            <circle class="dot" cx="352.1" cy="65.7" r="4.1" style="--d: 1.10s; --o: 0.43" />
-            <circle class="dot" cx="381.1" cy="61.2" r="3.4" style="--d: 1.12s; --o: 0.40" />
-            <circle class="dot" cx="488.0" cy="62.6" r="2.4" style="--d: 1.20s; --o: 0.30" />
-            <circle class="dot" cx="21.9" cy="113.1" r="1.3" style="--d: 1.16s; --o: 0.33" />
-            <circle class="dot" cx="79.9" cy="101.4" r="2.2" style="--d: 1.15s; --o: 0.40" />
-            <circle class="dot" cx="102.6" cy="113.1" r="2.4" style="--d: 1.09s; --o: 0.45" />
-            <circle class="dot" cx="160.2" cy="122.2" r="5.3" style="--d: 0.93s; --o: 0.53" />
-            <circle class="dot" cx="267.3" cy="128.8" r="7.9" style="--d: 0.88s; --o: 0.60" />
-            <circle class="dot" cx="303.0" cy="107.1" r="4.7" style="--d: 0.85s; --o: 0.55" />
-            <circle class="dot" cx="362.5" cy="109.0" r="4.2" style="--d: 1.05s; --o: 0.50" />
-            <circle class="dot" cx="390.2" cy="117.0" r="3.5" style="--d: 0.87s; --o: 0.49" />
-            <circle class="dot" cx="426.3" cy="106.0" r="3.1" style="--d: 0.96s; --o: 0.42" />
-            <circle class="dot" cx="481.6" cy="100.6" r="2.0" style="--d: 1.29s; --o: 0.34" />
-            <circle class="dot" cx="34.7" cy="152.5" r="2.0" style="--d: 1.21s; --o: 0.39" />
-            <circle class="dot" cx="53.4" cy="170.1" r="3.9" style="--d: 0.99s; --o: 0.44" />
-            <circle class="dot" cx="99.0" cy="176.8" r="3.7" style="--d: 1.07s; --o: 0.52" />
-            <circle class="dot" cx="211.2" cy="147.3" r="6.9" style="--d: 0.86s; --o: 0.62" />
-            <circle class="dot dot--ember" cx="255.7" cy="171.3" r="9.3" style="--d: 0.74s; --o: 0.69" />
-            <circle class="dot dot--ember" cx="292.4" cy="147.1" r="9.1" style="--d: 0.71s; --o: 0.63" />
-            <circle class="dot" cx="342.2" cy="154.0" r="6.7" style="--d: 0.93s; --o: 0.60" />
-            <circle class="dot" cx="388.6" cy="155.8" r="6.2" style="--d: 1.03s; --o: 0.54" />
-            <circle class="dot" cx="429.8" cy="175.7" r="6.0" style="--d: 0.86s; --o: 0.50" />
-            <circle class="dot" cx="478.4" cy="171.4" r="2.0" style="--d: 1.05s; --o: 0.42" />
-            <circle class="dot" cx="16.0" cy="204.2" r="2.9" style="--d: 1.08s; --o: 0.40" />
-            <circle class="dot" cx="59.3" cy="200.0" r="3.8" style="--d: 0.91s; --o: 0.47" />
-            <circle class="dot" cx="127.2" cy="209.9" r="6.6" style="--d: 0.87s; --o: 0.60" />
-            <circle class="dot" cx="158.3" cy="211.1" r="10.5" style="--d: 0.81s; --o: 0.65" />
-            <circle class="dot" cx="204.3" cy="190.4" r="8.1" style="--d: 0.67s; --o: 0.69" />
-            <circle class="dot dot--ember" cx="236.2" cy="189.3" r="12.8" style="--d: 0.74s; --o: 0.72" />
-            <circle class="dot" cx="306.9" cy="213.4" r="7.4" style="--d: 0.68s; --o: 0.73" />
-            <circle class="dot" cx="328.4" cy="210.3" r="9.2" style="--d: 0.59s; --o: 0.70" />
-            <circle class="dot" cx="374.6" cy="206.0" r="7.7" style="--d: 0.75s; --o: 0.62" />
-            <circle class="dot" cx="441.6" cy="216.5" r="4.7" style="--d: 0.87s; --o: 0.51" />
-            <circle class="dot" cx="122.2" cy="270.0" r="4.6" style="--d: 0.95s; --o: 0.60" />
-            <circle class="dot" cx="178.8" cy="238.2" r="6.2" style="--d: 0.57s; --o: 0.70" />
-            <circle class="dot dot--ember" cx="218.2" cy="261.4" r="12.1" style="--d: 0.60s; --o: 0.77" />
-            <circle class="dot" cx="244.3" cy="255.8" r="13.8" style="--d: 0.63s; --o: 0.82" />
-            <circle class="dot" cx="287.5" cy="261.9" r="7.8" style="--d: 0.66s; --o: 0.79" />
-            <circle class="dot" cx="332.7" cy="242.3" r="10.4" style="--d: 0.58s; --o: 0.71" />
-            <circle class="dot" cx="409.1" cy="234.0" r="7.0" style="--d: 0.89s; --o: 0.57" />
-            <circle class="dot" cx="439.7" cy="264.3" r="3.5" style="--d: 1.03s; --o: 0.52" />
-            <circle class="dot" cx="477.4" cy="256.2" r="4.6" style="--d: 1.01s; --o: 0.45" />
-            <circle class="dot" cx="11.9" cy="310.6" r="1.9" style="--d: 1.03s; --o: 0.38" />
-            <circle class="dot" cx="72.2" cy="317.1" r="3.9" style="--d: 0.99s; --o: 0.48" />
-            <circle class="dot" cx="126.8" cy="299.8" r="6.7" style="--d: 0.97s; --o: 0.59" />
-            <circle class="dot dot--ember" cx="172.4" cy="311.9" r="8.2" style="--d: 0.86s; --o: 0.65" />
-            <circle class="dot" cx="215.3" cy="316.2" r="6.4" style="--d: 0.71s; --o: 0.69" />
-            <circle class="dot" cx="247.6" cy="287.8" r="14.8" style="--d: 0.67s; --o: 0.77" />
-            <circle class="dot" cx="283.8" cy="289.4" r="13.5" style="--d: 0.61s; --o: 0.76" />
-            <circle class="dot" cx="332.1" cy="300.9" r="5.5" style="--d: 0.75s; --o: 0.68" />
-            <circle class="dot" cx="409.7" cy="309.5" r="4.0" style="--d: 0.92s; --o: 0.55" />
-            <circle class="dot" cx="442.2" cy="308.8" r="2.8" style="--d: 1.10s; --o: 0.49" />
-            <circle class="dot" cx="474.1" cy="308.1" r="4.0" style="--d: 1.01s; --o: 0.44" />
-            <circle class="dot" cx="513.5" cy="296.3" r="3.0" style="--d: 1.11s; --o: 0.37" />
-            <circle class="dot" cx="82.6" cy="355.6" r="2.7" style="--d: 1.08s; --o: 0.46" />
-            <circle class="dot" cx="125.3" cy="349.8" r="6.7" style="--d: 0.96s; --o: 0.53" />
-            <circle class="dot" cx="177.2" cy="331.5" r="7.3" style="--d: 0.80s; --o: 0.63" />
-            <circle class="dot" cx="224.2" cy="350.2" r="8.0" style="--d: 0.91s; --o: 0.64" />
-            <circle class="dot" cx="249.2" cy="354.1" r="6.8" style="--d: 0.74s; --o: 0.64" />
-            <circle class="dot" cx="285.8" cy="326.4" r="7.3" style="--d: 0.60s; --o: 0.69" />
-            <circle class="dot" cx="344.4" cy="339.3" r="8.1" style="--d: 0.87s; --o: 0.61" />
-            <circle class="dot" cx="441.2" cy="334.6" r="3.7" style="--d: 1.11s; --o: 0.47" />
-            <circle class="dot" cx="473.3" cy="329.6" r="3.6" style="--d: 1.00s; --o: 0.42" />
-            <circle class="dot" cx="31.8" cy="400.3" r="1.8" style="--d: 1.21s; --o: 0.33" />
-            <circle class="dot" cx="110.3" cy="384.0" r="2.7" style="--d: 0.89s; --o: 0.46" />
-            <circle class="dot" cx="146.4" cy="376.4" r="6.1" style="--d: 0.90s; --o: 0.52" />
-            <circle class="dot" cx="191.8" cy="397.5" r="5.1" style="--d: 1.00s; --o: 0.52" />
-            <circle class="dot" cx="251.3" cy="399.9" r="6.6" style="--d: 0.98s; --o: 0.54" />
-            <circle class="dot" cx="314.2" cy="400.4" r="4.9" style="--d: 1.01s; --o: 0.52" />
-            <circle class="dot" cx="355.8" cy="399.8" r="5.4" style="--d: 0.99s; --o: 0.49" />
-            <circle class="dot" cx="396.3" cy="373.7" r="5.0" style="--d: 1.09s; --o: 0.49" />
-            <circle class="dot" cx="511.4" cy="405.4" r="1.4" style="--d: 1.40s; --o: 0.30" />
-            <circle class="dot" cx="23.9" cy="424.5" r="1.8" style="--d: 1.33s; --o: 0.30" />
-            <circle class="dot" cx="96.1" cy="433.4" r="3.1" style="--d: 1.05s; --o: 0.37" />
-            <circle class="dot" cx="314.7" cy="419.6" r="3.3" style="--d: 1.05s; --o: 0.49" />
-            <circle class="dot" cx="326.1" cy="432.1" r="2.4" style="--d: 1.00s; --o: 0.46" />
-            <circle class="dot" cx="384.4" cy="436.4" r="2.0" style="--d: 1.20s; --o: 0.40" />
-            <circle class="dot" cx="51.7" cy="465.7" r="1.2" style="--d: 1.29s; --o: 0.30" />
-            <circle class="dot" cx="157.3" cy="475.9" r="1.5" style="--d: 1.24s; --o: 0.35" />
-            <circle class="dot" cx="224.4" cy="484.8" r="3.0" style="--d: 1.25s; --o: 0.36" />
-            <circle class="dot" cx="310.2" cy="496.1" r="1.8" style="--d: 1.32s; --o: 0.34" />
-            <circle class="dot" cx="349.7" cy="475.9" r="1.8" style="--d: 1.09s; --o: 0.36" />
-            <circle class="dot" cx="406.4" cy="466.1" r="1.9" style="--d: 1.22s; --o: 0.33" />
-          </g>
-        </svg>
+      <div class="about-visual visual-01" data-anim="up">
+        <span class="v-inner">
+          <img src="/media/hero/01.webp" alt="霧の稜線" width="1600" height="900" fetchpriority="high" decoding="async" />
+        </span>
+      </div>
+      <div class="about-visual visual-02" data-anim="up">
+        <span class="v-inner">
+          <img src="/media/category/mountain-climbing.webp" alt="霧に包まれた稜線を歩く登山者たち" width="1200" height="900" loading="lazy" decoding="async" />
+        </span>
+      </div>
+      <div class="about-visual visual-03" data-anim="up">
+        <span class="v-inner">
+          <img src="/media/category/camp.webp" alt="星空の下に張られたテント" width="1200" height="900" loading="lazy" decoding="async" />
+        </span>
+      </div>
+
+      <div class="statement-area" data-anim="lines">
+        <h2 class="statement">
+          <span class="statement__label">Statement</span>
+          <span class="line-mask" style="--d: 0.2s"><span>{statement}</span></span>
+        </h2>
       </div>
     </div>
-  </section>
 
-  <!-- 導入。中央に寄せて、ここだけは読ませる -->
-  <section class="shell about-lead">
-    <p class="about-lead__eyebrow" data-anim="up">YAMATO OUTDOOR</p>
-    <p class="about-lead__text" data-anim="lines">
-      {introLines.map((line, i) => (
-        <span class="line-mask" style={`--d: ${i * 0.12}s`}><span>{line}</span></span>
-      ))}
-    </p>
-    <p class="about-lead__sub" data-anim="up" style="--d: 0.25s">{introSub}</p>
-  </section>
-
-  <section class="shell">
-    <div class="section-head" data-anim="up">
-      <h2>YAMATO OUTDOORについて</h2>
-      <span class="count">Who we are</span>
-    </div>
-    <div class="about-body" data-anim="up">
-      <p>晴れの日の道具は、たいてい優秀だ。</p>
-      <p>
-        雨に降られて、汗をかいて、指がかじかむ。その道具の本当の性格が出るのは、そこから先。
-        一度使っただけで分かることは、ほとんどない。
-      </p>
-      <p>
-        日帰りの低山から、テントを担ぐ縦走まで。いずれ水辺にも、焚き火のそばにも出ていく。
-        行き先が変わっても、確かめることは変わらない。持っていって良かったか。置いていけば良かったか。
-      </p>
-    </div>
-
-    <dl class="fact-strip">
-      {facts.map((f, i) => (
-        <div data-anim="up" style={`--d: ${i * 0.09}s`}>
-          <dt>{f.label}</dt>
-          <dd>{f.value}</dd>
+    <!-- Mission -->
+    <section class="about-section">
+      <div class="about-section__title"><h2>Mission</h2></div>
+      <div class="about-grid about-grid--first">
+        <div class="area-text mission-text js-auto-height" data-anim="lines">
+          <p class="big-copy">
+            {missionCopy.map((line, i) => (
+              <span class="line-mask" style={`--d: ${i * 0.12}s`}><span>{line}</span></span>
+            ))}
+          </p>
+          <p class="note-copy">
+            {missionNote.map((line) => (
+              <>{line}<br /></>
+            ))}
+          </p>
         </div>
-      ))}
-    </dl>
-  </section>
-
-  <section class="shell" id="principles">
-    <div class="section-head" data-anim="up">
-      <h2>書くときに守っていること</h2>
-      <span class="count">Principles</span>
-    </div>
-    <div class="principles">
-      {principles.map((p) => (
-        <article class="principle" data-anim="up">
-          <div class="principle__media">
-            <img src={p.image} alt={p.alt} width="1200" height="900" loading="lazy" decoding="async" />
-          </div>
-          <div class="principle__body">
-            <span class="principle__num">{p.num}</span>
-            <h3>{p.title}</h3>
-            <p>{p.body}</p>
-          </div>
-        </article>
-      ))}
-    </div>
-  </section>
-
-  <section class="shell">
-    <div class="section-head" data-anim="up">
-      <h2>記事ができるまで</h2>
-      <span class="count">Process</span>
-    </div>
-    <ol class="steps">
-      {steps.map((s, i) => (
-        <li data-anim="up" style={`--d: ${i * 0.09}s`}>
-          <span class="steps__num">{s.num}</span>
-          <h3>{s.title}</h3>
-          <p>{s.body}</p>
-        </li>
-      ))}
-    </ol>
-  </section>
-
-  <section class="shell">
-    <div class="section-head" data-anim="up">
-      <h2>こんな人に読んでほしい</h2>
-      <span class="count">Readers</span>
-    </div>
-    <ul class="reader-list">
-      {readers.map((r, i) => (
-        <li data-anim="up" style={`--d: ${i * 0.08}s`}>{r}</li>
-      ))}
-    </ul>
-    <p class="about-note" data-anim="up">
-      初心者向けの入口記事と、上級者向けの専門記事は、すでに世の中に充分あります。
-      足りていないのは、その中間——何度か山に行って、道具を買い替えはじめた人のための情報だと考えています。
-    </p>
-  </section>
-
-  <section class="mission">
-    <div class="shell">
-      <p class="mission__eyebrow" data-anim="up">Mission</p>
-      <p class="mission__copy" data-anim="lines">
-        {missionLines.map((line, i) => (
-          <span class="line-mask" style={`--d: ${i * 0.12}s`}><span>{line}</span></span>
-        ))}
-      </p>
-      <div class="mission__body" data-anim="up" style="--d: 0.15s">
-        <p>
-          装備が決まると、行き先が決まる。行き先が決まると、休みが待ち遠しくなる。
-          その順番を、こちら側から作りたい。
-        </p>
-        <p>
-          登山からはじめて、いずれ水辺へ、焚き火のそばへ。試すだけでは終わらせず、作る側にも回る。
-          まだ誰も書いていない一本を、増やしていく。
-        </p>
       </div>
-    </div>
-  </section>
+    </section>
 
-  <section class="shell">
-    <div class="section-head" data-anim="up">
-      <h2>運営者</h2>
-      <span class="count">Editor</span>
-    </div>
-    <div class="editor">
-      <div class="editor__head" data-anim="up">
-        <p class="editor__role">Founder / Editor</p>
-        <p class="editor__name">濵地 蒼麗</p>
+    <!-- Vision -->
+    <section class="about-section">
+      <div class="about-section__title"><h2>Vision</h2></div>
+      <div class="about-grid about-grid--first">
+        <div class="area-text vision-text js-auto-height" data-anim="lines">
+          <p class="big-copy">
+            {visionCopy.map((line, i) => (
+              <span class="line-mask" style={`--d: ${i * 0.12}s`}><span>{line}</span></span>
+            ))}
+          </p>
+          <p class="note-copy">
+            {visionNote.map((line) => (
+              <>{line}<br /></>
+            ))}
+          </p>
+        </div>
       </div>
-      <div class="editor__body" data-anim="up" style="--d: 0.12s">
-        <p>
-          会社勤めの傍ら、月1〜2回のペースで山に入る。六甲、金剛山、大山など関西の山を中心に、
-          スタイルを問わず足繁く通う。
-        </p>
-        <p>
-          カタログスペックに頼るのではなく、実際の山行で実測重量や耐候性を自ら確かめることを大切にしている。
-          数々の失敗を経て得た知見をもとに記事を監修し、自身が納得できる道具を追い求めた結果、
-          アウトドアブランド「YAMATO OUTDOOR」の立ち上げに至る。
-        </p>
+    </section>
+
+    <!-- Value -->
+    <section class="about-section">
+      <div class="about-section__title"><h2>Value</h2></div>
+      <div class="about-grid about-grid--first">
+        <div class="about-visual value-visual" data-anim="up">
+          <span class="v-inner">
+            <img src="/media/category/fishing.webp" alt="水辺に置かれた釣り椅子と竿" width="1200" height="900" loading="lazy" decoding="async" />
+          </span>
+        </div>
+        <div class="value-list js-auto-height">
+          <ol>
+            {values.map((v, i) => (
+              <li data-anim="up" style={`--d: ${i * 0.08}s`}>
+                <span class="val-num">{v.num}</span>
+                <span>
+                  <span class="val-name">{v.name}</span>
+                  <span class="val-body">{v.body}</span>
+                </span>
+              </li>
+            ))}
+          </ol>
+        </div>
       </div>
-    </div>
-  </section>
+    </section>
 
-  <section class="shell">
-    <div class="section-head" data-anim="up">
-      <h2>媒体について</h2>
-      <span class="count">Media data</span>
-    </div>
-    <dl class="media-data">
-      <div data-anim="up"><dt>媒体名</dt><dd>YAMATO OUTDOOR</dd></div>
-      <div data-anim="up" style="--d: 0.06s"><dt>領域</dt><dd>登山 / 釣り / キャンプ</dd></div>
-      <div data-anim="up" style="--d: 0.12s"><dt>扱う内容</dt><dd>装備レビュー、山行記録、道具選びのハウツー</dd></div>
-      <div data-anim="up" style="--d: 0.18s"><dt>読者</dt><dd>働きながら、月1〜2回のペースで山に行く層が中心</dd></div>
-      <div data-anim="up" style="--d: 0.24s"><dt>編集方針</dt><dd>使っていないものは書かない。広告で評価を変えない</dd></div>
-      <div data-anim="up" style="--d: 0.3s"><dt>運営</dt><dd>濵地 蒼麗</dd></div>
-    </dl>
-    <p class="about-note" data-anim="up">
-      掲載やタイアップのご相談は、公式SNSの開設にあわせて窓口をご案内します。
-    </p>
-  </section>
+    <!-- About us -->
+    <section class="about-section">
+      <div class="about-section__title"><h2>About us</h2></div>
+      <div class="about-grid about-grid--first">
+        <div class="area-text aboutus-text js-auto-height" data-anim="up">
+          <p>
+            {aboutUs.map((line) => (
+              <>{line}<br /></>
+            ))}
+          </p>
+        </div>
+      </div>
+    </section>
 
-  <section class="shell about-outro">
-    <p class="about-outro__lead" data-anim="up">まずは、歩く場所から。</p>
-    <ul class="genre-grid genre-grid--compact">
-      {GENRES.map((g, i) => (
-        <li data-anim="up" style={`--d: ${i * 0.09}s`}>
-          <a class="genre-card" href={genrePath(g.slug)}>
-            <span class="genre-card__media">
-              <img src={g.image} alt={g.imageAlt} width={g.imageSize.w} height={g.imageSize.h} loading="lazy" decoding="async" />
-            </span>
-            <span class="genre-card__body">
-              <span class="genre-card__num">{String(i + 1).padStart(2, '0')}</span>
-              <span class="genre-card__name">
-                {g.name}
-                {g.status === 'upcoming' && <span class="badge">準備中</span>}
-              </span>
-              <span class="genre-card__tagline">{g.tagline}</span>
-            </span>
+    <!-- Readers -->
+    <section class="about-section">
+      <div class="about-section__title"><h2>Readers</h2></div>
+      <div class="about-grid about-grid--first">
+        <div class="readers-list js-auto-height">
+          <ul>
+            {readers.map((r, i) => (
+              <li data-anim="up" style={`--d: ${i * 0.08}s`}>{r}</li>
+            ))}
+          </ul>
+        </div>
+        <div class="readers-note js-auto-height" data-anim="up" style="--d: 0.15s">
+          <p class="note-copy">
+            初心者向けの入口記事と、上級者向けの専門記事は、すでに世の中に充分あります。
+            足りていないのは、その中間——何度か山に行って、道具を買い替えはじめた人のための情報だと考えています。
+          </p>
+        </div>
+      </div>
+    </section>
+
+    <!-- Editor -->
+    <section class="about-section">
+      <div class="about-section__title"><h2>Editor</h2></div>
+      <div class="about-grid about-grid--first">
+        <div class="editor-head js-auto-height" data-anim="up">
+          <p class="editor-role">Founder / Editor</p>
+          <p class="editor-name">濵地 蒼麗</p>
+        </div>
+        <div class="area-text editor-text js-auto-height" data-anim="up" style="--d: 0.12s">
+          {editorBody.map((t) => <p>{t}</p>)}
+        </div>
+      </div>
+    </section>
+
+    <!-- Media data -->
+    <section class="about-section">
+      <div class="about-section__title"><h2>Media data</h2></div>
+      <div class="about-grid about-grid--first">
+        <div class="media-list js-auto-height" data-anim="up">
+          <dl>
+            {mediaData.map((m) => (
+              <div>
+                <dt>{m.label}</dt>
+                <dd>{m.value}</dd>
+              </div>
+            ))}
+          </dl>
+        </div>
+      </div>
+    </section>
+
+    <!-- Related -->
+    <div class="about-grid">
+      <div class="related-title" data-anim="up"><h2>Related</h2></div>
+      <div class="about-visual related-visual" data-anim="up">
+        <span class="v-inner">
+          <img src="/media/hero/01.webp" alt="霧の稜線" width="1600" height="900" loading="lazy" decoding="async" />
+        </span>
+      </div>
+      <div class="related-links" data-anim="up" style="--d: 0.12s">
+        {GENRES.map((g) => (
+          <a href={genrePath(g.slug)}>
+            {g.name} ↗
+            {g.status === 'upcoming' && <span class="badge">準備中</span>}
           </a>
-        </li>
-      ))}
-    </ul>
-  </section>
+        ))}
+      </div>
+    </div>
+  </div>
 
-  <!-- 画面に入った要素に is-in を付けるだけ。出し終わったら監視を外すので、
-       スクロール中に計算が走り続けることはない -->
   <script is:inline>
     (() => {
-      if (!document.documentElement.classList.contains('motion-ready')) return;
-      const targets = document.querySelectorAll('[data-anim]');
-      if (!targets.length) return;
+      const page = document.querySelector('.about-page');
+      if (!page) return;
 
-      if (!('IntersectionObserver' in window)) {
+      // 縦スクロールバーの幅を変数に入れる。100vwのままだと横にあふれる
+      const setScrollbarWidth = () => {
+        const sbw = window.innerWidth - document.documentElement.clientWidth;
+        document.documentElement.style.setProperty('--sbw', `${sbw}px`);
+      };
+
+      // テキストの枠は、中身の高さから必要な行数を計算してグリッドに吸着させる
+      const autoHeight = () => {
+        const grid = page.querySelector('.about-grid');
+        if (!grid) return;
+        const cell = grid.getBoundingClientRect().width / 5;
+        if (!cell) return;
+        page.querySelectorAll('.js-auto-height').forEach((el) => {
+          el.style.gridRowEnd = 'auto';
+          const rows = Math.ceil(el.offsetHeight / cell);
+          el.style.gridRowEnd = `span ${Math.max(1, rows)}`;
+        });
+      };
+
+      const layout = () => {
+        setScrollbarWidth();
+        autoHeight();
+      };
+
+      layout();
+      window.addEventListener('load', layout);
+      let resizeTimer;
+      window.addEventListener('resize', () => {
+        clearTimeout(resizeTimer);
+        resizeTimer = setTimeout(layout, 200);
+      });
+
+      const reduce = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+      if (reduce) return;
+
+      // 画面に入った要素に is-in を付けるだけ。出し終わったら監視を外す
+      const targets = page.querySelectorAll('[data-anim]');
+      if ('IntersectionObserver' in window) {
+        const io = new IntersectionObserver(
+          (entries) => {
+            entries.forEach((entry) => {
+              if (!entry.isIntersecting) return;
+              entry.target.classList.add('is-in');
+              io.unobserve(entry.target);
+            });
+          },
+          { rootMargin: '0px 0px -10% 0px', threshold: 0 },
+        );
+        targets.forEach((el) => io.observe(el));
+      } else {
         targets.forEach((el) => el.classList.add('is-in'));
-        return;
       }
 
-      const io = new IntersectionObserver(
-        (entries) => {
-          entries.forEach((entry) => {
-            if (!entry.isIntersecting) return;
-            entry.target.classList.add('is-in');
-            io.unobserve(entry.target);
-          });
+      // 写真の視差とStatementの消え方。スクロールのたびにrAFで1回だけ計算する
+      const images = [...page.querySelectorAll('.v-inner img')];
+      const statementArea = page.querySelector('.statement-area');
+      const firstTitle = page.querySelector('.about-section__title');
+      let ticking = false;
+
+      const update = () => {
+        ticking = false;
+        const vh = window.innerHeight;
+
+        images.forEach((img) => {
+          const box = img.parentElement.getBoundingClientRect();
+          if (box.bottom < 0 || box.top > vh) return;
+          const progress = (vh - box.top) / (vh + box.height);
+          img.style.transform = `translate3d(0, ${((progress * 2 - 1) * -6).toFixed(2)}%, 0)`;
+        });
+
+        if (statementArea && firstTitle) {
+          const top = firstTitle.getBoundingClientRect().top;
+          const fade = Math.min(1, Math.max(0, (top - vh * 0.5) / (vh * 0.3)));
+          statementArea.style.opacity = String(fade);
+        }
+      };
+
+      window.addEventListener(
+        'scroll',
+        () => {
+          if (ticking) return;
+          ticking = true;
+          requestAnimationFrame(update);
         },
-        { rootMargin: '0px 0px -10% 0px', threshold: 0 },
+        { passive: true },
       );
-      targets.forEach((el) => io.observe(el));
+      update();
     })();
   </script>
 </BaseLayout>

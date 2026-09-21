@@ -46,7 +46,7 @@ Astro(SSG) + microCMS + Cloudflare Pages のアウトドアメディア。
 | 公開までの手順 | `docs/workflow.md` |
 | トップのスクロール連動セクション(story) | `src/pages/index.astro` + `src/styles/global.css` の`.story-*` |
 | トップの背景グレイン(スモッグ)演出 | `src/layouts/BaseLayout.astro` の`grainDrift`props + `.scenery__grain-drift` |
-| Aboutの登場アニメ・ドットのカバー | `src/pages/about.astro` + `src/styles/global.css` の`.about-hero` / `[data-anim]` |
+| Aboutの5カラムグリッド・点の背景・登場アニメ | `src/pages/about.astro` + `src/styles/global.css` の`.about-page` / `.about-grid` / `.dots-layer` / `[data-anim]` |
 | トップのカバー動画(雲が動くシネマグラフ) | `src/pages/index.astro` の`<section class="cover cover--video">` + `public/media/hero/01-mist.mp4` |
 
 ## 過去デザインのアーカイブ
@@ -92,6 +92,13 @@ A/Bテストや見比べ用に、過去のトップページ構成をブラン�
   離す(top:40%程度)だけでfpsが戻ったので、原因は面積でも不透明度でもなく
   「stickyヘッダーの近くで動いている」こと自体にあるらしい。カバー写真で
   何かを動かすときは、上から30〜40%より下に置く。
+- **Aboutだけは「5カラムの正方グリッド＋点の背景」で組む。** 1セルの辺は
+  `(ページ幅 - 左右マージン) / 5` で、行の高さにも同じ値を使う。点はセルの交点に
+  置いた静止した背景画像1枚(`.dots-layer`)で、アニメーションさせない。
+  背景の山のシルエットと点は同居できないので、AboutはBaseLayoutの`plain`で
+  山と暗幕を外している。テキストの枠の行数は中身の高さからJSで決める
+  (`.js-auto-height`)。セクション見出しは`position:sticky`だが、画面が狭いと
+  本文が見出しの裏を通るので、48rem以下では通常配置に戻している。
 - SNSの並び順は `SOCIAL_ORDER` に従い、シェアもフォローも同じ順にする。
 - **トップのカバー写真の霧は動画(シネマグラフ)で動かしている。** `public/media/hero/01.webp`
   を元にGemini(Veo)で生成した「山頂の雲だけがゆっくり流れる」動画を

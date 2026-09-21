@@ -14,6 +14,9 @@ interface Props {
   /** トップページ限定の演出。背景に粒子(グレイン)が漂うレイヤーを1枚足す。
       レイヤーが増えるほど重くなるので、全ページには付けない。 */
   grainDrift?: boolean;
+  /** 背景の山と暗幕を外す。Aboutのように、点のグリッドを敷くページで使う
+      (山のシルエットと点が重なると、どちらも読み取れなくなるため)。 */
+  plain?: boolean;
 }
 
 const {
@@ -23,6 +26,7 @@ const {
   ogType = 'website',
   noindex = false,
   grainDrift = false,
+  plain = false,
 } = Astro.props;
 
 const canonical = Astro.site ? new URL(Astro.url.pathname, Astro.site).href : Astro.url.pathname;
@@ -67,18 +71,20 @@ const year = new Date().getFullYear();
     </noscript>
     <slot name="head" />
   </head>
-  <body>
+  <body class={plain ? 'is-plain' : undefined}>
     <!--
       霧の山。画像アセット(写真)は使わず、SVGのシルエットで描いている。
       背景は public/scenery.svg に切り出して背景画像として1枚に焼いている。
       SVGのぼかしフィルタ(feGaussianBlur)をアニメーションさせるとスクロールのたびに
       再計算が走り、実測で5fpsまで落ちたため、ぼかしはグラデーションで代替している。
     -->
-    <div class="scenery" aria-hidden="true">
-      <div class="scenery__drift drift--1"></div>
-      <div class="scenery__drift drift--2"></div>
-      <div class="scenery__drift drift--3"></div>
-    </div>
+    {!plain && (
+      <div class="scenery" aria-hidden="true">
+        <div class="scenery__drift drift--1"></div>
+        <div class="scenery__drift drift--2"></div>
+        <div class="scenery__drift drift--3"></div>
+      </div>
+    )}
 
     <!-- グレイン層は.sceneryの外に出している。body::beforeの暗幕(z-index:-1)が
          .scenery(z-index:-2)を覆っているため、中に置くと不透明度を上げても
