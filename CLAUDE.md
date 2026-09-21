@@ -46,6 +46,7 @@ Astro(SSG) + microCMS + Cloudflare Pages のアウトドアメディア。
 | 公開までの手順 | `docs/workflow.md` |
 | トップのスクロール連動セクション(story) | `src/pages/index.astro` + `src/styles/global.css` の`.story-*` |
 | トップの背景グレイン(スモッグ)演出 | `src/layouts/BaseLayout.astro` の`grainDrift`props + `.scenery__grain-drift` |
+| Aboutの登場アニメ・等高線のカバー | `src/pages/about.astro` + `src/styles/global.css` の`.about-hero` / `[data-anim]` |
 | トップのカバー動画(雲が動くシネマグラフ) | `src/pages/index.astro` の`<section class="cover cover--video">` + `public/media/hero/01-mist.mp4` |
 
 ## 過去デザインのアーカイブ
