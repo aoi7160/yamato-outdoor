@@ -42,7 +42,12 @@ const { contents: articles } = categoryId
 const description = `${genre?.name ?? ''}の${categoryName}に関する記事一覧。実際に使い、歩いたうえで書いています。`;
 ---
 
-<BaseLayout title={`${categoryName} | ${genre?.name} | YAMATO OUTDOOR`} description={description}>
+<BaseLayout
+  title={`${categoryName} | ${genre?.name} | YAMATO OUTDOOR`}
+  description={description}
+  pageType="category"
+  analyticsContext={{ genre: genreSlug, category: categorySlug }}
+>
   <section class="hero hero--sub">
     <div class="shell">
       <ol class="breadcrumb">

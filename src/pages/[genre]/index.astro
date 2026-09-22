@@ -17,7 +17,12 @@ const { contents: all } = await getArticles({ orders: '-publishedAt', limit: 100
 const articles = all.filter((a) => genreSlugOf(a.category) === genre.slug);
 ---
 
-<BaseLayout title={`${genre.name} | YAMATO OUTDOOR`} description={genre.description}>
+<BaseLayout
+  title={`${genre.name} | YAMATO OUTDOOR`}
+  description={genre.description}
+  pageType="genre"
+  analyticsContext={{ genre: genre.slug }}
+>
   <section class="cover cover--genre">
     <img
       class="cover__image"

@@ -496,6 +496,20 @@
 
 .prose .warn .note__title { color: var(--ember); }
 
+/* 広告(アフィリエイト)を含む記事の明示。
+   ステルスマーケティング規制(景品表示法、2023年10月施行)により、
+   広告であることは**一般の読者がすぐ分かる形で**示す必要がある。
+   本文より小さく地味にするが、隠さない。記事の冒頭、h2より前に置く。 */
+.prose .pr-notice {
+  margin: 0 0 2.4em;
+  padding: 0.7rem 0.9rem;
+  border: 1px solid var(--line-soft);
+  font-size: 0.8rem;
+  line-height: 1.8;
+  letter-spacing: 0.04em;
+  color: var(--ink-faint);
+}
+
 /* 持ち物リストなどのチェック欄 */
 .prose .checklist {
   margin: 2.4em 0;

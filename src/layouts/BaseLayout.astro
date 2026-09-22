@@ -2,7 +2,10 @@
 import '../styles/global.css';
 import Logo from '../components/Logo.astro';
 import SocialIcon from '../components/SocialIcon.astro';
-import { SOCIALS, socialLink, SHOP_URL } from '../lib/site';
+import Analytics from '../components/Analytics.astro';
+import AnalyticsEvents from '../components/AnalyticsEvents.astro';
+import { SOCIALS, socialLink, CONTACT_URL, SHOP_URL } from '../lib/site';
+import type { PageType } from '../lib/analytics';
 
 interface Props {
   title: string;
@@ -17,6 +20,21 @@ interface Props {
   /** 背景の山と暗幕を外す。Aboutのように、点のグリッドを敷くページで使う
       (山のシルエットと点が重なると、どちらも読み取れなくなるため)。 */
   plain?: boolean;
+  /** GA4で数字を分けて見るためのページ種別。bodyのdata-page-typeにも出る */
+  pageType?: PageType;
+  /** 記事ページで渡す追加情報(ジャンル・カテゴリ・タグなど) */
+  analyticsContext?: {
+    genre?: string;
+    category?: string;
+    tags?: string[];
+    slug?: string;
+    publishedAt?: string;
+    updatedAt?: string;
+    readingMinutes?: number;
+    author?: string;
+  };
+  /** 計測タグを出さない(下書きプレビューなど、数字に混ぜたくないページ) */
+  noAnalytics?: boolean;
 }
 
 const {
@@ -27,6 +45,9 @@ const {
   noindex = false,
   grainDrift = false,
   plain = false,
+  pageType = 'home',
+  analyticsContext = {},
+  noAnalytics = false,
 } = Astro.props;
 
 const canonical = Astro.site ? new URL(Astro.url.pathname, Astro.site).href : Astro.url.pathname;
@@ -45,12 +66,20 @@ const year = new Date().getFullYear();
     {noindex && <meta name="robots" content="noindex, nofollow" />}
     <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
 
+    {/* RSS。更新の自動通知(SNS連携やフィードリーダー)の受け口になる */}
+    <link rel="alternate" type="application/rss+xml" title="YAMATO OUTDOOR" href="/rss.xml" />
+
     <meta property="og:type" content={ogType} />
+    <meta property="og:site_name" content="YAMATO OUTDOOR" />
+    <meta property="og:locale" content="ja_JP" />
     <meta property="og:title" content={title} />
     <meta property="og:description" content={description} />
     <meta property="og:url" content={canonical} />
     {ogImage && <meta property="og:image" content={ogImage} />}
     <meta name="twitter:card" content="summary_large_image" />
+
+    {/* 計測タグ。IDが未設定なら何も出力されない(src/lib/analytics.ts) */}
+    {!noAnalytics && <Analytics pageType={pageType} context={analyticsContext} />}
 
     <!-- 和文見出し=Zen Old Mincho / 本文=Zen Kaku Gothic New / 欧文=Schibsted Grotesk。
          和文フォントは重いのでウェイトを1つずつに絞り、読み込みも描画をブロックしない形にする
@@ -71,7 +100,7 @@ const year = new Date().getFullYear();
     </noscript>
     <slot name="head" />
   </head>
-  <body class={plain ? 'is-plain' : undefined}>
+  <body class={plain ? 'is-plain' : undefined} data-page-type={pageType}>
     <!--
       霧の山。画像アセット(写真)は使わず、SVGのシルエットで描いている。
       背景は public/scenery.svg に切り出して背景画像として1枚に焼いている。
@@ -114,6 +143,10 @@ const year = new Date().getFullYear();
               rel="noopener noreferrer"
               aria-label="グッズを見る(SUZURI)"
               title="グッズを見る(SUZURI)"
+              data-ga-event="cv_click"
+              data-ga-cv-id="shop"
+              data-ga-cv-stage="hard"
+              data-ga-cv-place="header"
             >
               <svg viewBox="0 0 24 24" width="18" height="18" fill="currentColor" aria-hidden="true" focusable="false">
                 <path d="M7 18c-1.1 0-1.99.9-1.99 2S5.9 22 7 22s2-.9 2-2-.9-2-2-2zM1 2v2h2l3.6 7.59-1.35 2.45c-.16.28-.25.61-.25.96 0 1.1.9 2 2 2h12v-2H7.42c-.14 0-.25-.11-.25-.25l.03-.12L8.1 13h7.45c.75 0 1.41-.41 1.75-1.03l3.58-6.49c.08-.14.12-.31.12-.48 0-.55-.45-1-1-1H5.21l-.94-2H1zm16 16c-1.1 0-1.99.9-1.99 2s.89 2 1.99 2 2-.9 2-2-.9-2-2-2z" />
@@ -138,6 +171,17 @@ const year = new Date().getFullYear();
           <a href="/fishing/">釣り</a>
           <a href="/camp/">キャンプ</a>
           <a href="/about">About</a>
+          <a href="/privacy">プライバシー</a>
+          {CONTACT_URL && (
+            <a
+              href={CONTACT_URL}
+              target="_blank"
+              rel="noopener noreferrer"
+              data-ga-event="cv_click"
+              data-ga-cv-id="contact"
+              data-ga-cv-place="footer"
+            >お問い合わせ</a>
+          )}
         </nav>
         <ul class="social" aria-label="公式SNS">
           {SOCIALS.map((s) => socialLink(s)).map((link, i) => (
@@ -158,5 +202,7 @@ const year = new Date().getFullYear();
         <p class="footer-copy">&copy; {year} YAMATO OUTDOOR</p>
       </div>
     </footer>
+
+    {!noAnalytics && <AnalyticsEvents />}
   </body>
 </html>

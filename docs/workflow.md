@@ -32,9 +32,12 @@
 1. microCMS管理画面 → `articles` → 「追加」
 2. タイトル / スラッグ(URL、英数字とハイフン) / 概要 / サムネイル / カテゴリ / 本文 を入力
 3. 本文はリッチエディタで書く。目次は `h2` から自動生成されるので、見出しは `h2` で切る
-4. 「画面プレビュー」で表示を確認(下書きのまま確認できる)
-5. 「公開」を押す
-6. Cloudflare Pagesが再ビルド(数分)。完了するとサイトに出る
+4. 「画面プレビュー」で表示を確認(下書きのまま確認できる。noindexなので検索には出ない)
+5. `docs/tone-and-manner.md` の**公開前チェックリスト**を上から見る
+   (表記ゆれ・タグ3〜5個・タイトル30〜35字・概要80〜120字・広告の明示)
+6. 「公開」を押す
+7. Cloudflare Pagesが再ビルド(数分)。完了するとサイトに出る
+   `sitemap.xml` / `rss.xml` / `llms.txt` もこのビルドで自動更新される
 
 ### 記事内で使える装飾(リッチエディタのHTML編集で貼る)
 
@@ -44,8 +47,15 @@
 | 注意 | `<div class="note warn"><span class="note__title">Caution</span><p>本文</p></div>` |
 | 持ち物リスト | `<div class="checklist"><ul><li>項目</li></ul></div>` |
 | 出典・注記 | `<p class="source">※ 出典</p>` |
+| 広告の明示 | `<p class="pr-notice">※ 本記事にはアフィリエイトリンクを含みます。</p>` |
 
 表は自動で横スクロールに対応し、画像は自動で遅延読み込みになる。
+外部リンクには `target="_blank"` と `rel` が自動で付く。ASPのリンクは
+`rel="sponsored nofollow"` になる(対象ドメインは `src/lib/article.ts` の `AFFILIATE_HOSTS`)。
+
+**アフィリエイトリンクを含む記事は、冒頭に `pr-notice` を必ず置く。**
+ステルスマーケティング規制(景品表示法)により、広告であることの明示が必要
+(詳細は `docs/analytics.md` の「6-3. ステマ規制」)。
 
 ### 再ビルドの自動化(未設定なら最初に一度だけ)
 
@@ -123,6 +133,13 @@ Claude Codeに頼むときは「作業ブランチで作業して、確認でき
 |---|---|---|
 | `MICROCMS_SERVICE_DOMAIN` | `yamato-outdoor` | 公開情報。Cloudflareでは Text でよい |
 | `MICROCMS_API_KEY` | microCMSで発行したキー | **秘密情報。Cloudflareでは必ず Secret** |
+| `GTM_ID` ほか計測系 | 各ツールのID(任意) | 公開情報。**Productionにだけ**入れる |
+
+計測系の変数(`GTM_ID` / `GA4_ID` / `CLARITY_ID` / `GSC_VERIFICATION` /
+`META_PIXEL_ID` / `X_PIXEL_ID` / `ANALYTICS_DISABLED`)は全部任意で、
+**空ならそのタグは出力されない**。一覧は `.env.example`、設定手順は `docs/analytics.md`。
+
+Previewに入れないのは意図的で、PRプレビューのアクセスが本番の数字に混ざらないようにするため。
 
 `MICROCMS_SERVICE_DOMAIN` はmicroCMSのサービスID(管理画面URL `https://yamato-outdoor.microcms.io`
 の先頭部分)であって、サイトの独自ドメイン `yamato-outdoor.com` とは別物。
@@ -183,6 +200,27 @@ IDが違うとビルドしても記事が0件になる。
 
 ---
 
+## 計測タグとCVを設定する
+
+手順はすべて `docs/analytics.md` にまとめてある。**記事を公開する前に、
+少なくとも次の6つを終わらせる。**
+
+1. GA4を作り、**データ保持を14ヶ月**にする(既定の2ヶ月だと過去が消える)
+2. GTMコンテナを作り、`GTM_ID` をCloudflareのProductionに入れる
+3. GTMでGA4タグとカスタムイベントを設定して**公開**する
+4. Search Consoleを**ドメインプロパティ**で登録し、`sitemap.xml` を送る
+5. Microsoft Clarity(`CLARITY_ID`)を入れ、GA4と連携する
+6. GA4で内部トラフィック(自分のIP)を除外する
+
+**タグを足すときの約束。** GTM側でタグを追加したら、必ず `src/lib/analytics.ts` の
+外部送信一覧にも1行足す。`/privacy` の公表表はこの配列から生成しているため、
+ここを更新しないと**公表内容と実態がずれる**(電気通信事業法の外部送信規律)。
+
+CVの行き先は `src/lib/site.ts` に入れる。空なら記事末のCV枠は描画されないので、
+準備できたものから順に出せる。まずはGoogleフォーム1枚でよい。
+
+---
+
 ## SNSアカウントを開設したとき
 
 準備中のあいだ、SNSアイコンのリンク先は `/sns`(準備中の案内ページ)に向いている。
@@ -208,3 +246,6 @@ IDが違うとビルドしても記事が0件になる。
 | ビルドが失敗する | Cloudflareのビルドログ。環境変数の未設定が最多 |
 | 記事は出るが画像が出ない | microCMS側のサムネイル未設定、または本文のimgのURL |
 | プレビューが404 | microCMSの画面プレビューURL設定(`/preview/{CONTENT_ID}?draftKey={DRAFT_KEY}`) |
+| GA4に何も届かない | Cloudflareの環境変数(Production)に `GTM_ID` が入っているか。GTMを「公開」したか |
+| GA4にイベント名は出るがパラメータが空 | GA4のカスタムディメンション未登録(`docs/analytics.md` 2-3) |
+| Search Consoleでサイトマップが読めない | `https://yamato-outdoor.com/sitemap.xml` を直接開いて確認。記事0件でも200が返る |

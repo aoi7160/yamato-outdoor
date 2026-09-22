@@ -3,6 +3,7 @@ import BaseLayout from './BaseLayout.astro';
 import '../styles/article.css';
 import { prepareArticle, formatDate, microcmsImage, microcmsSrcSet, type TocItem } from '../lib/article';
 import SocialIcon from '../components/SocialIcon.astro';
+import ArticleCta from '../components/ArticleCta.astro';
 import { SOCIALS, SOCIAL_ORDER, socialLink } from '../lib/site';
 
 export type FaqItem = { q: string; a: string };
@@ -24,6 +25,9 @@ interface Props {
   faq?: FaqItem[];
   related?: RelatedItem[];
   author?: { name: string; role: string; bio: string };
+  /** microCMSの下書きプレビュー。noindexにし、計測タグも出さない
+      (下書きの確認が本番の数字に混ざると、記事ごとのPVが狂う)。 */
+  preview?: boolean;
 }
 
 const {
@@ -41,6 +45,7 @@ const {
   tags = [],
   faq = [],
   related = [],
+  preview = false,
   author = {
     name: '濵地 蒼麗',
     role: 'Founder / Editor',
@@ -138,7 +143,24 @@ if (faq.length) {
 const tocItems: TocItem[] = toc.filter((item) => item.level === 2);
 ---
 
-<BaseLayout title={`${title} | YAMATO OUTDOOR`} description={description} ogImage={thumbnailUrl} ogType="article">
+<BaseLayout
+  title={`${title} | YAMATO OUTDOOR`}
+  description={description}
+  ogImage={thumbnailUrl}
+  ogType="article"
+  noindex={preview}
+  noAnalytics={preview}
+  pageType={preview ? 'preview' : 'article'}
+  analyticsContext={{
+    genre: genreSlug,
+    category: categorySlug,
+    tags,
+    publishedAt,
+    updatedAt: revisedAt,
+    readingMinutes,
+    author: author.name,
+  }}
+>
   <Fragment slot="head">
     <script type="application/ld+json" set:html={JSON.stringify(jsonLd)} is:inline />
   </Fragment>
@@ -159,6 +181,10 @@ const tocItems: TocItem[] = toc.filter((item) => item.level === 2);
               aria-label={item.label}
               title={item.label}
               class={item.pending ? 'is-pending' : ''}
+              data-ga-event="cv_click"
+              data-ga-cv-id={`follow_${item.name}`}
+              data-ga-cv-stage="soft"
+              data-ga-cv-place="follow-rail"
             >
               <SocialIcon name={item.name} />
             </a>
@@ -230,8 +256,16 @@ const tocItems: TocItem[] = toc.filter((item) => item.level === 2);
               <p class="toc__title">Contents</p>
               <p class="toc__sub">この記事の目次</p>
               <ol>
-                {tocItems.map((item) => (
-                  <li><a href={`#${item.id}`}>{item.text}</a></li>
+                {tocItems.map((item, i) => (
+                  <li>
+                    <a
+                      href={`#${item.id}`}
+                      data-ga-event="toc_click"
+                      data-ga-toc-position={i + 1}
+                      data-ga-toc-text={item.text}
+                      data-ga-toc-place="inline"
+                    >{item.text}</a>
+                  </li>
                 ))}
               </ol>
             </nav>
@@ -250,6 +284,8 @@ const tocItems: TocItem[] = toc.filter((item) => item.level === 2);
               ))}
             </section>
           )}
+
+          <ArticleCta place="article-tail" />
 
           <aside class="author">
             <p class="author__label">Author</p>
@@ -271,13 +307,29 @@ const tocItems: TocItem[] = toc.filter((item) => item.level === 2);
               <ul class="social social--share">
                 {shares.map((item) => (
                   <li>
-                    <a href={item.href} target="_blank" rel="noopener noreferrer" aria-label={`${item.label}でシェア`} title={item.label}>
+                    <a
+                      href={item.href}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      aria-label={`${item.label}でシェア`}
+                      title={item.label}
+                      data-ga-event="share"
+                      data-ga-share-method={item.name}
+                    >
                       <SocialIcon name={item.name} />
                     </a>
                   </li>
                 ))}
                 <li>
-                  <button type="button" class="share__copy" id="copyLink" aria-label="リンクをコピー" title="リンクをコピー">
+                  <button
+                    type="button"
+                    class="share__copy"
+                    id="copyLink"
+                    aria-label="リンクをコピー"
+                    title="リンクをコピー"
+                    data-ga-event="share"
+                    data-ga-share-method="copy_link"
+                  >
                     <span aria-hidden="true">⧉</span>
                   </button>
                 </li>
@@ -292,8 +344,16 @@ const tocItems: TocItem[] = toc.filter((item) => item.level === 2);
             <p class="toc__title">Contents</p>
             <p class="toc__sub">読んでいる位置</p>
             <ol>
-              {tocItems.map((item) => (
-                <li><a href={`#${item.id}`}>{item.text}</a></li>
+              {tocItems.map((item, i) => (
+                <li>
+                  <a
+                    href={`#${item.id}`}
+                    data-ga-event="toc_click"
+                    data-ga-toc-position={i + 1}
+                    data-ga-toc-text={item.text}
+                    data-ga-toc-place="aside"
+                  >{item.text}</a>
+                </li>
               ))}
             </ol>
           </nav>
@@ -307,9 +367,14 @@ const tocItems: TocItem[] = toc.filter((item) => item.level === 2);
             <a class="related__all" href="/">View all</a>
           </div>
           <ol class="related__list">
-            {related.map((item) => (
+            {related.map((item, i) => (
               <li>
-                <a href={item.href}>
+                <a
+                  href={item.href}
+                  data-ga-event="related_click"
+                  data-ga-related-position={i + 1}
+                  data-ga-related-title={item.title}
+                >
                   <h3>{item.title}</h3>
                   <span class="card-meta">{item.meta ?? ''}</span>
                   <span class="arrow" aria-hidden="true">→</span>
