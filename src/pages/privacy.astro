@@ -8,19 +8,23 @@
  * 表の中身は src/lib/analytics.ts の配列から生成しているので、
  * タグを足せばこのページも自動で追従する(手で書き写す運用にすると必ずずれる)。
  *
+ * Cloudflare・Google Fonts・microCMSの画像配信のような「表示のために必要な通信」は
+ * 載せていない。外部送信規律の適用除外(利用者に役務を提供するために必要な送信)に
+ * 当たると整理しているため。載せる必要が出たら、計測タグと同じ要領で
+ * src/lib/analytics.ts に配列を足してここに表を1つ増やす。
+ *
  * ※ 文面はひな形。事業者名・所在地・問い合わせ先は実態に合わせて埋め、
  *   最終的な文言は専門家の確認を受けること。ここでは実装と運用の受け皿までを用意している。
  */
 import BaseLayout from '../layouts/BaseLayout.astro';
 import { CONTACT_URL } from '../lib/site';
-import {
-  OPT_OUT_KEY,
-  deliveryTransmissions,
-  measurementTransmissions,
-  hasAnyTag,
-} from '../lib/analytics';
+import { OPT_OUT_KEY, measurementTransmissions, hasAnyTag } from '../lib/analytics';
 
 const measured = measurementTransmissions();
+
+// 計測タグが1つも無いときは「外部送信」の章が消えるので、以降の章番号を1つ繰り上げる。
+const externalShift = measured.length > 0 ? 1 : 0;
+
 const today = new Date();
 const updated = `${today.getFullYear()}年${today.getMonth() + 1}月${today.getDate()}日`;
 ---
@@ -115,40 +119,7 @@ const updated = `${today.getFullYear()}年${today.getMonth() + 1}月${today.getD
         </Fragment>
       )}
 
-      <h2>{measured.length > 0 ? '4' : '3'}. 表示に必要な外部サービス</h2>
-      <p>
-        次のサービスは、ページやフォント・画像を表示するために通信が発生します。
-        計測を目的としたものではありませんが、通信の際にIPアドレスが相手方に届きます。
-      </p>
-      <div class="table-scroll">
-        <table>
-          <thead>
-            <tr>
-              <th>サービス / 事業者</th>
-              <th>送信される情報</th>
-              <th>目的</th>
-              <th>各社の案内</th>
-            </tr>
-          </thead>
-          <tbody>
-            {deliveryTransmissions.map((item) => (
-              <tr>
-                <td>
-                  {item.name}<br />
-                  <span class="legal__provider">{item.provider}</span>
-                </td>
-                <td>{item.data}</td>
-                <td>{item.purpose}</td>
-                <td>
-                  <a href={item.policy} target="_blank" rel="noopener noreferrer">プライバシーポリシー</a>
-                </td>
-              </tr>
-            ))}
-          </tbody>
-        </table>
-      </div>
-
-      <h2>{measured.length > 0 ? '5' : '4'}. Cookieと計測の停止</h2>
+      <h2>{3 + externalShift}. Cookieと計測の停止</h2>
       <p>
         ブラウザの設定でCookieを無効にすると、多くの計測を止められます。
         当サイトでは、それに加えてこのページから計測タグ自体の読み込みを止められるようにしています。
@@ -169,31 +140,31 @@ const updated = `${today.getFullYear()}年${today.getMonth() + 1}月${today.getD
         </div>
       )}
 
-      <h2>{measured.length > 0 ? '6' : '5'}. 第三者提供</h2>
+      <h2>{4 + externalShift}. 第三者提供</h2>
       <p>
         法令に基づく場合を除き、取得した情報を第三者へ提供することはありません。
         上記の外部送信は、各事業者が提供する計測・配信サービスの利用に伴うものです。
       </p>
 
-      <h2>{measured.length > 0 ? '7' : '6'}. 免責事項</h2>
+      <h2>{5 + externalShift}. 免責事項</h2>
       <p>
         当サイトに掲載する装備の評価やルートの情報は、運営者自身の山行に基づく記録です。
         天候・体力・装備の状態によって結果は変わります。実際の行動判断はご自身の責任で行ってください。
         外部サイトへのリンク先の内容については責任を負いません。
       </p>
 
-      <h2>{measured.length > 0 ? '8' : '7'}. 広告・アフィリエイトについて</h2>
+      <h2>{6 + externalShift}. 広告・アフィリエイトについて</h2>
       <p>
         記事内に広告(アフィリエイトリンク)を含む場合は、当該記事の冒頭にその旨を明示します。
         報酬の有無によって評価を変えることはせず、合わなかった点も同じ分量で記載します。
       </p>
 
-      <h2>{measured.length > 0 ? '9' : '8'}. 著作権</h2>
+      <h2>{7 + externalShift}. 著作権</h2>
       <p>
         当サイトの文章・写真・図版の著作権は運営者に帰属します。引用の範囲を超えた転載はご遠慮ください。
       </p>
 
-      <h2>{measured.length > 0 ? '10' : '9'}. お問い合わせ・運営者</h2>
+      <h2>{8 + externalShift}. お問い合わせ・運営者</h2>
       <p>
         当サイトは YAMATO OUTDOOR が運営しています。
         {CONTACT_URL ? (
@@ -208,7 +179,7 @@ const updated = `${today.getFullYear()}年${today.getMonth() + 1}月${today.getD
         運営者の考え方と実績については<a href="/about">About</a>に記載しています。
       </p>
 
-      <h2>{measured.length > 0 ? '11' : '10'}. 改定</h2>
+      <h2>{9 + externalShift}. 改定</h2>
       <p>
         計測ツールを追加・変更した場合は、このページの内容を更新します。重要な変更があるときは、
         更新日を改めて記載します。

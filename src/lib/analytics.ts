@@ -99,7 +99,13 @@ export type ExternalTransmission = {
   optOut?: string;
 };
 
-/** 計測タグ。IDが入っているものだけを返す。 */
+/**
+ * 計測タグ。IDが入っているものだけを返す。
+ *
+ * Cloudflare(配信)・Google Fonts・microCMSの画像配信は載せていない。
+ * これらは「そのページを表示するために必要な通信」で、外部送信規律の
+ * 適用除外に当たると整理しているため(計測が目的ではない)。
+ */
 export const measurementTransmissions = (): ExternalTransmission[] =>
   [
     (usesGtm || usesDirectGa4) && {
@@ -134,31 +140,3 @@ export const measurementTransmissions = (): ExternalTransmission[] =>
       optOut: 'https://x.com/settings/account/personalization',
     },
   ].filter((item): item is ExternalTransmission => Boolean(item));
-
-/**
- * 表示のために必ず通信が発生する外部サービス。
- * 計測目的ではないので止められないが、IPアドレスは相手に届くため併せて公表する。
- */
-export const deliveryTransmissions: ExternalTransmission[] = [
-  {
-    name: 'Cloudflare Pages',
-    provider: 'Cloudflare, Inc.',
-    data: 'IPアドレス、リクエストしたURL、ブラウザの種類',
-    purpose: 'サイトの配信と、攻撃・不正アクセスの防止のため',
-    policy: 'https://www.cloudflare.com/privacypolicy/',
-  },
-  {
-    name: 'Google Fonts',
-    provider: 'Google LLC',
-    data: 'IPアドレス、ブラウザの種類',
-    purpose: 'ページで使うフォントを配信するため',
-    policy: 'https://policies.google.com/privacy',
-  },
-  {
-    name: 'microCMS(画像配信)',
-    provider: '株式会社microCMS',
-    data: 'IPアドレス、リクエストした画像のURL',
-    purpose: '記事の画像を配信するため',
-    policy: 'https://microcms.io/privacy-policy',
-  },
-];
