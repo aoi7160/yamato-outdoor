@@ -81,8 +81,6 @@ export const getGenre = (slug: string | undefined): GenreDef | undefined =>
 const FALLBACK_GENRE: Record<string, GenreSlug> = {
   boots: 'mountain-climbing',
   backpack: 'mountain-climbing',
-  rainwear: 'mountain-climbing',
-  poles: 'mountain-climbing',
   wear: 'mountain-climbing',
   accessories: 'mountain-climbing',
   beginner: 'mountain-climbing',

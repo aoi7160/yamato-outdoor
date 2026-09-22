@@ -17,21 +17,25 @@ microCMSの管理画面で以下の2つのAPI(コンテンツタイプ)を作成
 
 ### カテゴリ設計(登山)
 
-トピッククラスターのピラーと1対1で対応させる。カテゴリページがそのまま
+トピッククラスターのピラーとほぼ1対1で対応させる。カテゴリページがそのまま
 クラスターのハブになり、内部リンクの受け皿になる。
 
 | slug | カテゴリ名 | 対応ピラー | URL |
 |---|---|---|---|
-| `boots` | 登山靴・シューズ | P01 | `/mountain-climbing/boots/` |
-| `backpack` | リュック・ザック | P02 | `/mountain-climbing/backpack/` |
-| `rainwear` | レインウェア | P03 | `/mountain-climbing/rainwear/` |
-| `poles` | トレッキングポール | P04 | `/mountain-climbing/poles/` |
-| `wear` | ウェア・服装 | P05 | `/mountain-climbing/wear/` |
-| `accessories` | 小物・携行品 | P06 | `/mountain-climbing/accessories/` |
-| `beginner` | 初心者・持ち物 | P07 | `/mountain-climbing/beginner/` |
-| `route` | ルート・山域 | P08 | `/mountain-climbing/route/` |
+| `boots` | 登山靴 | P01 登山靴・シューズ | `/mountain-climbing/boots/` |
+| `backpack` | リュック | P02 リュック・ザック | `/mountain-climbing/backpack/` |
+| `wear` | ウェア | P03 レインウェア / P05 ウェア・服装 | `/mountain-climbing/wear/` |
+| `accessories` | 小物・携行品 | P04 トレッキングポール / P06 小物・携行品 | `/mountain-climbing/accessories/` |
+| `beginner` | 初心者向け | P07 初心者・持ち物・行動食 | `/mountain-climbing/beginner/` |
+| `route` | ルート・山域 | P08 山域別ルート情報 | `/mountain-climbing/route/` |
 
-`genre` は**8つとも `mountain-climbing`**。
+`genre` は**6つとも `mountain-climbing`**。
+
+ピラー8つに対してカテゴリは6つ。レインウェア(P03)は `wear` に、
+トレッキングポール(P04)は `accessories` にまとめている。
+1本しか入らないカテゴリを作らないための判断で、記事が増えて
+`wear` や `accessories` が20本を超えたら、そのときに切り出す
+(切り出すとURLが変わるので、301転送を `public/_redirects` に足すこと)。
 
 **ジャンル名をカテゴリにしないこと。** 「登山」「釣り」「キャンプ」はジャンル(URLの第1階層)で
 `src/lib/taxonomy.ts` に固定されている。同名のカテゴリを作ると

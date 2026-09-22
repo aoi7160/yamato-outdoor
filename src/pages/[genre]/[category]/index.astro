@@ -20,13 +20,11 @@ export async function getStaticPaths() {
   // how-to はリポジトリ側の見本記事(night-hike-basics)の親パスなので残している。
   const known = new Set(paths.map((p) => `${p.params.genre}/${p.params.category}`));
   const seed: [string, string, string][] = [
-    ['mountain-climbing', 'boots', '登山靴・シューズ'],
-    ['mountain-climbing', 'backpack', 'リュック・ザック'],
-    ['mountain-climbing', 'rainwear', 'レインウェア'],
-    ['mountain-climbing', 'poles', 'トレッキングポール'],
-    ['mountain-climbing', 'wear', 'ウェア・服装'],
+    ['mountain-climbing', 'boots', '登山靴'],
+    ['mountain-climbing', 'backpack', 'リュック'],
+    ['mountain-climbing', 'wear', 'ウェア'],
     ['mountain-climbing', 'accessories', '小物・携行品'],
-    ['mountain-climbing', 'beginner', '初心者・持ち物'],
+    ['mountain-climbing', 'beginner', '初心者向け'],
     ['mountain-climbing', 'route', 'ルート・山域'],
     ['mountain-climbing', 'how-to', 'ハウツー'],
   ];
