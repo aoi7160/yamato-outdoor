@@ -15,11 +15,19 @@ export async function getStaticPaths() {
       props: { categoryId: c.id, categoryName: c.name },
     }));
 
-  // 記事が無くてもリンク切れにしないための最低限のカテゴリ
+  // microCMS側にまだカテゴリが無くてもリンク切れにしないための受け皿。
+  // 一覧は docs/microcms-schema.md の「カテゴリ設計」と揃える。
+  // how-to はリポジトリ側の見本記事(night-hike-basics)の親パスなので残している。
   const known = new Set(paths.map((p) => `${p.params.genre}/${p.params.category}`));
   const seed: [string, string, string][] = [
-    ['mountain-climbing', 'gear', 'ギア'],
-    ['mountain-climbing', 'route', 'ルート'],
+    ['mountain-climbing', 'boots', '登山靴・シューズ'],
+    ['mountain-climbing', 'backpack', 'リュック・ザック'],
+    ['mountain-climbing', 'rainwear', 'レインウェア'],
+    ['mountain-climbing', 'poles', 'トレッキングポール'],
+    ['mountain-climbing', 'wear', 'ウェア・服装'],
+    ['mountain-climbing', 'accessories', '小物・携行品'],
+    ['mountain-climbing', 'beginner', '初心者・持ち物'],
+    ['mountain-climbing', 'route', 'ルート・山域'],
     ['mountain-climbing', 'how-to', 'ハウツー'],
   ];
   seed.forEach(([genre, category, name]) => {
