@@ -1027,11 +1027,10 @@ body.is-plain { background: var(--base); }
 
 .mission-text { grid-column: 2 / 6; grid-row: 2 / auto; }
 .vision-text  { grid-column: 2 / 6; grid-row: 2 / auto; }
-.aboutus-text { grid-column: 2 / 6; grid-row: 2 / auto; }
 .editor-text  { grid-column: 3 / 6; grid-row: 2 / auto; }
 .editor-head  { grid-column: 2 / 3; grid-row: 2 / span 1; }
 .readers-list { grid-column: 2 / 4; grid-row: 2 / auto; }
-.readers-note { grid-column: 4 / 6; grid-row: 2 / auto; }
+.readers-list--wide { grid-column: 2 / 6; }
 .media-list   { grid-column: 2 / 6; grid-row: 2 / auto; }
 
 .value-list   { grid-column: 4 / 6; grid-row: 2 / auto; }
@@ -1209,11 +1208,10 @@ body.is-plain { background: var(--base); }
 @media (max-width: 68rem) {
   .mission-text,
   .vision-text,
-  .aboutus-text,
   .media-list { grid-column: 2 / -1; }
 
   .readers-list { grid-column: 2 / 4; }
-  .readers-note { grid-column: 4 / -1; }
+  .readers-list--wide { grid-column: 2 / -1; }
   .value-list { grid-column: 4 / -1; }
   .value-visual { grid-column: 2 / 4; grid-row: 2 / span 3; }
   .editor-head { grid-column: 2 / 3; }
@@ -1246,10 +1244,9 @@ body.is-plain { background: var(--base); }
 
   .mission-text,
   .vision-text,
-  .aboutus-text,
   .media-list,
   .readers-list,
-  .readers-note,
+  .readers-list--wide,
   .value-list,
   .editor-head,
   .editor-text {
