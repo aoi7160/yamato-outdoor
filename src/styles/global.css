@@ -280,6 +280,14 @@ body::before {
   min-height: 4.5rem;
 }
 
+/* ナビとカートアイコンをまとめて右側に置く。カートは.site-navの外にあるので、
+   狭い画面で.site-nav側の項目を間引いても常に表示されたままになる */
+.site-header__right {
+  display: flex;
+  align-items: center;
+  gap: 1.5rem;
+}
+
 .site-nav {
   display: flex;
   gap: 1.75rem;
@@ -299,7 +307,23 @@ body::before {
 
 .site-nav a:hover { color: var(--ink-strong); border-bottom-color: var(--ember); }
 
+/* ヘッダーのカートアイコン。フッターの.socialと同じ丸枠のトーンに揃える */
+.cart-link {
+  display: grid;
+  place-items: center;
+  flex-shrink: 0;
+  width: 2rem;
+  height: 2rem;
+  color: var(--ink-mute);
+  border: 1px solid var(--line-soft);
+  border-radius: 50%;
+  transition: color 0.2s var(--ease), border-color 0.2s var(--ease);
+}
+
+.cart-link:hover { color: var(--ink-strong); border-color: var(--line); }
+
 @media (max-width: 44rem) {
+  .site-header__right { gap: 0.85rem; }
   .site-nav { gap: 1rem; font-size: 0.78rem; letter-spacing: 0.12em; }
   .site-nav a:nth-child(n + 3) { display: none; }
 }
@@ -838,7 +862,15 @@ body.is-plain { background: var(--base); }
   --grid-cell: calc((100vw - var(--sbw, 0px) - var(--content-margin) * 2) / var(--grid-columns));
   position: relative;
   padding-top: 2.5rem;
-  overflow-x: clip;
+  /* 横あふれを止める目的で overflow-x: clip を置いていたが外した。
+     overflow-x/overflow-y の片方だけを visible 以外にすると、iOS Safari は
+     その要素を独立したスクロールコンテナとして扱うことがあり、ページ下端
+     付近でスクロールが弾かれて戻される不具合につながることが知られている
+     (「スマホでAboutの下の方(Related付近)までスクロールできない」という
+     報告があり、この指定が最有力の原因と判断して削除した)。
+     --grid-cell はスクロールバー幅を差し引いた100vw基準で計算しているため、
+     この指定を外しても横あふれは発生しない(Chromiumで1440/1024/390pxの
+     各幅で確認済み)。 */
 }
 
 .dots-layer {

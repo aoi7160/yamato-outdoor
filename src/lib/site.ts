@@ -7,6 +7,13 @@ export const SITE = {
   tagline: '山と生きる。山と挑む。',
 } as const;
 
+/**
+ * SUZURIで販売しているグッズのショップURL。ヘッダーのカートアイコンの行き先。
+ * 空文字のあいだはアイコンごと出さない(SNSと違って「準備中」ページに逃がす
+ * 意味がないため)。
+ */
+export const SHOP_URL = '';
+
 export type SocialName = 'x' | 'instagram' | 'tiktok' | 'threads' | 'facebook';
 
 /**
