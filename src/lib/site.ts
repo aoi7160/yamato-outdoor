@@ -7,6 +7,13 @@ export const SITE = {
   tagline: '山と生きる。山と挑む。',
 } as const;
 
+/**
+ * SUZURIで販売しているグッズのショップURL。ヘッダーのカートアイコンの行き先。
+ * 空文字のあいだはアイコンごと出さない(SNSと違って「準備中」ページに逃がす
+ * 意味がないため)。
+ */
+export const SHOP_URL = 'https://suzuri.jp/yamato-outdoor/products';
+
 export type SocialName = 'x' | 'instagram' | 'tiktok' | 'threads' | 'facebook';
 
 /**
@@ -46,8 +53,7 @@ export const NEWSLETTER_URL: string = '';
 /** LINE公式アカウントの友だち追加リンク。日本のBtoCではメールより反応が良い */
 export const LINE_FRIEND_URL: string = '';
 
-/** ブランド(物販)側のサイト。立ち上がったら入れる */
-export const BRAND_URL: string = '';
+/* 物販側の行き先は上の SHOP_URL を使う(記事末のCV枠とヘッダーのカートで共通)。 */
 
 /** リンクの属性をまとめて作る。準備中のものは nofollow を付けて外部評価を渡さない。 */
 export const socialLink = (s: { label: string; href: string }) => {

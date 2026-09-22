@@ -12,7 +12,7 @@
  * 行き先(URL)は src/lib/site.ts にまとめてある。**空ならその枠は描画されない**ので、
  * 準備できたものから順に出していける。リンク切れも「準備中」表示も作らない。
  */
-import { BRAND_URL, CONTACT_URL, LINE_FRIEND_URL, NEWSLETTER_URL } from './site';
+import { CONTACT_URL, LINE_FRIEND_URL, NEWSLETTER_URL, SHOP_URL } from './site';
 
 export type CvStage = 'micro' | 'soft' | 'hard';
 
@@ -55,13 +55,13 @@ export const CV_SLOTS: CvSlot[] = [
     external: true,
   },
   {
-    id: 'brand',
+    id: 'shop',
     stage: 'hard',
-    eyebrow: 'Gear',
-    title: '自分たちで使うために作った道具。',
-    body: 'この記事で書いた不満を、そのまま設計に持ち込んでいます。',
-    actionLabel: 'ブランドを見る',
-    href: BRAND_URL,
+    eyebrow: 'Goods',
+    title: '山に持っていけるものを作っています。',
+    body: 'YAMATO OUTDOORのグッズはSUZURIで販売中です。',
+    actionLabel: 'ショップを見る',
+    href: SHOP_URL,
     external: true,
   },
   {

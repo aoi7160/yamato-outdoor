@@ -50,12 +50,6 @@ const values = [
   { num: '05', name: '好学不倦', body: '考えるのをやめた瞬間、毎日はただの繰り返しになる。' },
 ];
 
-const aboutUs = [
-  'YAMATO OUTDOORは、関西の山を軸にしたアウトドアメディアです。',
-  '実際に持ち込んだ装備と、歩いたルートだけを記録しています。',
-  '記事を書くことから始めて、道具を作る側にも回ります。',
-];
-
 const readers = [
   '働きながら、月に1〜2回のペースで山に行く人',
   '一度、道具選びで失敗したことがある人',
@@ -183,36 +177,16 @@ const mediaData = [
       </div>
     </section>
 
-    <!-- About us -->
-    <section class="about-section">
-      <div class="about-section__title"><h2>About us</h2></div>
-      <div class="about-grid about-grid--first">
-        <div class="area-text aboutus-text js-auto-height" data-anim="up">
-          <p>
-            {aboutUs.map((line) => (
-              <>{line}<br /></>
-            ))}
-          </p>
-        </div>
-      </div>
-    </section>
-
     <!-- Readers -->
     <section class="about-section">
       <div class="about-section__title"><h2>For Readers</h2></div>
       <div class="about-grid about-grid--first">
-        <div class="readers-list js-auto-height">
+        <div class="readers-list readers-list--wide js-auto-height">
           <ul>
             {readers.map((r, i) => (
               <li data-anim="up" style={`--d: ${i * 0.08}s`}>{r}</li>
             ))}
           </ul>
-        </div>
-        <div class="readers-note js-auto-height" data-anim="up" style="--d: 0.15s">
-          <p class="note-copy">
-            初心者向けの入口記事と、上級者向けの専門記事は、すでに世の中に充分あります。
-            足りていないのは、その中間——何度か山に行って、道具を買い替えはじめた人のための情報だと考えています。
-          </p>
         </div>
       </div>
     </section>

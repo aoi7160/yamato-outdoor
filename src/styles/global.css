@@ -14,8 +14,11 @@
   --base-1: #0d1218;
   --panel:  rgba(16, 22, 29, 0.62);
 
-  --ember:      #c2652f;   /* 差し色。使いすぎない */
-  --ember-soft: #d99a63;
+  /* 差し色は深緑系。#080b10(本文の背景)に対するコントラスト比を実測して選定
+     ( --ember: 約4.73:1 / --ember-soft: 約7.19:1、どちらもWCAG AAの本文文字基準
+     4.5:1以上)。使いすぎない。 */
+  --ember:      #3e8b57;
+  --ember-soft: #4caf6e;
   --frost:      #cdd8e2;   /* 霧の白 */
 
   --line:      rgba(231, 229, 223, 0.16);
@@ -60,7 +63,7 @@ img { max-width: 100%; height: auto; display: block; }
 
 a { color: inherit; text-underline-offset: 0.3em; text-decoration-thickness: 1px; }
 
-::selection { background: rgba(194, 101, 47, 0.32); color: var(--ink-strong); }
+::selection { background: rgba(62, 139, 87, 0.32); color: var(--ink-strong); }
 
 :focus-visible { outline: 1px solid var(--ember-soft); outline-offset: 4px; }
 
@@ -280,6 +283,14 @@ body::before {
   min-height: 4.5rem;
 }
 
+/* ナビとカートアイコンをまとめて右側に置く。カートは.site-navの外にあるので、
+   狭い画面で.site-nav側の項目を間引いても常に表示されたままになる */
+.site-header__right {
+  display: flex;
+  align-items: center;
+  gap: 1.5rem;
+}
+
 .site-nav {
   display: flex;
   gap: 1.75rem;
@@ -299,7 +310,23 @@ body::before {
 
 .site-nav a:hover { color: var(--ink-strong); border-bottom-color: var(--ember); }
 
+/* ヘッダーのカートアイコン。フッターの.socialと同じ丸枠のトーンに揃える */
+.cart-link {
+  display: grid;
+  place-items: center;
+  flex-shrink: 0;
+  width: 2rem;
+  height: 2rem;
+  color: var(--ink-mute);
+  border: 1px solid var(--line-soft);
+  border-radius: 50%;
+  transition: color 0.2s var(--ease), border-color 0.2s var(--ease);
+}
+
+.cart-link:hover { color: var(--ink-strong); border-color: var(--line); }
+
 @media (max-width: 44rem) {
+  .site-header__right { gap: 0.85rem; }
   .site-nav { gap: 1rem; font-size: 0.78rem; letter-spacing: 0.12em; }
   .site-nav a:nth-child(n + 3) { display: none; }
 }
@@ -838,7 +865,15 @@ body.is-plain { background: var(--base); }
   --grid-cell: calc((100vw - var(--sbw, 0px) - var(--content-margin) * 2) / var(--grid-columns));
   position: relative;
   padding-top: 2.5rem;
-  overflow-x: clip;
+  /* 横あふれを止める目的で overflow-x: clip を置いていたが外した。
+     overflow-x/overflow-y の片方だけを visible 以外にすると、iOS Safari は
+     その要素を独立したスクロールコンテナとして扱うことがあり、ページ下端
+     付近でスクロールが弾かれて戻される不具合につながることが知られている
+     (「スマホでAboutの下の方(Related付近)までスクロールできない」という
+     報告があり、この指定が最有力の原因と判断して削除した)。
+     --grid-cell はスクロールバー幅を差し引いた100vw基準で計算しているため、
+     この指定を外しても横あふれは発生しない(Chromiumで1440/1024/390pxの
+     各幅で確認済み)。 */
 }
 
 .dots-layer {
@@ -1027,11 +1062,10 @@ body.is-plain { background: var(--base); }
 
 .mission-text { grid-column: 2 / 6; grid-row: 2 / auto; }
 .vision-text  { grid-column: 2 / 6; grid-row: 2 / auto; }
-.aboutus-text { grid-column: 2 / 6; grid-row: 2 / auto; }
 .editor-text  { grid-column: 3 / 6; grid-row: 2 / auto; }
 .editor-head  { grid-column: 2 / 3; grid-row: 2 / span 1; }
 .readers-list { grid-column: 2 / 4; grid-row: 2 / auto; }
-.readers-note { grid-column: 4 / 6; grid-row: 2 / auto; }
+.readers-list--wide { grid-column: 2 / 6; }
 .media-list   { grid-column: 2 / 6; grid-row: 2 / auto; }
 
 .value-list   { grid-column: 4 / 6; grid-row: 2 / auto; }
@@ -1209,11 +1243,10 @@ body.is-plain { background: var(--base); }
 @media (max-width: 68rem) {
   .mission-text,
   .vision-text,
-  .aboutus-text,
   .media-list { grid-column: 2 / -1; }
 
   .readers-list { grid-column: 2 / 4; }
-  .readers-note { grid-column: 4 / -1; }
+  .readers-list--wide { grid-column: 2 / -1; }
   .value-list { grid-column: 4 / -1; }
   .value-visual { grid-column: 2 / 4; grid-row: 2 / span 3; }
   .editor-head { grid-column: 2 / 3; }
@@ -1246,10 +1279,9 @@ body.is-plain { background: var(--base); }
 
   .mission-text,
   .vision-text,
-  .aboutus-text,
   .media-list,
   .readers-list,
-  .readers-note,
+  .readers-list--wide,
   .value-list,
   .editor-head,
   .editor-text {

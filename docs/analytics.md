@@ -337,7 +337,7 @@ GA4の 管理 → サービス間のリンク設定 → Search Console → リ�
 export const NEWSLETTER_URL: string = 'https://forms.gle/xxxxx';  // ← 入れると表示される
 export const LINE_FRIEND_URL: string = '';
 export const CONTACT_URL: string = '';
-export const BRAND_URL: string = '';
+// 物販(SUZURI)の SHOP_URL は設定済みなので、hard段階のCV枠はすでに出る
 ```
 
 上から優先で、**最大2枠**しか出さない。3つ以上並べると選べなくなって、どれも押されない。
