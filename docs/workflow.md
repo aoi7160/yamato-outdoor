@@ -89,6 +89,33 @@ Claude Codeに頼むときは「作業ブランチで作業して、確認でき
 
 ---
 
+## サイトマップとrobots.txt
+
+サイトマップはビルド時に自動生成される(`@astrojs/sitemap`)。手で書く必要はない。
+
+| ファイル | URL | 中身 |
+|---|---|---|
+| サイトマップ索引 | `https://yamato-outdoor.com/sitemap-index.xml` | **Search Consoleにはこれを登録する** |
+| サイトマップ本体 | `https://yamato-outdoor.com/sitemap-0.xml` | 全ページのURL一覧 |
+| robots.txt | `https://yamato-outdoor.com/robots.txt` | サイトマップの場所と、`/preview/` のクロール拒否 |
+
+microCMSで記事を公開して再ビルドが走れば、その記事のURLは自動でサイトマップに入る。
+
+載せないページは `astro.config.mjs` の `filter` で除外している(`/sns` と `/preview/`)。
+**noindexのページをサイトマップに入れると、「登録してほしい」と「登録するな」を同時に
+送ることになる**ので、noindexを足したページはここの除外にも追加する。
+
+### Search Consoleへの登録(初回だけ)
+
+1. https://search.google.com/search-console でプロパティを追加(ドメイン or URLプレフィックス)
+2. 左メニュー「サイトマップ」→ `sitemap-index.xml` を入力して送信
+3. 数日後に「取得できました」になっていればOK
+
+記事を公開するたびに送信し直す必要はない。急いでインデックスさせたいときだけ、
+「URL検査」に記事URLを入れて「インデックス登録をリクエスト」する。
+
+---
+
 ## 初回だけ必要な設定
 
 ### 1. GitHubの既定ブランチを `main` にする
