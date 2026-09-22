@@ -43,7 +43,15 @@ Astro(SSG) + microCMS + Cloudflare Pages のアウトドアメディア。
 | 目次生成・本文HTMLの加工 | `src/lib/article.ts` |
 | スタイル | `src/styles/global.css`(全体) / `src/styles/article.css`(記事) |
 | 読者ペルソナ・編集方針 | `docs/persona.md` |
+| 文体・表記・記事タグのルール | `docs/tone-and-manner.md` |
+| 計測タグ・CV・SEO基盤の設定手順 | `docs/analytics.md` |
 | 公開までの手順 | `docs/workflow.md` |
+| 計測タグのID・外部送信の一覧 | `src/lib/analytics.ts` |
+| タグの読み込み・Consent Mode | `src/components/Analytics.astro` |
+| 行動イベント(スクロール・クリック・Web Vitals) | `src/components/AnalyticsEvents.astro` |
+| CVの定義 / 行き先 | `src/lib/cv.ts` / `src/lib/site.ts` |
+| サイトマップ・RSS・llms.txt | `src/pages/sitemap.xml.ts` / `rss.xml.ts` / `llms.txt.ts` |
+| プライバシーポリシー・外部送信の公表 | `src/pages/privacy.astro` |
 | トップのスクロール連動セクション(story) | `src/pages/index.astro` + `src/styles/global.css` の`.story-*` |
 | トップの背景グレイン(スモッグ)演出 | `src/layouts/BaseLayout.astro` の`grainDrift`props + `.scenery__grain-drift` |
 | Aboutの5カラムグリッド・点の背景・登場アニメ | `src/pages/about.astro` + `src/styles/global.css` の`.about-page` / `.about-grid` / `.dots-layer` / `[data-anim]` |
@@ -116,7 +124,27 @@ A/Bテストや見比べ用に、過去のトップページ構成をブラン�
   同じ手順(Veoでカバー写真から生成→ffmpegで軽量化→`ffmpeg -i <file>`で
   コーデック/解像度/尺を確認)で問題ない。
 
+## 計測タグの約束
+
+- **計測タグを足したら、必ず `src/lib/analytics.ts` の外部送信一覧にも1行足す。**
+  `/privacy` の公表表はこの配列から生成している。ここを更新しないと、
+  電気通信事業法の外部送信規律で求められる「公表内容」が実態とずれる。
+- タグのIDは環境変数から読む。**空なら1バイトも出力されない**ので、
+  ローカルとPRプレビューでは何も飛ばさない(IDはCloudflareのProductionにだけ入れる)。
+- 計測タグは `load` 後のアイドル、または最初の操作まで読み込みを遅らせている。
+  LCPとINPに計測の重さを乗せないため。**headで同期的に読ませないこと。**
+- 記事本文の外部リンクには `target`/`rel` が自動で付く(`src/lib/article.ts`)。
+  ASPのドメインは `rel="sponsored nofollow"` になる。ASPを増やすときは
+  `AFFILIATE_HOSTS` に1行足す。
+- アフィリエイトを含む記事は、冒頭に `<p class="pr-notice">` を置く(景品表示法)。
+
+## 記事を書くとき
+
+- 文体・表記・記事タグのルールは `docs/tone-and-manner.md`。公開前チェックリストを上から見る。
+- `docs/persona.md` と矛盾したら `docs/persona.md` が正。
+
 ## その他
 
 - コミットメッセージ・コード内コメントは日本語で書く。
 - ビルド出力は `dist/client`(`dist` ではない)。
+- `/preview/*` は noindex かつ計測タグなし。下書き確認が本番の数字に混ざらないようにしている。

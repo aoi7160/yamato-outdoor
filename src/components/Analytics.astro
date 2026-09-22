@@ -1,0 +1,263 @@
+---
+/**
+ * 計測タグの読み込みと、ページ情報のdataLayerへの受け渡し。<head>の中で使う。
+ *
+ * 設計の要点:
+ *  - **タグはGTMに寄せる。** GA4・Clarity・広告ピクセルをコード側にばら撒くと、
+ *    1つ足すたびにデプロイが必要になる。GTM_IDが入っていればGA4はGTM側で配信する。
+ *    GTMを使わずGA4だけ入れたい場合はGA4_IDだけを設定すれば直結モードで動く。
+ *  - **読み込みは後回しにする。** CLAUDE.mdの方針どおり描画を邪魔しないよう、
+ *    load後のアイドル時間、または最初の操作(スクロール/タップ/キー入力)まで待つ。
+ *    計測タグはLCPに効くほど重いので、headで同期的に読ませない。
+ *  - **Consent Mode v2 の既定値を先に置く。** EEA・英国・スイスからの訪問は
+ *    既定で拒否(=同意バナーを出さない代わりに送信しない)。日本を含むそれ以外は許可し、
+ *    /privacy のボタンでいつでも止められる。
+ *  - **イベントの入口を1つにする。** どのモードでも `window.yoTrack(名前, 値)` で送れる。
+ *    GTMモードならdataLayerのイベント、GA4直結モードならgtagのイベントになる。
+ */
+import {
+  ANALYTICS,
+  CONSENT_DENIED_REGIONS,
+  OPT_OUT_KEY,
+  hasAnyTag,
+  usesClarity,
+  usesDirectGa4,
+  usesGtm,
+  usesMetaPixel,
+  usesXPixel,
+  type PageType,
+} from '../lib/analytics';
+
+interface Props {
+  pageType: PageType;
+  /** 記事ページで渡す。GA4のカスタムディメンションとして使う */
+  context?: {
+    genre?: string;
+    category?: string;
+    tags?: string[];
+    slug?: string;
+    publishedAt?: string;
+    updatedAt?: string;
+    readingMinutes?: number;
+    author?: string;
+  };
+}
+
+const { pageType, context = {} } = Astro.props;
+
+// 参照元のホスト名から流入の種類を判定するための一覧。
+// 2026年時点ではAI検索(ChatGPT・Perplexity等)からの流入がGA4の既定では
+// ただの「referral」に混ざってしまうため、自分で分類してから送る。
+const AI_HOSTS = [
+  'chatgpt.com', 'chat.openai.com', 'openai.com', 'perplexity.ai', 'gemini.google.com',
+  'copilot.microsoft.com', 'claude.ai', 'grok.com', 'x.ai', 'felo.ai', 'genspark.ai',
+  'you.com', 'phind.com', 'andisearch.com', 'iask.ai', 'liner.com',
+];
+const SEARCH_HOSTS = [
+  'google.com', 'google.co.jp', 'yahoo.co.jp', 'search.yahoo.co.jp', 'bing.com',
+  'duckduckgo.com', 'ecosia.org', 'baidu.com', 'naver.com', 'yandex.com',
+];
+const SOCIAL_HOSTS = [
+  'x.com', 'twitter.com', 't.co', 'instagram.com', 'facebook.com', 'm.facebook.com',
+  'l.facebook.com', 'threads.net', 'threads.com', 'tiktok.com', 'line.me', 'lin.ee',
+  'note.com', 'hatena.ne.jp', 'b.hatena.ne.jp', 'reddit.com', 'youtube.com', 'pinterest.jp',
+  'yamap.com', 'yamareco.com',
+];
+
+const cfg = {
+  gtmId: usesGtm ? ANALYTICS.gtmId : '',
+  ga4Id: usesDirectGa4 ? ANALYTICS.ga4Id : '',
+  clarityId: usesClarity ? ANALYTICS.clarityId : '',
+  metaPixelId: usesMetaPixel ? ANALYTICS.metaPixelId : '',
+  xPixelId: usesXPixel ? ANALYTICS.xPixelId : '',
+  optOutKey: OPT_OUT_KEY,
+  deniedRegions: [...CONSENT_DENIED_REGIONS],
+  aiHosts: AI_HOSTS,
+  searchHosts: SEARCH_HOSTS,
+  socialHosts: SOCIAL_HOSTS,
+  page: {
+    page_type: pageType,
+    content_genre: context.genre ?? '',
+    content_category: context.category ?? '',
+    content_tags: (context.tags ?? []).join('|'),
+    article_slug: context.slug ?? '',
+    article_published_at: context.publishedAt ?? '',
+    article_updated_at: context.updatedAt ?? '',
+    article_reading_minutes: context.readingMinutes ?? 0,
+    article_author: context.author ?? '',
+  },
+};
+---
+
+{/* Search Consoleの所有権確認。DNS(TXT)で確認する場合は設定不要 */}
+{ANALYTICS.gscVerification && (
+  <meta name="google-site-verification" content={ANALYTICS.gscVerification} />
+)}
+
+{hasAnyTag && (
+  <script define:vars={{ cfg }}>
+    (function () {
+      var dl = (window.dataLayer = window.dataLayer || []);
+      function gtag() { dl.push(arguments); }
+      if (typeof window.gtag !== 'function') window.gtag = gtag;
+
+      // --- オプトアウト(/privacy のボタン)の確認 ---
+      var optOut = false;
+      try { optOut = window.localStorage.getItem(cfg.optOutKey) === '1'; } catch (e) { /* 無効な環境では既定のまま */ }
+
+      // --- Consent Mode v2 の既定値 ---
+      // 先に全体の既定を置き、そのあとに地域指定の既定を置く(地域指定のほうが優先される)。
+      gtag('consent', 'default', {
+        ad_storage: 'granted',
+        ad_user_data: 'granted',
+        ad_personalization: 'granted',
+        analytics_storage: 'granted',
+        functionality_storage: 'granted',
+        security_storage: 'granted',
+      });
+      gtag('consent', 'default', {
+        ad_storage: 'denied',
+        ad_user_data: 'denied',
+        ad_personalization: 'denied',
+        analytics_storage: 'denied',
+        functionality_storage: 'granted',
+        security_storage: 'granted',
+        region: cfg.deniedRegions,
+      });
+      if (optOut) {
+        gtag('consent', 'update', {
+          ad_storage: 'denied',
+          ad_user_data: 'denied',
+          ad_personalization: 'denied',
+          analytics_storage: 'denied',
+        });
+      }
+
+      // --- 流入の種類を参照元から判定する ---
+      function matchHost(host, list) {
+        for (var i = 0; i < list.length; i++) {
+          if (host === list[i] || host.slice(-(list[i].length + 1)) === '.' + list[i]) return true;
+        }
+        return false;
+      }
+      var referrerHost = '';
+      var sourceKind = 'direct';
+      if (document.referrer) {
+        try { referrerHost = new URL(document.referrer).hostname.toLowerCase(); } catch (e) { referrerHost = ''; }
+        if (!referrerHost) sourceKind = 'unknown';
+        else if (referrerHost === location.hostname) sourceKind = 'internal';
+        else if (matchHost(referrerHost, cfg.aiHosts)) sourceKind = 'ai';
+        else if (matchHost(referrerHost, cfg.searchHosts)) sourceKind = 'search';
+        else if (matchHost(referrerHost, cfg.socialHosts)) sourceKind = 'social';
+        else sourceKind = 'referral';
+      }
+
+      // --- ページ情報をGTM/GA4より前にdataLayerへ置く ---
+      var page = {};
+      for (var key in cfg.page) { if (Object.prototype.hasOwnProperty.call(cfg.page, key)) page[key] = cfg.page[key]; }
+      page.traffic_source_kind = sourceKind;
+      page.referrer_host = referrerHost;
+      page.analytics_opt_out = optOut;
+      dl.push(page);
+
+      // --- イベント送信の入口。モードの違いはここで吸収する ---
+      window.yoTrack = optOut
+        ? function () { /* オプトアウト中は何も送らない */ }
+        : function (name, params) {
+            var payload = params || {};
+            var entry = { event: name };
+            for (var k in payload) { if (Object.prototype.hasOwnProperty.call(payload, k)) entry[k] = payload[k]; }
+            dl.push(entry);
+            // GA4直結モードではdataLayerのイベントは解釈されないので、gtagにも渡す
+            if (cfg.ga4Id && !cfg.gtmId) window.gtag('event', name, payload);
+          };
+
+      if (cfg.page.page_type === 'not-found') {
+        window.yoTrack('page_not_found', { missing_path: location.pathname + location.search });
+      }
+
+      if (optOut) return;
+
+      // --- タグの読み込み。描画を邪魔しないよう後ろにずらす ---
+      var booted = false;
+      function boot() {
+        if (booted) return;
+        booted = true;
+
+        if (cfg.gtmId) {
+          dl.push({ 'gtm.start': new Date().getTime(), event: 'gtm.js' });
+          var g = document.createElement('script');
+          g.async = true;
+          g.src = 'https://www.googletagmanager.com/gtm.js?id=' + cfg.gtmId;
+          document.head.appendChild(g);
+        } else if (cfg.ga4Id) {
+          var t = document.createElement('script');
+          t.async = true;
+          t.src = 'https://www.googletagmanager.com/gtag/js?id=' + cfg.ga4Id;
+          document.head.appendChild(t);
+          window.gtag('js', new Date());
+          window.gtag('config', cfg.ga4Id, page);
+        }
+
+        if (cfg.clarityId) {
+          (function (c, l, a, r, i) {
+            c[a] = c[a] || function () { (c[a].q = c[a].q || []).push(arguments); };
+            var s = l.createElement(r);
+            s.async = 1;
+            s.src = 'https://www.clarity.ms/tag/' + i;
+            l.head.appendChild(s);
+          })(window, document, 'clarity', 'script', cfg.clarityId);
+          // Clarityの絞り込み用タグ。記事種別や流入種別で録画を探せるようにする
+          window.clarity('set', 'page_type', String(cfg.page.page_type));
+          if (cfg.page.content_genre) window.clarity('set', 'genre', String(cfg.page.content_genre));
+          if (cfg.page.content_category) window.clarity('set', 'category', String(cfg.page.content_category));
+          window.clarity('set', 'source_kind', sourceKind);
+        }
+
+        if (cfg.metaPixelId) {
+          (function (f, b, e, v) {
+            if (f.fbq) return;
+            var n = (f.fbq = function () {
+              n.callMethod ? n.callMethod.apply(n, arguments) : n.queue.push(arguments);
+            });
+            if (!f._fbq) f._fbq = n;
+            n.push = n; n.loaded = true; n.version = '2.0'; n.queue = [];
+            var s = b.createElement(e);
+            s.async = true;
+            s.src = v;
+            b.head.appendChild(s);
+          })(window, document, 'script', 'https://connect.facebook.net/en_US/fbevents.js');
+          window.fbq('init', cfg.metaPixelId);
+          window.fbq('track', 'PageView');
+        }
+
+        if (cfg.xPixelId) {
+          (function (e, t, n) {
+            if (e.twq) return;
+            var s = (e.twq = function () {
+              s.exe ? s.exe.apply(s, arguments) : s.queue.push(arguments);
+            });
+            s.version = '1.1';
+            s.queue = [];
+            var u = t.createElement(n);
+            u.async = true;
+            u.src = 'https://static.ads-twitter.com/uwt.js';
+            t.head.appendChild(u);
+          })(window, document, 'script');
+          window.twq('config', cfg.xPixelId);
+        }
+      }
+
+      function schedule() {
+        if ('requestIdleCallback' in window) window.requestIdleCallback(boot, { timeout: 2500 });
+        else window.setTimeout(boot, 1200);
+      }
+      if (document.readyState === 'complete') schedule();
+      else window.addEventListener('load', schedule, { once: true });
+      // 読み終わる前に操作を始めた人は「読む気がある人」なので、待たずに読み込む
+      ['pointerdown', 'keydown', 'scroll'].forEach(function (ev) {
+        window.addEventListener(ev, boot, { once: true, passive: true });
+      });
+    })();
+  </script>
+)}

@@ -1,0 +1,194 @@
+---
+/**
+ * 行動イベントの計測。</body>の直前に置く。
+ *
+ * GA4の「拡張計測機能」だけでは、次のものが取れない・粗すぎる。
+ *  - スクロール到達率が90%の1点しか取れない(どこで離脱したかが分からない)
+ *  - 外部リンクのクリックが記事単位で追えない
+ *  - 読了(記事の最後まで到達)という概念がない
+ *  - Core Web Vitals(表示速度の実測値)が記事ごとに見られない
+ * そのぶんをここで補い、すべて `window.yoTrack()` 経由でGTM/GA4に渡す
+ * (送信先の切り替えは Analytics.astro が吸収している)。
+ *
+ * 計測用のリスナーは1本にまとめている。CLAUDE.mdのとおり、
+ * スクロール中に走る処理を増やすとそれだけでfpsが落ちるため、
+ * scrollは rAF で間引き、ページの高さはリサイズ時にだけ測り直す。
+ */
+import { hasAnyTag } from '../lib/analytics';
+---
+
+{hasAnyTag && (
+  <script is:inline>
+    (function () {
+      var track = function (name, params) {
+        if (typeof window.yoTrack === 'function') window.yoTrack(name, params || {});
+      };
+      var pageType = document.body.getAttribute('data-page-type') || '';
+
+      // ------------------------------------------------------------------
+      // スクロール到達率(25 / 50 / 75 / 90%)と、記事の読了
+      // ------------------------------------------------------------------
+      var marks = [25, 50, 75, 90];
+      var hit = {};
+      var limit = 0;
+      var measure = function () {
+        limit = Math.max(
+          document.documentElement.scrollHeight - window.innerHeight,
+          0,
+        );
+      };
+      measure();
+      window.addEventListener('resize', measure, { passive: true });
+      window.addEventListener('load', measure, { once: true });
+
+      var queued = false;
+      var onScroll = function () {
+        if (queued) return;
+        queued = true;
+        window.requestAnimationFrame(function () {
+          queued = false;
+          if (limit <= 0) return;
+          var percent = (window.scrollY / limit) * 100;
+          for (var i = 0; i < marks.length; i++) {
+            var mark = marks[i];
+            if (percent < mark || hit[mark]) continue;
+            hit[mark] = true;
+            track('scroll_depth', { percent_scrolled: mark, page_type: pageType });
+            // 記事の9割まで来たら読了として別に1件送る(GA4のキーイベント候補)
+            if (mark === 90 && pageType === 'article') {
+              track('article_read', {
+                page_type: pageType,
+                seconds_on_page: Math.round((Date.now() - started) / 1000),
+              });
+            }
+          }
+          if (hit[90]) window.removeEventListener('scroll', onScroll);
+        });
+      };
+      var started = Date.now();
+      window.addEventListener('scroll', onScroll, { passive: true });
+
+      // ------------------------------------------------------------------
+      // クリック。リスナーは1つだけ置き、中で種類を見分ける
+      // ------------------------------------------------------------------
+      var DOWNLOAD_EXT = /\.(pdf|zip|csv|xlsx?|docx?|pptx?|gpx|kml|txt)$/i;
+
+      document.addEventListener(
+        'click',
+        function (event) {
+          var target = event.target;
+          if (!target || !target.closest) return;
+
+          // data-ga-event が付いているものは、その名前で送る(シェア・CTA・目次など)
+          var tagged = target.closest('[data-ga-event]');
+          if (tagged) {
+            var params = { page_type: pageType };
+            var data = tagged.dataset || {};
+            for (var key in data) {
+              if (key === 'gaEvent' || key.indexOf('ga') !== 0) continue;
+              if (key.charAt(2) !== key.charAt(2).toUpperCase()) continue;
+              var name = key
+                .slice(2)
+                .replace(/([A-Z])/g, function (_m, c) { return '_' + c.toLowerCase(); })
+                .replace(/^_/, '');
+              params[name] = data[key];
+            }
+            track(tagged.getAttribute('data-ga-event'), params);
+            return;
+          }
+
+          var link = target.closest('a[href]');
+          if (!link) return;
+          var href = link.getAttribute('href') || '';
+
+          if (href.indexOf('mailto:') === 0) {
+            track('contact_click', { method: 'email', page_type: pageType });
+            return;
+          }
+          if (href.indexOf('tel:') === 0) {
+            track('contact_click', { method: 'phone', page_type: pageType });
+            return;
+          }
+
+          var url;
+          try { url = new URL(link.href); } catch (e) { return; }
+          if (url.protocol !== 'http:' && url.protocol !== 'https:') return;
+
+          if (DOWNLOAD_EXT.test(url.pathname)) {
+            var file = url.pathname.split('/').pop() || '';
+            track('file_download', {
+              file_name: file,
+              file_extension: (file.split('.').pop() || '').toLowerCase(),
+              link_url: url.href,
+              page_type: pageType,
+            });
+            return;
+          }
+
+          if (url.hostname !== location.hostname) {
+            track('click_outbound', {
+              link_domain: url.hostname,
+              link_url: url.href,
+              link_text: (link.textContent || '').trim().slice(0, 100),
+              page_type: pageType,
+            });
+          }
+        },
+        true,
+      );
+
+      // ------------------------------------------------------------------
+      // Core Web Vitals の実測値。記事ごとの表示速度をGA4で見られるようにする。
+      // ライブラリは入れず、ブラウザのPerformanceObserverだけで測る。
+      // ------------------------------------------------------------------
+      if ('PerformanceObserver' in window) {
+        var vitals = { lcp: 0, cls: 0, inp: 0 };
+        var observe = function (type, options, handler) {
+          try {
+            var po = new PerformanceObserver(handler);
+            po.observe(Object.assign({ type: type, buffered: true }, options || {}));
+          } catch (e) { /* 未対応のブラウザでは測らない */ }
+        };
+
+        observe('largest-contentful-paint', null, function (list) {
+          var entries = list.getEntries();
+          var last = entries[entries.length - 1];
+          if (last) vitals.lcp = Math.round(last.startTime);
+        });
+        observe('layout-shift', null, function (list) {
+          list.getEntries().forEach(function (entry) {
+            if (!entry.hadRecentInput) vitals.cls += entry.value;
+          });
+        });
+        observe('event', { durationThreshold: 40 }, function (list) {
+          list.getEntries().forEach(function (entry) {
+            if (entry.interactionId && entry.duration > vitals.inp) vitals.inp = Math.round(entry.duration);
+          });
+        });
+
+        var rate = function (value, good, poor) {
+          if (value <= good) return 'good';
+          return value <= poor ? 'needs-improvement' : 'poor';
+        };
+        var reported = false;
+        var report = function (force) {
+          if (reported) return;
+          if (!force && document.visibilityState !== 'hidden') return;
+          reported = true;
+          track('web_vitals', {
+            page_type: pageType,
+            lcp_ms: vitals.lcp,
+            lcp_rating: rate(vitals.lcp, 2500, 4000),
+            cls: Math.round(vitals.cls * 1000) / 1000,
+            cls_rating: rate(vitals.cls, 0.1, 0.25),
+            inp_ms: vitals.inp,
+            inp_rating: rate(vitals.inp, 200, 500),
+          });
+        };
+        // 「タブを離れたとき」に確定値を送る。pagehideしか来ない環境もあるので両方見る。
+        document.addEventListener('visibilitychange', function () { report(false); });
+        window.addEventListener('pagehide', function () { report(true); });
+      }
+    })();
+  </script>
+)}

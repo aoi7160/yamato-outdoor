@@ -2,7 +2,10 @@
 import '../styles/global.css';
 import Logo from '../components/Logo.astro';
 import SocialIcon from '../components/SocialIcon.astro';
-import { SOCIALS, socialLink } from '../lib/site';
+import Analytics from '../components/Analytics.astro';
+import AnalyticsEvents from '../components/AnalyticsEvents.astro';
+import { SOCIALS, socialLink, CONTACT_URL } from '../lib/site';
+import type { PageType } from '../lib/analytics';
 
 interface Props {
   title: string;
@@ -17,6 +20,21 @@ interface Props {
   /** 背景の山と暗幕を外す。Aboutのように、点のグリッドを敷くページで使う
       (山のシルエットと点が重なると、どちらも読み取れなくなるため)。 */
   plain?: boolean;
+  /** GA4で数字を分けて見るためのページ種別。bodyのdata-page-typeにも出る */
+  pageType?: PageType;
+  /** 記事ページで渡す追加情報(ジャンル・カテゴリ・タグなど) */
+  analyticsContext?: {
+    genre?: string;
+    category?: string;
+    tags?: string[];
+    slug?: string;
+    publishedAt?: string;
+    updatedAt?: string;
+    readingMinutes?: number;
+    author?: string;
+  };
+  /** 計測タグを出さない(下書きプレビューなど、数字に混ぜたくないページ) */
+  noAnalytics?: boolean;
 }
 
 const {
@@ -27,6 +45,9 @@ const {
   noindex = false,
   grainDrift = false,
   plain = false,
+  pageType = 'home',
+  analyticsContext = {},
+  noAnalytics = false,
 } = Astro.props;
 
 const canonical = Astro.site ? new URL(Astro.url.pathname, Astro.site).href : Astro.url.pathname;
@@ -45,12 +66,20 @@ const year = new Date().getFullYear();
     {noindex && <meta name="robots" content="noindex, nofollow" />}
     <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
 
+    {/* RSS。更新の自動通知(SNS連携やフィードリーダー)の受け口になる */}
+    <link rel="alternate" type="application/rss+xml" title="YAMATO OUTDOOR" href="/rss.xml" />
+
     <meta property="og:type" content={ogType} />
+    <meta property="og:site_name" content="YAMATO OUTDOOR" />
+    <meta property="og:locale" content="ja_JP" />
     <meta property="og:title" content={title} />
     <meta property="og:description" content={description} />
     <meta property="og:url" content={canonical} />
     {ogImage && <meta property="og:image" content={ogImage} />}
     <meta name="twitter:card" content="summary_large_image" />
+
+    {/* 計測タグ。IDが未設定なら何も出力されない(src/lib/analytics.ts) */}
+    {!noAnalytics && <Analytics pageType={pageType} context={analyticsContext} />}
 
     <!-- 和文見出し=Zen Old Mincho / 本文=Zen Kaku Gothic New / 欧文=Schibsted Grotesk。
          和文フォントは重いのでウェイトを1つずつに絞り、読み込みも描画をブロックしない形にする
@@ -71,7 +100,7 @@ const year = new Date().getFullYear();
     </noscript>
     <slot name="head" />
   </head>
-  <body class={plain ? 'is-plain' : undefined}>
+  <body class={plain ? 'is-plain' : undefined} data-page-type={pageType}>
     <!--
       霧の山。画像アセット(写真)は使わず、SVGのシルエットで描いている。
       背景は public/scenery.svg に切り出して背景画像として1枚に焼いている。
@@ -119,6 +148,17 @@ const year = new Date().getFullYear();
           <a href="/fishing/">釣り</a>
           <a href="/camp/">キャンプ</a>
           <a href="/about">About</a>
+          <a href="/privacy">プライバシー</a>
+          {CONTACT_URL && (
+            <a
+              href={CONTACT_URL}
+              target="_blank"
+              rel="noopener noreferrer"
+              data-ga-event="cv_click"
+              data-ga-cv-id="contact"
+              data-ga-cv-place="footer"
+            >お問い合わせ</a>
+          )}
         </nav>
         <ul class="social" aria-label="公式SNS">
           {SOCIALS.map((s) => socialLink(s)).map((link, i) => (
@@ -139,5 +179,7 @@ const year = new Date().getFullYear();
         <p class="footer-copy">&copy; {year} YAMATO OUTDOOR</p>
       </div>
     </footer>
+
+    {!noAnalytics && <AnalyticsEvents />}
   </body>
 </html>

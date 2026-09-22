@@ -1,0 +1,107 @@
+---
+/**
+ * 記事末のCV導線。
+ *
+ * src/lib/site.ts のURLが入っている枠だけを出す。**1つも入っていなければ何も描画しない**
+ * ので、準備できていない導線が「準備中」として並ぶことはない。
+ * クリックは data-ga-event 経由で `cv_click` として送られ、
+ * GA4側で「どの記事のどの枠が押されたか」で分解できる(docs/analytics.md)。
+ */
+import { activeCvSlots } from '../lib/cv';
+
+interface Props {
+  /** どこに置いたCTAか。同じCVを複数箇所に置いたときの区別用 */
+  place?: string;
+}
+
+const { place = 'article-tail' } = Astro.props;
+const slots = activeCvSlots(2);
+---
+
+{slots.length > 0 && (
+  <aside class="cv" aria-label="次の一歩">
+    {slots.map((slot) => (
+      <section class="cv__card">
+        <p class="cv__eyebrow">{slot.eyebrow}</p>
+        <h2 class="cv__title">{slot.title}</h2>
+        <p class="cv__body">{slot.body}</p>
+        <a
+          class="cv__action"
+          href={slot.href}
+          target={slot.external ? '_blank' : undefined}
+          rel={slot.external ? 'noopener noreferrer' : undefined}
+          data-ga-event="cv_click"
+          data-ga-cv-id={slot.id}
+          data-ga-cv-stage={slot.stage}
+          data-ga-cv-place={place}
+        >
+          {slot.actionLabel}
+          <span aria-hidden="true">→</span>
+        </a>
+      </section>
+    ))}
+  </aside>
+)}
+
+<style>
+  /* 記事本文から地続きにならないよう、罫線1本で区切るだけに留める。
+     枠を強く描くと広告に見え、ペルソナP1がいちばん冷めるところになる。 */
+  .cv {
+    display: grid;
+    gap: 2.5rem;
+    margin: 4.5rem 0 0;
+    padding-top: 2.6rem;
+    border-top: 1px solid var(--line);
+  }
+
+  @media (min-width: 52rem) {
+    .cv:has(.cv__card + .cv__card) {
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 3rem;
+    }
+  }
+
+  .cv__eyebrow {
+    font-family: var(--font-latin);
+    font-size: 0.74rem;
+    letter-spacing: 0.3em;
+    text-transform: uppercase;
+    color: var(--ink-faint);
+    margin: 0 0 1rem;
+  }
+
+  .cv__title {
+    font-family: var(--font-serif);
+    font-weight: 400;
+    font-size: clamp(1.15rem, 2.4vw, 1.5rem);
+    line-height: 1.85;
+    letter-spacing: 0.08em;
+    color: var(--ink-strong);
+    margin: 0 0 0.9rem;
+  }
+
+  .cv__body {
+    color: var(--ink-mute);
+    font-size: 0.94rem;
+    margin: 0 0 1.6rem;
+  }
+
+  .cv__action {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.7rem;
+    font-family: var(--font-latin);
+    font-size: 0.86rem;
+    letter-spacing: 0.16em;
+    text-transform: uppercase;
+    color: var(--ink-strong);
+    text-decoration: none;
+    padding-bottom: 0.4rem;
+    border-bottom: 1px solid var(--ember);
+    transition: color 0.25s var(--ease);
+  }
+
+  .cv__action:hover { color: var(--ember-soft); }
+  .cv__action span { transition: transform 0.25s var(--ease); }
+  .cv__action:hover span { transform: translateX(0.3rem); }
+</style>

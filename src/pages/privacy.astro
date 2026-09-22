@@ -1,0 +1,375 @@
+---
+/**
+ * プライバシーポリシーと、電気通信事業法「外部送信規律」に基づく公表ページ。
+ *
+ * 外部送信規律(2023年6月施行)は、利用者の端末から第三者へ情報を送信させる場合に、
+ * **送信先・送信される情報・利用目的の通知または公表**を求めている。
+ * GA4・Clarity・広告ピクセルはいずれも対象なので、記事を公開する前にこのページを出す。
+ * 表の中身は src/lib/analytics.ts の配列から生成しているので、
+ * タグを足せばこのページも自動で追従する(手で書き写す運用にすると必ずずれる)。
+ *
+ * ※ 文面はひな形。事業者名・所在地・問い合わせ先は実態に合わせて埋め、
+ *   最終的な文言は専門家の確認を受けること。ここでは実装と運用の受け皿までを用意している。
+ */
+import BaseLayout from '../layouts/BaseLayout.astro';
+import { CONTACT_URL } from '../lib/site';
+import {
+  OPT_OUT_KEY,
+  deliveryTransmissions,
+  measurementTransmissions,
+  hasAnyTag,
+} from '../lib/analytics';
+
+const measured = measurementTransmissions();
+const today = new Date();
+const updated = `${today.getFullYear()}年${today.getMonth() + 1}月${today.getDate()}日`;
+---
+
+<BaseLayout
+  title="プライバシーポリシー / 外部送信について | YAMATO OUTDOOR"
+  description="YAMATO OUTDOORにおける個人情報の取り扱い、アクセス解析の利用、および利用者の端末から外部へ送信される情報についての公表ページ。"
+  pageType="privacy"
+>
+  <section class="hero hero--sub">
+    <div class="shell">
+      <ol class="breadcrumb">
+        <li><a href="/">TOP</a></li>
+        <li aria-current="page">プライバシーポリシー</li>
+      </ol>
+      <p class="hero__eyebrow">Privacy — external transmission</p>
+      <h1>プライバシーポリシー</h1>
+      <p>
+        YAMATO OUTDOOR(以下「当サイト」)における情報の取り扱いと、閲覧時に外部へ送信される情報についてご説明します。
+      </p>
+    </div>
+  </section>
+
+  <section class="shell">
+    <div class="legal">
+      <p class="legal__meta">最終更新: {updated}</p>
+
+      <h2>1. 取得する情報</h2>
+      <p>
+        当サイトは、会員登録や商品の購入を行っていないため、氏名・住所・電話番号などを直接お預かりすることはありません。
+        取得するのは、ページの閲覧に伴って自動的に発生する次の情報です。
+      </p>
+      <ul>
+        <li>閲覧したページのURL、参照元(検索エンジンやSNSなど)、閲覧日時</li>
+        <li>ページ内での滞在時間、スクロール量、クリックした要素</li>
+        <li>端末の種類、OS、ブラウザ、画面サイズ、おおまかな地域(市区町村より粗い単位)</li>
+        <li>Cookieなどに保存される、端末を区別するための識別子</li>
+      </ul>
+      <p>
+        お問い合わせやメールでのご連絡をいただいた場合は、そのご連絡に含まれる内容(メールアドレスなど)を、
+        返信および記事の改善のためにのみ使用します。
+      </p>
+
+      <h2>2. 利用目的</h2>
+      <ul>
+        <li>どの記事がどれだけ読まれているかを把握し、内容とレイアウトを改善するため</li>
+        <li>表示速度や不具合を検知し、修正するため</li>
+        <li>不正アクセスや攻撃を検知し、サイトを安定して配信するため</li>
+      </ul>
+      <p>個人を特定する目的では利用せず、取得した情報を販売・貸与することもありません。</p>
+
+      {measured.length > 0 && (
+        <Fragment>
+          <h2>3. 外部送信(電気通信事業法第27条の12に基づく公表)</h2>
+          <p>
+            当サイトを閲覧すると、次の事業者に対して、利用者の端末から情報が送信されます。
+            送信される情報、目的、各事業者のプライバシーポリシーは以下のとおりです。
+          </p>
+          <div class="table-scroll">
+            <table>
+              <thead>
+                <tr>
+                  <th>送信先のツール / 事業者</th>
+                  <th>送信される情報</th>
+                  <th>目的</th>
+                  <th>各社の案内</th>
+                </tr>
+              </thead>
+              <tbody>
+                {measured.map((item) => (
+                  <tr>
+                    <td>
+                      {item.name}<br />
+                      <span class="legal__provider">{item.provider}</span>
+                    </td>
+                    <td>{item.data}</td>
+                    <td>{item.purpose}</td>
+                    <td>
+                      <a href={item.policy} target="_blank" rel="noopener noreferrer">プライバシーポリシー</a>
+                      {item.optOut && (
+                        <Fragment>
+                          <br />
+                          <a href={item.optOut} target="_blank" rel="noopener noreferrer">送信の停止方法</a>
+                        </Fragment>
+                      )}
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        </Fragment>
+      )}
+
+      <h2>{measured.length > 0 ? '4' : '3'}. 表示に必要な外部サービス</h2>
+      <p>
+        次のサービスは、ページやフォント・画像を表示するために通信が発生します。
+        計測を目的としたものではありませんが、通信の際にIPアドレスが相手方に届きます。
+      </p>
+      <div class="table-scroll">
+        <table>
+          <thead>
+            <tr>
+              <th>サービス / 事業者</th>
+              <th>送信される情報</th>
+              <th>目的</th>
+              <th>各社の案内</th>
+            </tr>
+          </thead>
+          <tbody>
+            {deliveryTransmissions.map((item) => (
+              <tr>
+                <td>
+                  {item.name}<br />
+                  <span class="legal__provider">{item.provider}</span>
+                </td>
+                <td>{item.data}</td>
+                <td>{item.purpose}</td>
+                <td>
+                  <a href={item.policy} target="_blank" rel="noopener noreferrer">プライバシーポリシー</a>
+                </td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
+
+      <h2>{measured.length > 0 ? '5' : '4'}. Cookieと計測の停止</h2>
+      <p>
+        ブラウザの設定でCookieを無効にすると、多くの計測を止められます。
+        当サイトでは、それに加えてこのページから計測タグ自体の読み込みを止められるようにしています。
+        設定はご利用中のブラウザに保存され、他の端末やブラウザには引き継がれません。
+      </p>
+      <p>
+        なお、EU・英国・スイスからのアクセスについては、同意を得る仕組みを設けていないため、
+        既定で計測用の情報を送信しない設定にしています。
+      </p>
+
+      {hasAnyTag && (
+        <div class="optout" data-optout-key={OPT_OUT_KEY}>
+          <p class="optout__state" data-optout-state>現在の設定を確認しています…</p>
+          <button type="button" class="optout__button" data-optout-toggle hidden>切り替える</button>
+          <p class="optout__note">
+            切り替えるとページを読み込み直します。JavaScriptを無効にしている場合、この設定は使えません。
+          </p>
+        </div>
+      )}
+
+      <h2>{measured.length > 0 ? '6' : '5'}. 第三者提供</h2>
+      <p>
+        法令に基づく場合を除き、取得した情報を第三者へ提供することはありません。
+        上記の外部送信は、各事業者が提供する計測・配信サービスの利用に伴うものです。
+      </p>
+
+      <h2>{measured.length > 0 ? '7' : '6'}. 免責事項</h2>
+      <p>
+        当サイトに掲載する装備の評価やルートの情報は、運営者自身の山行に基づく記録です。
+        天候・体力・装備の状態によって結果は変わります。実際の行動判断はご自身の責任で行ってください。
+        外部サイトへのリンク先の内容については責任を負いません。
+      </p>
+
+      <h2>{measured.length > 0 ? '8' : '7'}. 広告・アフィリエイトについて</h2>
+      <p>
+        記事内に広告(アフィリエイトリンク)を含む場合は、当該記事の冒頭にその旨を明示します。
+        報酬の有無によって評価を変えることはせず、合わなかった点も同じ分量で記載します。
+      </p>
+
+      <h2>{measured.length > 0 ? '9' : '8'}. 著作権</h2>
+      <p>
+        当サイトの文章・写真・図版の著作権は運営者に帰属します。引用の範囲を超えた転載はご遠慮ください。
+      </p>
+
+      <h2>{measured.length > 0 ? '10' : '9'}. お問い合わせ・運営者</h2>
+      <p>
+        当サイトは YAMATO OUTDOOR が運営しています。
+        {CONTACT_URL ? (
+          <Fragment>
+            情報の取り扱いに関するお問い合わせは
+            <a href={CONTACT_URL} target="_blank" rel="noopener noreferrer">お問い合わせフォーム</a>
+            よりご連絡ください。
+          </Fragment>
+        ) : (
+          'お問い合わせ窓口は準備中です。'
+        )}
+        運営者の考え方と実績については<a href="/about">About</a>に記載しています。
+      </p>
+
+      <h2>{measured.length > 0 ? '11' : '10'}. 改定</h2>
+      <p>
+        計測ツールを追加・変更した場合は、このページの内容を更新します。重要な変更があるときは、
+        更新日を改めて記載します。
+      </p>
+    </div>
+  </section>
+</BaseLayout>
+
+<script is:inline>
+  // オプトアウトの切り替え。localStorageに '1' を入れると、
+  // 次回以降の読み込みで Consent Mode を全拒否にし、タグ自体も読み込まない
+  // (判定は src/components/Analytics.astro 側で行っている)。
+  (() => {
+    const box = document.querySelector('[data-optout-key]');
+    if (!box) return;
+    const key = box.getAttribute('data-optout-key');
+    const state = box.querySelector('[data-optout-state]');
+    const button = box.querySelector('[data-optout-toggle]');
+    if (!key || !state || !button) return;
+
+    let available = true;
+    const read = () => {
+      try {
+        return window.localStorage.getItem(key) === '1';
+      } catch {
+        available = false;
+        return false;
+      }
+    };
+
+    const render = (optedOut) => {
+      if (!available) {
+        state.textContent = 'このブラウザでは設定を保存できないため、切り替えられません。';
+        return;
+      }
+      state.textContent = optedOut
+        ? '現在: 計測を停止しています。'
+        : '現在: 記事の改善のために計測しています。';
+      button.textContent = optedOut ? '計測を再開する' : '計測を停止する';
+      button.hidden = false;
+    };
+
+    render(read());
+
+    button.addEventListener('click', () => {
+      const next = !read();
+      try {
+        if (next) window.localStorage.setItem(key, '1');
+        else window.localStorage.removeItem(key);
+      } catch {
+        available = false;
+        render(false);
+        return;
+      }
+      location.reload();
+    });
+  })();
+</script>
+
+<style>
+  .legal {
+    max-width: 48rem;
+    padding: 1rem 0 6rem;
+  }
+
+  .legal__meta {
+    font-family: var(--font-latin);
+    font-size: 0.8rem;
+    letter-spacing: 0.18em;
+    color: var(--ink-faint);
+    margin: 0 0 3rem;
+  }
+
+  .legal h2 {
+    font-family: var(--font-serif);
+    font-weight: 400;
+    font-size: 1.24rem;
+    line-height: 1.9;
+    letter-spacing: 0.1em;
+    color: var(--ink-strong);
+    margin: 3.4rem 0 1.2rem;
+    padding-top: 1.6rem;
+    border-top: 1px solid var(--line-soft);
+  }
+
+  .legal h2:first-of-type { margin-top: 0; }
+
+  .legal p { margin: 0 0 1.4rem; color: var(--ink); }
+
+  .legal ul {
+    margin: 0 0 1.6rem;
+    padding-left: 1.3rem;
+    color: var(--ink-mute);
+  }
+
+  .legal li { margin-bottom: 0.5rem; }
+
+  .legal a { color: var(--ember-soft); }
+
+  /* 表は記事本文と同じく、狭い画面では横スクロールに逃がす */
+  .table-scroll {
+    overflow-x: auto;
+    margin: 0 0 2rem;
+    -webkit-overflow-scrolling: touch;
+  }
+
+  .legal table {
+    border-collapse: collapse;
+    width: 100%;
+    min-width: 40rem;
+    font-size: 0.86rem;
+    line-height: 1.8;
+  }
+
+  .legal th,
+  .legal td {
+    border: 1px solid var(--line-soft);
+    padding: 0.8rem 0.9rem;
+    text-align: left;
+    vertical-align: top;
+    color: var(--ink-mute);
+  }
+
+  .legal th {
+    color: var(--ink-strong);
+    font-weight: 400;
+    letter-spacing: 0.08em;
+    white-space: nowrap;
+  }
+
+  .legal__provider {
+    font-size: 0.78rem;
+    color: var(--ink-faint);
+  }
+
+  .optout {
+    margin: 0 0 2rem;
+    padding: 1.6rem 1.8rem;
+    border: 1px solid var(--line);
+    background: var(--panel);
+  }
+
+  .optout__state { margin: 0 0 1.1rem !important; color: var(--ink-strong) !important; }
+
+  .optout__button {
+    font-family: var(--font-latin);
+    font-size: 0.84rem;
+    letter-spacing: 0.14em;
+    color: var(--ink-strong);
+    background: none;
+    border: 1px solid var(--ember);
+    padding: 0.7rem 1.4rem;
+    cursor: pointer;
+    transition: color 0.25s var(--ease), border-color 0.25s var(--ease);
+  }
+
+  .optout__button:hover { color: var(--ember-soft); border-color: var(--ember-soft); }
+
+  .optout__note {
+    margin: 1.1rem 0 0 !important;
+    font-size: 0.8rem;
+    color: var(--ink-faint) !important;
+  }
+</style>
