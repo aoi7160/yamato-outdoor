@@ -63,7 +63,7 @@ img { max-width: 100%; height: auto; display: block; }
 
 a { color: inherit; text-underline-offset: 0.3em; text-decoration-thickness: 1px; }
 
-::selection { background: rgba(194, 101, 47, 0.32); color: var(--ink-strong); }
+::selection { background: rgba(62, 139, 87, 0.32); color: var(--ink-strong); }
 
 :focus-visible { outline: 1px solid var(--ember-soft); outline-offset: 4px; }
 
