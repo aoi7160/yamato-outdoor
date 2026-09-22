@@ -325,10 +325,24 @@ body::before {
 
 .cart-link:hover { color: var(--ink-strong); border-color: var(--line); }
 
+/* スマホではジャンル3つ(登山/釣り/キャンプ)とカートまでを残し、Aboutだけ隠す。
+   Aboutはフッターから辿れるので、ヘッダーから落としても行き止まりにならない。
+   3項目に増やすと375px幅でぎりぎりなので、ロゴ・字間・間隔をまとめて詰めている。 */
 @media (max-width: 44rem) {
-  .site-header__right { gap: 0.85rem; }
-  .site-nav { gap: 1rem; font-size: 0.78rem; letter-spacing: 0.12em; }
-  .site-nav a:nth-child(n + 3) { display: none; }
+  .site-header .shell { gap: 1rem; }
+  .site-header__right { gap: 0.7rem; }
+  .site-nav { gap: 0.8rem; font-size: 0.74rem; letter-spacing: 0.08em; }
+  .site-nav a:nth-child(n + 4) { display: none; }
+  .logo__mark { width: 7.25rem; }
+}
+
+/* 360px以下の端末。ここを詰めないと「キャンプ」がカートを押し出す。 */
+@media (max-width: 22.5rem) {
+  .site-header .shell { gap: 0.75rem; }
+  .site-header__right { gap: 0.55rem; }
+  .site-nav { gap: 0.65rem; font-size: 0.7rem; letter-spacing: 0.04em; }
+  .logo__mark { width: 6.25rem; }
+  .cart-link { width: 1.75rem; height: 1.75rem; }
 }
 
 .site-footer {
