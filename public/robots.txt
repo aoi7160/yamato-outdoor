@@ -1,29 +1,5 @@
-# YAMATO OUTDOOR
-#
-# 下書きプレビューだけは拾わせない(/preview/ はリクエスト時レンダリングで、
-# draftKey付きの未公開記事を表示するため)。
-# /sns と /404 はページ側で noindex を出しているので、ここでは塞がない。
-# robots.txtで塞ぐとクローラーが noindex を読めず、かえってURLだけが残ることがある。
-
 User-agent: *
 Allow: /
 Disallow: /preview/
-
-# 生成AI・AI検索のクローラーは**通している**。
-# 2026年時点では、AI検索の回答に引用されること自体が流入経路になっているため、
-# 立ち上げ期に閉じる利点がない(引用時にリンクが張られるものが増えている)。
-# 学習利用を止めたくなったら、下のコメントを外す。
-#
-# User-agent: GPTBot
-# Disallow: /
-#
-# User-agent: ClaudeBot
-# Disallow: /
-#
-# User-agent: Google-Extended
-# Disallow: /
-#
-# User-agent: CCBot
-# Disallow: /
 
 Sitemap: https://yamato-outdoor.com/sitemap.xml
