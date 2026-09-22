@@ -1,7 +1,5 @@
 User-agent: *
 Allow: /
-
-# 下書き確認用のページはクロールさせない(公開前の記事が拾われないようにする)
 Disallow: /preview/
 
-Sitemap: https://yamato-outdoor.com/sitemap-index.xml
+Sitemap: https://yamato-outdoor.com/sitemap.xml

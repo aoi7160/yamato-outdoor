@@ -43,10 +43,20 @@ Astro(SSG) + microCMS + Cloudflare Pages のアウトドアメディア。
 | 目次生成・本文HTMLの加工 | `src/lib/article.ts` |
 | スタイル | `src/styles/global.css`(全体) / `src/styles/article.css`(記事) |
 | 読者ペルソナ・編集方針 | `docs/persona.md` |
+| 文体・表記・記事タグのルール | `docs/tone-and-manner.md` |
+| 計測タグ・CV・SEO基盤の設定手順 | `docs/analytics.md` |
 | 公開までの手順 | `docs/workflow.md` |
 | 下書きプレビュー | `src/pages/preview/index.astro`(表示) + `functions/api/draft.js`(取得) |
+| 計測タグのID・外部送信の一覧 | `src/lib/analytics.ts` |
+| タグの読み込み・Consent Mode | `src/components/Analytics.astro` |
+| 行動イベント(スクロール・クリック・Web Vitals) | `src/components/AnalyticsEvents.astro` |
+| CVの定義 / 行き先 | `src/lib/cv.ts` / `src/lib/site.ts` |
+| サイトマップ・RSS・llms.txt | `src/pages/sitemap.xml.ts` / `rss.xml.ts` / `llms.txt.ts` |
+| プライバシーポリシー・外部送信の公表 | `src/pages/privacy.astro` |
 | トップのスクロール連動セクション(story) | `src/pages/index.astro` + `src/styles/global.css` の`.story-*` |
 | トップの背景グレイン(スモッグ)演出 | `src/layouts/BaseLayout.astro` の`grainDrift`props + `.scenery__grain-drift` |
+| Aboutの5カラムグリッド・点の背景・登場アニメ | `src/pages/about.astro` + `src/styles/global.css` の`.about-page` / `.about-grid` / `.dots-layer` / `[data-anim]` |
+| トップのカバー動画(雲が動くシネマグラフ) | `src/pages/index.astro` の`<section class="cover cover--video">` + `public/media/hero/01-mist.mp4` |
 
 ## 過去デザインのアーカイブ
 
@@ -64,7 +74,9 @@ A/Bテストや見比べ用に、過去のトップページ構成をブラン�
 
 - 背景の山は写真を使わず、SVGのシルエットとぼかした霧で作る。
   **等間隔の三角形を並べない**(反復するとすぐ図形の並びに見える)。
-- フォントは 見出し=Zen Old Mincho / 本文=Zen Kaku Gothic New / 欧文=Barlow Condensed。
+- フォントは 見出し(和文の大きいコピー)=Zen Old Mincho / 本文=Zen Kaku Gothic New /
+  欧文=Schibsted Grotesk(北欧系のグロテスク。旧Barlow Condensedから変更)。
+  Valueの四字熟語のように中くらいの和文は、明朝だと硬いので字間を開けたゴシックにする。
 - 目次に出すのは `h2` のみ。
 - **背景に重い処理を足さない。** SVGのぼかしフィルタ(`feGaussianBlur`)や
   全画面の `mix-blend-mode` をアニメーションさせると、スクロールが5fpsまで落ちる。
@@ -91,14 +103,75 @@ A/Bテストや見比べ用に、過去のトップページ構成をブラン�
   離す(top:40%程度)だけでfpsが戻ったので、原因は面積でも不透明度でもなく
   「stickyヘッダーの近くで動いている」こと自体にあるらしい。カバー写真で
   何かを動かすときは、上から30〜40%より下に置く。
+- **Aboutだけは「5カラムの正方グリッド＋点の背景」で組む。** 1セルの辺は
+  `(ページ幅 - 左右マージン) / 5` で、行の高さにも同じ値を使う。点はセルの交点に
+  置いた静止した背景画像1枚(`.dots-layer`)で、アニメーションさせない。
+  背景の山のシルエットと点は同居できないので、AboutはBaseLayoutの`plain`で
+  山と暗幕を外している。テキストの枠の行数は中身の高さからJSで決める
+  (`.js-auto-height`)。セクション見出しは`position:sticky`だが、画面が狭いと
+  本文が見出しの裏を通るので、48rem以下では通常配置に戻している。
+- **`overflow-x`だけを`visible`以外にした要素を、ページ全体を覆うような大きい
+  ラッパーに置かない。** `overflow-y`を指定せず`overflow-x: clip`(または`hidden`)
+  だけ設定すると、iOS Safariがその要素を独立したスクロールコンテナとして
+  扱うことがあり、スマホでページ下端(フッター手前)までスクロールできず
+  弾かれて戻される不具合につながる。実際に`.about-page`(Aboutの全セクションを
+  包む要素)に横あふれ対策として付けていた`overflow-x: clip`が原因と判断して
+  外した。横あふれを防ぎたいときは、その指定に頼らず`--grid-cell`のような
+  幅計算(スクロールバー幅を差し引いた`100vw`基準)側で解決する。
+- **ヘッダーのモバイル表示は`.site-nav a:nth-child(n + 4)`で4つ目以降(About)だけを
+  隠し、ジャンル3つ(登山/釣り/キャンプ)は常に出す。**
+  3項目だと375px幅でぎりぎりなので、44rem以下でロゴ幅(7.25rem)・字間・間隔を詰め、
+  さらに22.5rem以下で二段階目の縮小をかけている。ここを緩めると「キャンプ」が
+  カートアイコンを押し出す。
+  新しいリンクをナビに足すと、この間引きで隠れる位置に入る。常時見せたいリンク
+  (例: SUZURIのショップへのカートアイコン)は`.site-nav`の外側、
+  `.site-header__right`直下に置いて間引きの対象から外す。
+  カートアイコンの行き先は`src/lib/site.ts`の`SHOP_URL`(空文字のあいだは
+  アイコンごと出さない)。
 - SNSの並び順は `SOCIAL_ORDER` に従い、シェアもフォローも同じ順にする。
+- **トップのカバー写真の霧は動画(シネマグラフ)で動かしている。** `public/media/hero/01.webp`
+  を元にGemini(Veo)で生成した「山頂の雲だけがゆっくり流れる」動画を
+  `public/media/hero/01-mist.mp4` に置き、`.cover--video` 修飾クラスを付けた
+  トップのカバーだけ `<video autoplay muted loop playsinline poster="01.webp">` に
+  差し替えている。動画自体に動きがあるため、写真用のCSS霧(`.cover::after`)は
+  `.cover--video::after { content: none; }` で止めている(ジャンルページ・About等、
+  動画のない`.cover`にはこれまで通り`.cover::after`の霧が効く)。
+  動画は`ffmpeg`で音声を除去し`-movflags +faststart`を付けて配信用に軽量化(約670KB、
+  1280x720/24fps/10秒)。実測でトップ・ジャンル各ページとも idle/scroll とも60fps前後を
+  維持できており、動画を1本(サイズを絞った上で)敷くだけなら上記のレイヤー予算の
+  対象外(rAFで動かす自前アニメーションではないため)。新しい素材に差し替える際も
+  同じ手順(Veoでカバー写真から生成→ffmpegで軽量化→`ffmpeg -i <file>`で
+  コーデック/解像度/尺を確認)で問題ない。
+
+## 計測タグの約束
+
+- **計測タグを足したら、必ず `src/lib/analytics.ts` の外部送信一覧にも1行足す。**
+  `/privacy` の公表表はこの配列から生成している。ここを更新しないと、
+  電気通信事業法の外部送信規律で求められる「公表内容」が実態とずれる。
+- タグのIDは環境変数から読む。**空なら1バイトも出力されない**ので、
+  ローカルとPRプレビューでは何も飛ばさない(IDはCloudflareのProductionにだけ入れる)。
+- 計測タグは `load` 後のアイドル、または最初の操作まで読み込みを遅らせている。
+  LCPとINPに計測の重さを乗せないため。**headで同期的に読ませないこと。**
+- 記事本文の外部リンクには `target`/`rel` が自動で付く(`src/lib/article.ts`)。
+  ASPのドメインは `rel="sponsored nofollow"` になる。ASPを増やすときは
+  `AFFILIATE_HOSTS` に1行足す。
+- アフィリエイトを含む記事は、冒頭に `<p class="pr-notice">` を置く(景品表示法)。
+
+## 記事を書くとき
+
+- 文体・表記・記事タグのルールは `docs/tone-and-manner.md`。公開前チェックリストを上から見る。
+- `docs/persona.md` と矛盾したら `docs/persona.md` が正。
 
 ## その他
 
 - コミットメッセージ・コード内コメントは日本語で書く。
 - ビルド出力は `dist/client`(`dist` ではない)。
+  `npm run build` の最後で `dist/client/wrangler.json` を消しているのは、
+  SSRページが1つも無くなるとアダプタがこれを公開フォルダに書き出してしまい、
+  Pagesではそのまま `https://…/wrangler.json` として配信されてしまうため。
 - **全ページ静的(SSG)。`export const prerender = false` は使えない。**
   Cloudflare Pagesに配信しているが、AstroのCloudflareアダプタはPagesではなく
   Workers向けに出力するため、SSRページを置いても配信されず404になる。
   サーバー処理が要るものは `functions/` のCloudflare Pages Functionsに寄せる
   (例:下書きプレビューの取得 `functions/api/draft.js`)。
+- `/preview/*` は noindex かつ計測タグなし。下書き確認が本番の数字に混ざらないようにしている。

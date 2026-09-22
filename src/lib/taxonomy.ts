@@ -70,13 +70,21 @@ export const getGenre = (slug: string | undefined): GenreDef | undefined =>
   GENRES.find((g) => g.slug === slug);
 
 /**
- * microCMSのカテゴリにまだ `genre` フィールドを足していない場合の受け皿。
- * カテゴリ側にgenreを設定すれば、そちらが優先される。
+ * microCMSのカテゴリで `genre` を設定し忘れた場合の受け皿。
+ * カテゴリ側にgenreを設定すれば、そちらが優先される(基本はそちらで運用する)。
+ *
+ * 現行のカテゴリ一覧は docs/microcms-schema.md の「カテゴリ設計」を参照。
+ * 全部が登山配下なので、ここに無いslugも最終的にmountain-climbingへ落ちる。
+ * 釣り・キャンプの記事を出し始めたら、必ずカテゴリ側のgenreを設定すること
+ * (未設定は `getCategories()` がビルドログに警告を出す)。
  */
 const FALLBACK_GENRE: Record<string, GenreSlug> = {
-  gear: 'mountain-climbing',
+  boots: 'mountain-climbing',
+  backpack: 'mountain-climbing',
+  wear: 'mountain-climbing',
+  accessories: 'mountain-climbing',
+  beginner: 'mountain-climbing',
   route: 'mountain-climbing',
-  'how-to': 'mountain-climbing',
 };
 
 export const genreSlugOf = (category?: Category | null): GenreSlug => {
@@ -85,10 +93,10 @@ export const genreSlugOf = (category?: Category | null): GenreSlug => {
   return FALLBACK_GENRE[category?.slug ?? ''] ?? 'mountain-climbing';
 };
 
-/** 記事のURL。カテゴリが無い記事は登山のギア扱いにして、リンク切れを作らない。 */
+/** 記事のURL。カテゴリ未設定の記事は登山の「初心者・持ち物」扱いにして、リンク切れを作らない。 */
 export const articlePath = (article: Pick<Article, 'slug' | 'category'>): string => {
   const genre = genreSlugOf(article.category);
-  const category = article.category?.slug ?? 'gear';
+  const category = article.category?.slug ?? 'beginner';
   return `/${genre}/${category}/${article.slug}/`;
 };
 

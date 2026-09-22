@@ -21,21 +21,26 @@ const jsonLd = {
 };
 ---
 
-<BaseLayout title="YAMATO OUTDOOR | 山と生きる。山と挑む。" grainDrift={true}>
+<BaseLayout title="YAMATO OUTDOOR | 山と生きる。山と挑む。" grainDrift={true} pageType="home">
   <Fragment slot="head">
     <script type="application/ld+json" set:html={JSON.stringify(jsonLd)} is:inline />
   </Fragment>
 
-  <section class="cover">
-    <img
+  <section class="cover cover--video">
+    <video
       class="cover__image"
-      src="/media/hero/01.webp"
-      alt="夜明け前の稜線"
+      poster="/media/hero/01.webp"
+      autoplay
+      muted
+      loop
+      playsinline
+      preload="auto"
       width="1600"
       height="900"
-      fetchpriority="high"
-      decoding="async"
-    />
+      aria-hidden="true"
+    >
+      <source src="/media/hero/01-mist.mp4" type="video/mp4" />
+    </video>
     <div class="cover__scrim"></div>
     <div class="shell cover__inner">
       <p class="cover__eyebrow">YAMATO OUTDOOR</p>
@@ -45,12 +50,14 @@ const jsonLd = {
     <span class="cover__cue" aria-hidden="true">SCROLL</span>
   </section>
 
-  <!-- 私たちについて。ジャンル選択の前に、メディアの立ち位置を一度だけ挟む -->
+  <!-- 私たちについて。ジャンル選択の前に、メディアの立ち位置を一度だけ挟む。
+       見出しはAboutページのStatementと同じ一行にして、下のジャンル選択(=次の一歩)
+       に自然につながるようにしている。 -->
   <section class="shell about-intro">
     <p class="about-intro__eyebrow">About YAMATO OUTDOOR</p>
-    <h2>知っているほど、荷物は軽い。</h2>
+    <h2>次の一歩は、ここで決まる。</h2>
     <p>
-      使って、量って、また使う。実際に持ち出したものだけを書いています。
+      迷っている時間より、山にいる時間を増やしたい。
     </p>
     <a class="about-intro__link" href="/about">私たちについて →</a>
   </section>

@@ -12,7 +12,7 @@ export async function getStaticPaths() {
     .map((a) => ({
       params: {
         genre: genreSlugOf(a.category),
-        category: a.category?.slug ?? 'gear',
+        category: a.category?.slug ?? 'beginner',
         slug: a.slug,
       },
       props: { siblings: res.contents.filter((b) => b.slug !== a.slug) },

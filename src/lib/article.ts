@@ -4,6 +4,7 @@
  *  - 目次データを抜き出す
  *  - table を横スクロール用のdivで包む(スマホで表が潰れるのを防ぐ)
  *  - img に loading="lazy" を足す
+ *  - 外部リンクに target と rel を補う(アフィリエイトは rel="sponsored")
  * DOMParserはビルド時(Node)に無いので、素直に正規表現で処理している。
  */
 
@@ -23,6 +24,45 @@ export const microcmsSrcSet = (url: string, widths: number[] = [640, 960, 1280, 
   if (!url.includes('microcms-assets.io')) return '';
   return widths.map((w) => `${microcmsImage(url, w)} ${w}w`).join(', ');
 };
+
+/** 自サイトのホスト名。これ以外へのリンクを外部リンクとして扱う。 */
+const SITE_HOST = 'yamato-outdoor.com';
+
+/**
+ * アフィリエイト(成果報酬型広告)のリンク先。ここに該当するリンクには
+ * `rel="sponsored nofollow"` を自動で付ける。
+ *
+ * 付けないとGoogleのリンクスパム対策に引っかかりうるうえ、
+ * 2023年10月に施行されたステルスマーケティング規制(景品表示法)の観点でも、
+ * 広告であることを機械にも人にも分かる形で示しておく必要がある
+ * (人に対する明示は、記事の冒頭に `<p class="pr-notice">` を置く。docs/workflow.md参照)。
+ * ASPを増やしたらここに1行足す。
+ */
+const AFFILIATE_HOSTS = [
+  'a8.net',
+  'amazon.co.jp',
+  'amzn.to',
+  'amzn.asia',
+  'rakuten.co.jp',
+  'hb.afl.rakuten.co.jp',
+  'valuecommerce.com',
+  'ck.jp.ap.valuecommerce.com',
+  'af.moshimo.com',
+  'moshimo.com',
+  'link-a.net',
+  'accesstrade.net',
+  'rentracks.jp',
+  'felmat.net',
+  'yahoo.co.jp',
+];
+
+const hostOf = (href: string): string | null => {
+  const match = /^https?:\/\/([^/?#]+)/i.exec(href);
+  return match ? match[1].toLowerCase() : null;
+};
+
+const isAffiliate = (host: string): boolean =>
+  AFFILIATE_HOSTS.some((domain) => host === domain || host.endsWith(`.${domain}`));
 
 export type TocItem = {
   id: string;
@@ -101,6 +141,27 @@ export const prepareArticle = (source: string | undefined | null): PreparedArtic
     }
     if (!/\bloading\s*=/i.test(attrs)) attrs += ' loading="lazy" decoding="async"';
     return `<img${attrs}>`;
+  });
+
+  // 外部リンクは別タブで開き、rel を補う。
+  // microCMSのリッチエディタは rel を付けてくれないので、ここで一律に足しておく
+  // (記事ごとに手で書くと、必ずどこかで抜ける)。
+  html = html.replace(/<a\b([^>]*?)>/gi, (match, rawAttrs: string) => {
+    let attrs: string = rawAttrs;
+    const href = /\shref=["']([^"']+)["']/i.exec(attrs)?.[1];
+    if (!href) return match;
+
+    const host = hostOf(href);
+    // 相対リンク・アンカー・自サイトへのリンクはそのまま
+    if (!host || host === SITE_HOST || host.endsWith(`.${SITE_HOST}`)) return match;
+
+    if (!/\btarget\s*=/i.test(attrs)) attrs += ' target="_blank"';
+    if (!/\brel\s*=/i.test(attrs)) {
+      attrs += isAffiliate(host)
+        ? ' rel="sponsored nofollow noopener noreferrer"'
+        : ' rel="noopener noreferrer"';
+    }
+    return `<a${attrs}>`;
   });
 
   // 日本語の読む速度をおよそ600文字/分として概算

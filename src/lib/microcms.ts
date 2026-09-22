@@ -67,6 +67,19 @@ export const getArticleBySlug = async (slug: string): Promise<Article | null> =>
 export const getCategories = async (): Promise<Category[]> => {
   if (!client) return [];
   const res = await client.getList<Category>({ endpoint: 'categories', queries: { limit: 100 } });
+
+  // `genre` が未設定のカテゴリは、taxonomy.ts のフォールバックで登山扱いになる。
+  // 気づかないまま公開すると /mountain-climbing/fishing/ のような矛盾したURLが
+  // できてしまうので、ビルドログに出しておく(ビルドは止めない)。
+  const missing = res.contents.filter((c) => !c.genre);
+  if (missing.length > 0) {
+    console.warn(
+      `[microCMS] categories に genre 未設定が ${missing.length} 件あります: ` +
+        `${missing.map((c) => `${c.name}(${c.slug})`).join(', ')}\n` +
+        '          → microCMSの categories で genre を設定してください(docs/microcms-schema.md)。',
+    );
+  }
+
   return res.contents;
 };
 
