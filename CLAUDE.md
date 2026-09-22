@@ -65,7 +65,9 @@ A/Bテストや見比べ用に、過去のトップページ構成をブラン�
 
 - 背景の山は写真を使わず、SVGのシルエットとぼかした霧で作る。
   **等間隔の三角形を並べない**(反復するとすぐ図形の並びに見える)。
-- フォントは 見出し=Zen Old Mincho / 本文=Zen Kaku Gothic New / 欧文=Barlow Condensed。
+- フォントは 見出し(和文の大きいコピー)=Zen Old Mincho / 本文=Zen Kaku Gothic New /
+  欧文=Schibsted Grotesk(北欧系のグロテスク。旧Barlow Condensedから変更)。
+  Valueの四字熟語のように中くらいの和文は、明朝だと硬いので字間を開けたゴシックにする。
 - 目次に出すのは `h2` のみ。
 - **背景に重い処理を足さない。** SVGのぼかしフィルタ(`feGaussianBlur`)や
   全画面の `mix-blend-mode` をアニメーションさせると、スクロールが5fpsまで落ちる。

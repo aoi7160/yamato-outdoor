@@ -34,12 +34,6 @@ const jsonLd = [
 const statement = '次の一歩は、ここで決まる。';
 
 const missionCopy = ['挑戦の、', 'ベースキャンプになる。'];
-const missionNote = [
-  'ベースキャンプは、頂上に立つための場所ではない。',
-  '荷を整え、天候を読み、次の一歩を決める場所だ。',
-  '挑む人が、出ていける状態をつくる。',
-];
-
 const visionCopy = ['終わりなき成長に、', '挑む輪を広げていく。'];
 const visionNote = [
   '到達点を決めた時点で、成長は止まる。',
@@ -141,11 +135,6 @@ const mediaData = [
               <span class="line-mask" style={`--d: ${i * 0.12}s`}><span>{line}</span></span>
             ))}
           </p>
-          <p class="note-copy">
-            {missionNote.map((line) => (
-              <>{line}<br /></>
-            ))}
-          </p>
         </div>
       </div>
     </section>
@@ -210,7 +199,7 @@ const mediaData = [
 
     <!-- Readers -->
     <section class="about-section">
-      <div class="about-section__title"><h2>Readers</h2></div>
+      <div class="about-section__title"><h2>For Readers</h2></div>
       <div class="about-grid about-grid--first">
         <div class="readers-list js-auto-height">
           <ul>
