@@ -181,6 +181,16 @@ export const formatDate = (value: string | undefined): string => {
 };
 
 /**
+ * 本文の取り出し。
+ * リッチエディタ(`content`)とHTML入稿(`contentHtml`)の2通りがあり、
+ * HTMLが入っている記事はそちらを本文として使う。
+ * リッチエディタはHTMLを入力するとエスケープしてしまうので、`note` や
+ * `checklist` のような装飾クラスを使う記事は `contentHtml` 側に書く。
+ */
+export const pickContent = (article: { content?: string; contentHtml?: string }): string =>
+  article.contentHtml?.trim() || article.content || '';
+
+/**
  * よくある質問の正規化。
  * microCMSの繰り返しフィールドは `question` / `answer` で作ることが多いが、
  * `q` / `a` で作ってしまった場合でも拾えるようにしておく。

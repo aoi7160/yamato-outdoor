@@ -98,6 +98,7 @@ import '../../styles/article.css';
     formatDate,
     normalizeTags,
     normalizeFaq,
+    pickContent,
     microcmsImage,
     microcmsSrcSet,
   } from '../../lib/article';
@@ -113,7 +114,7 @@ import '../../styles/article.css';
   };
 
   const render = (article: Record<string, any>) => {
-    const { html, toc, readingMinutes } = prepareArticle(article.content);
+    const { html, toc, readingMinutes } = prepareArticle(pickContent(article));
 
     $('previewTitle').textContent = article.title ?? '(タイトル未設定)';
 

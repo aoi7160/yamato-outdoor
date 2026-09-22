@@ -2,7 +2,7 @@
 // 記事ページ(例: /mountain-climbing/gear/rainwear-under-30000/)
 import ArticleLayout from '../../../layouts/ArticleLayout.astro';
 import { getArticles, getArticleBySlug } from '../../../lib/microcms';
-import { normalizeTags, normalizeFaq } from '../../../lib/article';
+import { normalizeTags, normalizeFaq, pickContent } from '../../../lib/article';
 import { GENRES, genreSlugOf, articlePath, getGenre } from '../../../lib/taxonomy';
 
 export async function getStaticPaths() {
@@ -43,7 +43,7 @@ const related = siblings
 <ArticleLayout
   title={article.title}
   description={article.description}
-  content={article.content}
+  content={pickContent(article)}
   genreName={genre?.name}
   genreSlug={genreSlug}
   categoryName={article.category?.name}

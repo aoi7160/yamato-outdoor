@@ -37,6 +37,13 @@ export type Article = {
   description: string;
   thumbnail?: MicroCMSImage;
   content: string;
+  /**
+   * HTMLで入稿するときの本文(テキストエリア)。
+   * リッチエディタはHTMLを入力してもエスケープしてしまい、`note` や `checklist` の
+   * ような装飾クラスが使えないため、HTMLで書きたい記事はこちらに入れる。
+   * 入っていればこちらが優先され、空ならリッチエディタの `content` を使う。
+   */
+  contentHtml?: string;
   category?: Category;
   /** microCMS側が「複数テキスト」でも「テキストフィールド」でも受け取れるようにしておく */
   tags?: string[] | string;
