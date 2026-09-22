@@ -44,6 +44,7 @@ Astro(SSG) + microCMS + Cloudflare Pages のアウトドアメディア。
 | スタイル | `src/styles/global.css`(全体) / `src/styles/article.css`(記事) |
 | 読者ペルソナ・編集方針 | `docs/persona.md` |
 | 公開までの手順 | `docs/workflow.md` |
+| 下書きプレビュー | `src/pages/preview/index.astro`(表示) + `functions/api/draft.js`(取得) |
 | トップのスクロール連動セクション(story) | `src/pages/index.astro` + `src/styles/global.css` の`.story-*` |
 | トップの背景グレイン(スモッグ)演出 | `src/layouts/BaseLayout.astro` の`grainDrift`props + `.scenery__grain-drift` |
 
@@ -96,3 +97,8 @@ A/Bテストや見比べ用に、過去のトップページ構成をブラン�
 
 - コミットメッセージ・コード内コメントは日本語で書く。
 - ビルド出力は `dist/client`(`dist` ではない)。
+- **全ページ静的(SSG)。`export const prerender = false` は使えない。**
+  Cloudflare Pagesに配信しているが、AstroのCloudflareアダプタはPagesではなく
+  Workers向けに出力するため、SSRページを置いても配信されず404になる。
+  サーバー処理が要るものは `functions/` のCloudflare Pages Functionsに寄せる
+  (例:下書きプレビューの取得 `functions/api/draft.js`)。

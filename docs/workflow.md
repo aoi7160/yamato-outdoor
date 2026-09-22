@@ -89,6 +89,45 @@ Claude Codeに頼むときは「作業ブランチで作業して、確認でき
 
 ---
 
+## 下書きプレビューの仕組み(と、設定するURL)
+
+microCMSの「画面プレビュー」に設定するURLは**この形**にする。
+
+```
+https://yamato-outdoor.com/preview/?contentId={CONTENT_ID}&draftKey={DRAFT_KEY}
+```
+
+`{CONTENT_ID}` と `{DRAFT_KEY}` はmicroCMSが自動で埋めるので、そのまま書く。
+
+### なぜパスではなくクエリなのか
+
+Cloudflare Pagesは静的ファイルを配信する仕組みで、**「アクセスのたびにサーバーで組み立てるページ」を置けない**
+(使っているAstroのCloudflareアダプタは、Pagesではなく Cloudflare Workers 向けに出力するため)。
+`/preview/{記事ID}/` のようなURLは、記事ごとにファイルを用意できないので必ず404になる。
+
+そこで次の2つに分けている。
+
+| 役割 | 場所 | 中身 |
+|---|---|---|
+| 表示 | `src/pages/preview/index.astro` | 静的な1ページ。ブラウザ側で下書きを描画する(noindex) |
+| 下書きの取得 | `functions/api/draft.js` | Cloudflare Pages Functions。microCMSのAPIキーはここだけで使う |
+
+APIキーはブラウザに渡らない。下書きを見られるのは `draftKey` を知っている人だけで、
+これはmicroCMSの画面プレビューと同じ考え方。
+
+**プレビューは本文・表・装飾・FAQ・目次まで本番と同じ見た目で表示される**が、
+パンくずと構造化データは出ない(公開後のページで確認する)。
+
+### 前提
+
+`functions/` はCloudflare Pagesが自動で認識する。ビルド設定の変更は不要。
+ただし**環境変数 `MICROCMS_SERVICE_DOMAIN` / `MICROCMS_API_KEY` が
+Production と Preview の両方に入っていること**が条件になる(入っていないと、
+プレビュー画面にその旨のメッセージが出る)。
+APIキーには「**GET(下書き)**」の権限が要る。
+
+---
+
 ## サイトマップとrobots.txt
 
 サイトマップはビルド時に自動生成される(`@astrojs/sitemap`)。手で書く必要はない。
@@ -234,4 +273,4 @@ IDが違うとビルドしても記事が0件になる。
 | microCMSで公開したのにサイトに出ない | Cloudflare Pagesの「デプロイ」履歴。ビルドが走っているか。走っていなければWebhook未設定 |
 | ビルドが失敗する | Cloudflareのビルドログ。環境変数の未設定が最多 |
 | 記事は出るが画像が出ない | microCMS側のサムネイル未設定、または本文のimgのURL |
-| プレビューが404 | microCMSの画面プレビューURL設定(`/preview/{CONTENT_ID}?draftKey={DRAFT_KEY}`) |
+| プレビューが404 | microCMSの画面プレビューURL設定。**`/preview/?contentId={CONTENT_ID}&draftKey={DRAFT_KEY}` の形**になっているか(パスではなくクエリで渡す) |

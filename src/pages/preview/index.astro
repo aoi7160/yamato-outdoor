@@ -1,0 +1,230 @@
+---
+/**
+ * microCMSの画面プレビュー用ページ。
+ *
+ * Cloudflare Pagesには「リクエストのたびにサーバーで描画するページ」を置けないため、
+ * このページ自体は空の器として静的に書き出しておき、下書きの取得は
+ * Pages Functions(/api/draft)に任せて、表示だけブラウザ側で組み立てる。
+ *
+ * microCMSの「画面プレビュー」に設定するURLは次の形にする:
+ *   https://yamato-outdoor.com/preview/?contentId={CONTENT_ID}&draftKey={DRAFT_KEY}
+ */
+import BaseLayout from '../../layouts/BaseLayout.astro';
+import '../../styles/article.css';
+---
+
+<BaseLayout title="下書きプレビュー | YAMATO OUTDOOR" noindex>
+  <article class="article-page">
+    <div class="shell">
+      <p class="preview-flag">下書きプレビュー(このページは検索結果に出ません)</p>
+
+      <p class="preview-status" id="previewStatus">下書きを読み込んでいます…</p>
+
+      <div id="previewBody" hidden>
+        <header class="article-head">
+          <div class="article-labels">
+            <span class="label-category" id="previewCategory" hidden></span>
+          </div>
+
+          <h1 class="article-title" id="previewTitle"></h1>
+          <p class="article-lead" id="previewLead" hidden></p>
+
+          <dl class="article-meta">
+            <div><dt>Read</dt><dd id="previewRead"></dd></div>
+            <div><dt>Updated</dt><dd id="previewUpdated"></dd></div>
+          </dl>
+        </header>
+
+        <figure class="article-figure" id="previewFigure" hidden>
+          <img id="previewThumb" alt="" width="1600" height="900" decoding="async" />
+        </figure>
+
+        <div class="article-grid">
+          <div>
+            <nav class="toc toc--inline" id="previewToc" aria-label="目次" hidden>
+              <p class="toc__title">Contents</p>
+              <p class="toc__sub">この記事の目次</p>
+              <ol id="previewTocList"></ol>
+            </nav>
+
+            <div class="prose" id="previewProse"></div>
+
+            <section class="faq" id="previewFaq" aria-labelledby="preview-faq-heading" hidden>
+              <h2 class="faq__heading" id="preview-faq-heading">よくある質問</h2>
+              <div id="previewFaqList"></div>
+            </section>
+
+            <div class="article-tail">
+              <ul class="tag-list" id="previewTags" hidden></ul>
+            </div>
+          </div>
+
+          {/* 画面が広いときの目次は本文の横に追従する。狭いときは上のtoc--inlineに切り替わる */}
+          <nav class="toc toc--aside" id="previewTocAside" aria-label="目次(追従)" hidden>
+            <p class="toc__title">Contents</p>
+            <p class="toc__sub">この記事の目次</p>
+            <ol id="previewTocAsideList"></ol>
+          </nav>
+        </div>
+      </div>
+    </div>
+  </article>
+</BaseLayout>
+
+<style>
+  .preview-flag {
+    display: inline-block;
+    /* 追従ヘッダーの下に潜らせない */
+    margin-top: 7rem;
+    margin-bottom: -1rem;
+    padding: 0.4rem 0.9rem;
+    border: 1px solid rgba(255, 255, 255, 0.25);
+    border-radius: 999px;
+    font-size: 0.75rem;
+    letter-spacing: 0.08em;
+    opacity: 0.75;
+  }
+
+  .preview-status {
+    margin: 3rem 0;
+    opacity: 0.8;
+    line-height: 1.9;
+  }
+</style>
+
+<script>
+  import {
+    prepareArticle,
+    formatDate,
+    normalizeTags,
+    normalizeFaq,
+    microcmsImage,
+    microcmsSrcSet,
+  } from '../../lib/article';
+
+  const $ = (id: string) => document.getElementById(id)!;
+
+  const show = (el: HTMLElement) => el.removeAttribute('hidden');
+
+  const fail = (message: string) => {
+    const status = $('previewStatus');
+    status.textContent = message;
+    show(status);
+  };
+
+  const render = (article: Record<string, any>) => {
+    const { html, toc, readingMinutes } = prepareArticle(article.content);
+
+    $('previewTitle').textContent = article.title ?? '(タイトル未設定)';
+
+    if (article.description) {
+      $('previewLead').textContent = article.description;
+      show($('previewLead'));
+    }
+    if (article.category?.name) {
+      $('previewCategory').textContent = article.category.name;
+      show($('previewCategory'));
+    }
+
+    $('previewRead').textContent = `${readingMinutes} min`;
+    $('previewUpdated').textContent = formatDate(article.revisedAt ?? article.publishedAt) || '未公開';
+
+    const thumb = article.thumbnail?.url;
+    if (thumb) {
+      const img = $('previewThumb') as HTMLImageElement;
+      img.src = microcmsImage(thumb, 1280);
+      const srcset = microcmsSrcSet(thumb);
+      if (srcset) {
+        img.srcset = srcset;
+        img.sizes = '(max-width: 62rem) 100vw, 62rem';
+      }
+      img.alt = article.title ?? '';
+      show($('previewFigure'));
+    }
+
+    // 本文は自分たちのmicroCMSから来たHTMLなので、本番の記事ページと同じように流し込む。
+    $('previewProse').innerHTML = html;
+
+    // 目次は本番と同じくh2だけ。本文の横(広い画面)と本文の頭(狭い画面)の
+    // 両方に置き、どちらを見せるかはCSSに任せる。
+    const items = toc.filter((item) => item.level === 2);
+    if (items.length > 1) {
+      const fill = (list: HTMLElement) => {
+        items.forEach((item) => {
+          const li = document.createElement('li');
+          const a = document.createElement('a');
+          a.href = `#${item.id}`;
+          a.textContent = item.text;
+          li.append(a);
+          list.append(li);
+        });
+      };
+      fill($('previewTocList'));
+      fill($('previewTocAsideList'));
+      show($('previewToc'));
+      show($('previewTocAside'));
+    }
+
+    const faq = normalizeFaq(article.faq);
+    if (faq.length) {
+      const list = $('previewFaqList');
+      faq.forEach((item, i) => {
+        const details = document.createElement('details');
+        if (i === 0) details.open = true;
+        const summary = document.createElement('summary');
+        summary.textContent = item.q;
+        const answer = document.createElement('div');
+        answer.className = 'faq__answer';
+        const p = document.createElement('p');
+        p.textContent = item.a;
+        answer.append(p);
+        details.append(summary, answer);
+        list.append(details);
+      });
+      show($('previewFaq'));
+    }
+
+    const tags = normalizeTags(article.tags);
+    if (tags.length) {
+      const ul = $('previewTags');
+      tags.forEach((tag) => {
+        const li = document.createElement('li');
+        li.textContent = tag;
+        ul.append(li);
+      });
+      show($('previewTags'));
+    }
+
+    document.title = `[プレビュー] ${article.title ?? ''} | YAMATO OUTDOOR`;
+    $('previewStatus').setAttribute('hidden', '');
+    show($('previewBody'));
+  };
+
+  (async () => {
+    const params = new URLSearchParams(location.search);
+    const contentId = params.get('contentId');
+    const draftKey = params.get('draftKey');
+
+    if (!contentId || !draftKey) {
+      fail(
+        'URLに contentId と draftKey がありません。microCMSの「API設定 → 画面プレビュー」のURLを ' +
+          'https://yamato-outdoor.com/preview/?contentId={CONTENT_ID}&draftKey={DRAFT_KEY} の形にしてください。',
+      );
+      return;
+    }
+
+    try {
+      const res = await fetch(
+        `/api/draft?contentId=${encodeURIComponent(contentId)}&draftKey=${encodeURIComponent(draftKey)}`,
+      );
+      const data = await res.json();
+      if (!res.ok) {
+        fail(data?.error ?? '下書きを取得できませんでした。');
+        return;
+      }
+      render(data);
+    } catch {
+      fail('下書きの取得に失敗しました。時間をおいて、もう一度プレビューを開いてください。');
+    }
+  })();
+</script>
