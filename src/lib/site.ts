@@ -12,7 +12,7 @@ export const SITE = {
  * 空文字のあいだはアイコンごと出さない(SNSと違って「準備中」ページに逃がす
  * 意味がないため)。
  */
-export const SHOP_URL = '';
+export const SHOP_URL = 'https://suzuri.jp/yamato-outdoor/products';
 
 export type SocialName = 'x' | 'instagram' | 'tiktok' | 'threads' | 'facebook';
 
