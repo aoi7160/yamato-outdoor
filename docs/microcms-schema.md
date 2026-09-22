@@ -10,8 +10,39 @@ microCMSの管理画面で以下の2つのAPI(コンテンツタイプ)を作成
 | slug | スラッグ | テキストフィールド(URL用、英数字とハイフン) |
 | genre | ジャンル | セレクトフィールド。`mountain-climbing` / `fishing` / `camp` |
 
-`genre` はURLの第1階層になる(`/mountain-climbing/gear/`)。
-未設定の場合は `src/lib/taxonomy.ts` のフォールバック表で登山扱いになる。
+`genre` はURLの第1階層になる(`/mountain-climbing/boots/`)。
+**未設定にしない。** 未設定だと `src/lib/taxonomy.ts` のフォールバックで全部が登山扱いになり、
+`/mountain-climbing/fishing/` のような矛盾したURLができる。
+未設定のカテゴリがあると `npm run build` のログに警告が出る。
+
+### カテゴリ設計(登山)
+
+トピッククラスターのピラーとほぼ1対1で対応させる。カテゴリページがそのまま
+クラスターのハブになり、内部リンクの受け皿になる。
+
+| slug | カテゴリ名 | 対応ピラー | URL |
+|---|---|---|---|
+| `boots` | 登山靴 | P01 登山靴・シューズ | `/mountain-climbing/boots/` |
+| `backpack` | リュック | P02 リュック・ザック | `/mountain-climbing/backpack/` |
+| `wear` | ウェア | P03 レインウェア / P05 ウェア・服装 | `/mountain-climbing/wear/` |
+| `accessories` | 小物・携行品 | P04 トレッキングポール / P06 小物・携行品 | `/mountain-climbing/accessories/` |
+| `beginner` | 初心者向け | P07 初心者・持ち物・行動食 | `/mountain-climbing/beginner/` |
+| `route` | ルート・山域 | P08 山域別ルート情報 | `/mountain-climbing/route/` |
+
+`genre` は**6つとも `mountain-climbing`**。
+
+ピラー8つに対してカテゴリは6つ。レインウェア(P03)は `wear` に、
+トレッキングポール(P04)は `accessories` にまとめている。
+1本しか入らないカテゴリを作らないための判断で、記事が増えて
+`wear` や `accessories` が20本を超えたら、そのときに切り出す
+(切り出すとURLが変わるので、301転送を `public/_redirects` に足すこと)。
+
+**ジャンル名をカテゴリにしないこと。** 「登山」「釣り」「キャンプ」はジャンル(URLの第1階層)で
+`src/lib/taxonomy.ts` に固定されている。同名のカテゴリを作ると
+`/mountain-climbing/fishing/` のような二重の階層ができる。
+
+釣り・キャンプを始めるときは、同じ要領でそのジャンル用のカテゴリを作り、
+`genre` に `fishing` / `camp` を設定する。
 
 ## 2. 記事 (articles) — リスト形式
 
