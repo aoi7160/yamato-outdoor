@@ -170,32 +170,39 @@ if (faq.length) {
 }
 
 // 製品レビュー記事だけ。「誰が・どの製品を・何点で」評価したのかを機械にも渡す。
+//
+// Reviewを単独で置いて itemReviewed から Product を参照する形(Review→Product)は、
+// Googleのリッチリザルトテストで「Productにはreview/aggregateRating/offersが
+// 直接必要」というエラーになる。参照の向きが逆で、Product側にreviewが
+// 乗っていないと判定されるため。そのため Product を主エンティティにし、
+// その `review` プロパティにレビュー内容を持たせる(Product→Review)向きで書く。
+//
 // 評価を入れない(rating未指定の)レビューも成立するので、点数は任意にしてある。
 if (review?.item) {
   jsonLd.push({
     '@context': 'https://schema.org',
-    '@type': 'Review',
-    name: title,
-    reviewBody: description,
-    url: canonical,
-    datePublished: publishedAt,
-    author: authorEntity,
-    publisher: publisherEntity,
-    itemReviewed: {
-      '@type': 'Product',
-      name: review.item,
-      ...(review.brand ? { brand: { '@type': 'Brand', name: review.brand } } : {}),
+    '@type': 'Product',
+    name: review.item,
+    ...(review.brand ? { brand: { '@type': 'Brand', name: review.brand } } : {}),
+    review: {
+      '@type': 'Review',
+      name: title,
+      reviewBody: description,
+      url: canonical,
+      datePublished: publishedAt,
+      author: authorEntity,
+      publisher: publisherEntity,
+      ...(review.rating
+        ? {
+            reviewRating: {
+              '@type': 'Rating',
+              ratingValue: review.rating,
+              bestRating: 5,
+              worstRating: 1,
+            },
+          }
+        : {}),
     },
-    ...(review.rating
-      ? {
-          reviewRating: {
-            '@type': 'Rating',
-            ratingValue: review.rating,
-            bestRating: 5,
-            worstRating: 1,
-          },
-        }
-      : {}),
   });
 }
 
