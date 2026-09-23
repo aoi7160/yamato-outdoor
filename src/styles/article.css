@@ -545,6 +545,88 @@
   letter-spacing: 0.06em;
 }
 
+/* 記事冒頭に置く書き手のブロック。
+   記事末尾の `.author` と役割が違う。あちらは読み終えたあとの署名で、
+   こちらは「読む前に、誰が書いたかで判断させる」ためのもの。
+   レビュー記事では実体験の裏づけが評価そのものなので、本文より先に出す。
+   写真(`profile__avatar`)は任意。無くても崩れない。 */
+.prose .profile {
+  margin: 2.6em 0;
+  padding: 1.5rem 1.6rem;
+  border: 1px solid var(--line-soft);
+  border-left: 2px solid rgba(62, 139, 87, 0.85);
+  background: linear-gradient(160deg, rgba(18, 27, 43, 0.62), rgba(7, 10, 18, 0.42));
+  font-size: 0.95rem;
+}
+
+.prose .profile__head {
+  display: flex;
+  align-items: center;
+  gap: 0.95rem;
+  margin-bottom: 1rem;
+}
+
+.prose .profile__avatar {
+  flex: none;
+  width: 3.4rem;
+  height: 3.4rem;
+  margin: 0;
+  border-radius: 50%;
+  object-fit: cover;
+  border: 1px solid var(--line);
+}
+
+.prose .profile__label {
+  display: block;
+  font-family: var(--font-latin);
+  font-size: 0.72rem;
+  letter-spacing: 0.24em;
+  text-transform: uppercase;
+  color: var(--ember-soft);
+  margin-bottom: 0.35rem;
+}
+
+.prose .profile__name {
+  display: block;
+  font-family: var(--font-serif);
+  font-size: 1.12rem;
+  letter-spacing: 0.08em;
+  color: var(--ink-strong);
+}
+
+.prose .profile__bio {
+  margin: 0;
+  font-size: 0.92rem;
+  line-height: 1.95;
+  color: var(--ink);
+}
+
+/* 「月1〜2回」「関西の山」のような、読む前に効く事実を並べる欄 */
+.prose .profile__facts {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.45rem;
+  margin: 1.1rem 0 0;
+  padding: 0;
+  list-style: none;
+}
+
+.prose .profile__facts > li {
+  margin: 0;
+  padding: 0.25rem 0.75rem;
+  border: 1px solid var(--line-soft);
+  font-size: 0.78rem;
+  letter-spacing: 0.06em;
+  color: var(--ink-mute);
+}
+
+.prose .profile__facts > li::before { content: none; }
+
+@media (max-width: 36rem) {
+  .prose .profile { padding: 1.3rem 1.2rem; }
+  .prose .profile__avatar { width: 2.9rem; height: 2.9rem; }
+}
+
 /* ---------- FAQ ---------- */
 
 .faq {
