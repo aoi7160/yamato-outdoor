@@ -15,7 +15,7 @@ model: inherit
 3. `docs/content-pipeline/correction-log.md`(運営者が過去に直した表現)
 4. `docs/persona.md` 5(使わない語)
 5. `docs/content-pipeline/rules.md` R1(直すときに体験を付け足さないため)
-6. `content/pipeline/<スラッグ>/02-draft.md`
+6. `../yamato-outdoor-editorial/content/pipeline/<スラッグ>/02-draft.md`
 
 ## 確認する観点(この順番で全文を見る)
 
@@ -40,8 +40,8 @@ model: inherit
 
 ## 出力
 
-1. `content/pipeline/<スラッグ>/03-styled.md` — 修正済みの全文(`02-draft.md` と同じ形式)
-2. `content/pipeline/<スラッグ>/03-style-notes.md` — 指摘一覧
+1. `../yamato-outdoor-editorial/content/pipeline/<スラッグ>/03-styled.md` — 修正済みの全文(`02-draft.md` と同じ形式)
+2. `../yamato-outdoor-editorial/content/pipeline/<スラッグ>/03-style-notes.md` — 指摘一覧
 
 ```markdown
 # トンマナ確認: <スラッグ>

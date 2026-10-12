@@ -12,7 +12,10 @@ description: YAMATO OUTDOORの記事制作パイプラインを1記事分実行�
 ## 0. 始める前に
 
 1. `CLAUDE.md` と `docs/content-pipeline/README.md`(設計と決定事項)と `docs/content-pipeline/rules.md` を読む
-2. 作業フォルダ `content/` と `content/content-map.md`・`content/experience-log.md` があることを確認する。無ければ止めて運営者に伝える
+2. 作業フォルダ `../yamato-outdoor-editorial/content/` と `../yamato-outdoor-editorial/content/content-map.md`・`../yamato-outdoor-editorial/content/experience-log.md` があることを確認する。
+   作業フォルダは**非公開リポジトリ** `aoi7160/yamato-outdoor-editorial` にある(このリポジトリはpublicなので、下書き・取材の回答・実体験の記録を置かない)。
+   - 無ければ、セッションに `aoi7160/yamato-outdoor-editorial` を追加して、このリポジトリと同じ階層(`../yamato-outdoor-editorial`)にcloneする
+   - 追加できなければ止めて運営者に伝える。**作業フォルダをこのリポジトリの中に作って代用しない**
 3. `docs/content-pipeline/style-guide.md` 11「確認待ちの矛盾」に未決定の項目があれば、最後の報告で一覧にする(止める必要はない)
 
 ## 1〜6. 工程
@@ -30,7 +33,7 @@ description: YAMATO OUTDOORの記事制作パイプラインを1記事分実行�
 | 5 | `article-fact-checker` | 01 / interview / 03 | `04-checked.md` `04-factcheck.md` | 照合表に未処理が無い |
 | 6 | `article-final-checker` | 00〜04 | `05-final-check.md`(+ `06-operator-sheet.md`) | 合否が出ている |
 
-ファイルはすべて `content/pipeline/<スラッグ>/` に置く。
+ファイルはすべて `../yamato-outdoor-editorial/content/pipeline/<スラッグ>/` に置く。
 
 **次へ進む条件を満たさなければ、同じエージェントにもう一度だけやり直させる。**
 2回目も満たさなければ止めて、何が足りないかを運営者に報告する。
@@ -55,9 +58,10 @@ description: YAMATO OUTDOORの記事制作パイプラインを1記事分実行�
 
 ## 8. 後片付け
 
-1. `content/content-map.md` の状態を更新する:
+1. `../yamato-outdoor-editorial/content/content-map.md` の状態を更新する:
    合格 → `公開待ち` / 保留 → `実体験待ち` / 止めた → `制作中(停止:理由)`
-2. 作業フォルダの変更をコミットしてpushする(ブランチ運用は `CLAUDE.md` に従う)
+2. 非公開リポジトリ(`../yamato-outdoor-editorial`)の変更を `main` にコミットしてpushする
+3. 公開リポジトリ側に変更があった場合だけ(`correction-log.md` など)、`CLAUDE.md` のブランチ運用に従ってコミットする
 
 ## 9. 運営者への報告
 

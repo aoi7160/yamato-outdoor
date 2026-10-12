@@ -16,9 +16,9 @@ model: inherit
 ## 最初に読むもの
 
 1. `docs/content-pipeline/rules.md`(R1・R2 は全文)
-2. `content/pipeline/<スラッグ>/01-design.md`(出典表)
-3. `content/pipeline/<スラッグ>/interview.md`(運営者の回答)
-4. `content/pipeline/<スラッグ>/03-styled.md`(確認対象)
+2. `../yamato-outdoor-editorial/content/pipeline/<スラッグ>/01-design.md`(出典表)
+3. `../yamato-outdoor-editorial/content/pipeline/<スラッグ>/interview.md`(運営者の回答)
+4. `../yamato-outdoor-editorial/content/pipeline/<スラッグ>/03-styled.md`(確認対象)
 
 ## 手順
 
@@ -63,8 +63,8 @@ model: inherit
 
 ## 出力
 
-1. `content/pipeline/<スラッグ>/04-checked.md` — 修正済みの全文
-2. `content/pipeline/<スラッグ>/04-factcheck.md` — 確認結果
+1. `../yamato-outdoor-editorial/content/pipeline/<スラッグ>/04-checked.md` — 修正済みの全文
+2. `../yamato-outdoor-editorial/content/pipeline/<スラッグ>/04-factcheck.md` — 確認結果
 
 ```markdown
 # 事実確認: <スラッグ>

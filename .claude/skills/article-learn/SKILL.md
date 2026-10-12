@@ -11,7 +11,7 @@ description: 運営者が記事を仕上げて公開したあとに、AIの最�
 
 次のどちらか。
 
-- 運営者がmicroCMSの `contentHtml` を `content/pipeline/<スラッグ>/90-published.html` に貼る
+- 運営者がmicroCMSの `contentHtml` を `../yamato-outdoor-editorial/content/pipeline/<スラッグ>/90-published.html` に貼る
 - microCMSの読み取りAPIが使える環境なら、公開済みの記事を取得して同じファイルに保存する
 
 タイトル・概要・タグ・faq・reviewRating も `90-published-meta.yaml` に残す。
@@ -22,7 +22,7 @@ description: 運営者が記事を仕上げて公開したあとに、AIの最�
 
 | 分類 | 例 | 行き先 |
 |---|---|---|
-| 実体験の記入 | 【要実体験】が運営者の文に置き換わった | `content/experience-log.md` |
+| 実体験の記入 | 【要実体験】が運営者の文に置き換わった | `../yamato-outdoor-editorial/content/experience-log.md` |
 | 表現 | 言い回し・語尾・体言止め | `docs/content-pipeline/correction-log.md` |
 | 構成 | 段落・見出しの追加削除・順番 | 同上 |
 | 事実 | 数字・固有名詞の修正 | 同上 + 該当工程の指示を見直す候補 |
@@ -31,7 +31,7 @@ description: 運営者が記事を仕上げて公開したあとに、AIの最�
 
 ## 3. 記録する
 
-- **実体験** → `content/experience-log.md` に、装備(何を持っているか)・山行(いつどこへ)・
+- **実体験** → `../yamato-outdoor-editorial/content/experience-log.md` に、装備(何を持っているか)・山行(いつどこへ)・
   実測値を追記する。次の記事の企画担当が「実体験がそろっているか」の判断に使う
 - **修正** → `correction-log.md` に記事ごとの節を作り、行を追加する。
   公開リポジトリなので、**実体験の中身や運営者の私的な事情は書かない**
@@ -51,6 +51,6 @@ description: 運営者が記事を仕上げて公開したあとに、AIの最�
 
 ## 5. 後片付け
 
-- `content/content-map.md` の状態を `公開済み` にし、公開日を入れる
+- `../yamato-outdoor-editorial/content/content-map.md` の状態を `公開済み` にし、公開日を入れる
 - 設計書(`01-design.md`)を、README「決定事項」で決めた保管先に最終版として残す
 - コミットしてpushする

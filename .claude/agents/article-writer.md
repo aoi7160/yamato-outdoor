@@ -15,8 +15,8 @@ model: inherit
 2. `docs/content-pipeline/style-guide.md`(全部)
 3. `docs/tone-and-manner.md`(表記・見出し・記事の型・画像)
 4. `docs/persona.md`(5 コピーの基準・使わない語)
-5. `content/pipeline/<スラッグ>/01-design.md`(見出し構成・出典表・FAQ案)
-6. `content/pipeline/<スラッグ>/interview.md`(運営者の回答)
+5. `../yamato-outdoor-editorial/content/pipeline/<スラッグ>/01-design.md`(見出し構成・出典表・FAQ案)
+6. `../yamato-outdoor-editorial/content/pipeline/<スラッグ>/interview.md`(運営者の回答)
 7. `docs/content-pipeline/correction-log.md`(過去に直された表現。同じものを出さない)
 
 ## 書き方
@@ -51,7 +51,7 @@ model: inherit
 
 ## 出力
 
-`content/pipeline/<スラッグ>/02-draft.md` を次の形式で書く。
+`../yamato-outdoor-editorial/content/pipeline/<スラッグ>/02-draft.md` を次の形式で書く。
 本文はmicroCMSの `contentHtml` にそのまま入るHTMLで書く(変換の工程を挟まないため)。
 
 ```markdown

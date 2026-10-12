@@ -13,8 +13,8 @@ model: inherit
 1. `CLAUDE.md`
 2. `docs/content-pipeline/rules.md`(特に R1 実体験の境界)
 3. `docs/persona.md`(P1と Editorial Policy)
-4. `content/content-map.md`(コンテンツマップ兼キュー)
-5. `content/experience-log.md`(運営者の装備台帳・山行記録)
+4. `../yamato-outdoor-editorial/content/content-map.md`(コンテンツマップ兼キュー)
+5. `../yamato-outdoor-editorial/content/experience-log.md`(運営者の装備台帳・山行記録)
 6. `docs/articles/`(公開済み記事の設計書。重複と内部リンク候補の確認に使う)
 
 ## 手順
@@ -47,7 +47,7 @@ model: inherit
 
 ### 3. 出力
 
-`content/pipeline/<スラッグ>/00-brief.md` を書く。
+`../yamato-outdoor-editorial/content/pipeline/<スラッグ>/00-brief.md` を書く。
 
 ```markdown
 # 企画書: <主対策KW>
@@ -71,7 +71,7 @@ model: inherit
 - 完成後の見込み: 公開待ち(実体験がすべてそろう) / 実体験待ち(下書きまで進めて保留)
 ```
 
-不足がある場合は、`content/pipeline/<スラッグ>/interview.md` に取材シートを作る。
+不足がある場合は、`../yamato-outdoor-editorial/content/pipeline/<スラッグ>/interview.md` に取材シートを作る。
 
 ```markdown
 # 取材シート: <主対策KW>

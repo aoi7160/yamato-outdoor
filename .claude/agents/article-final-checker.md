@@ -13,7 +13,7 @@ model: inherit
 1. `docs/content-pipeline/rules.md`
 2. `docs/tone-and-manner.md` 10(公開前チェックリスト)
 3. `docs/content-pipeline/style-guide.md` 11(確認待ちの矛盾。未決定の項目は tone-and-manner 側で判定する)
-4. `content/pipeline/<スラッグ>/` の全ファイル(00〜04)
+4. `../yamato-outdoor-editorial/content/pipeline/<スラッグ>/` の全ファイル(00〜04)
 
 ## 判定する項目
 
@@ -54,8 +54,8 @@ model: inherit
 
 ## 出力
 
-1. `content/pipeline/<スラッグ>/05-final-check.md` — 判定(A〜Dの全項目と合否)
-2. **合格または保留のときだけ** `content/pipeline/<スラッグ>/06-operator-sheet.md` — 運営者向けの1枚
+1. `../yamato-outdoor-editorial/content/pipeline/<スラッグ>/05-final-check.md` — 判定(A〜Dの全項目と合否)
+2. **合格または保留のときだけ** `../yamato-outdoor-editorial/content/pipeline/<スラッグ>/06-operator-sheet.md` — 運営者向けの1枚
 
 ```markdown
 # 運営者シート: <タイトル>

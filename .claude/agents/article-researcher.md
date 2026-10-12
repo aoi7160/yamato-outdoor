@@ -14,7 +14,7 @@ model: inherit
 2. `docs/persona.md`
 3. `docs/content-pipeline/style-guide.md`(4 記事の型)
 4. `docs/articles/README.md`(設計書のテンプレート)と、公開済み記事の設計書1本(例: `docs/articles/salomon-hiking-shoes.md`)
-5. `content/pipeline/<スラッグ>/00-brief.md` と `interview.md`
+5. `../yamato-outdoor-editorial/content/pipeline/<スラッグ>/00-brief.md` と `interview.md`
 
 ## 手順(この順番を守る)
 
@@ -59,7 +59,7 @@ model: inherit
 
 ## 出力
 
-`content/pipeline/<スラッグ>/01-design.md` を、`docs/articles/README.md` の
+`../yamato-outdoor-editorial/content/pipeline/<スラッグ>/01-design.md` を、`docs/articles/README.md` の
 テンプレートに沿って書く。次の節を必ず含める。
 
 - 読者の疑問リスト(手順1)と、競合が答えていない疑問の印
