@@ -224,7 +224,7 @@ AIは運営者の短い回答を「読みやすく」膨らませる過程で、
 | D1 | 作業フォルダの置き場所 | 非公開リポジトリを新設 / publicの `content/` | **決定(2026-10-12)** 非公開リポジトリ `aoi7160/yamato-outdoor-editorial` の `content/` |
 | D2 | microCMSへの保存方法 | A 手動 / B GitHub Actions / C 直接 | |
 | D3 | 実行方法 | 1 手動 / 2 Routine / 3 Actions / 4 PC | |
-| D4 | 通信の許可 | web環境の設定を変える / PCで動かす | |
+| D4 | 通信の許可 | web環境の設定を変える / PCで動かす | **決定(2026-10-12)** web環境のネットワークアクセスを広げた。ページの取得はWebFetchではなく `.claude/skills/article-pipeline/fetch_page.py`(WebFetchはこの環境で名前解決に失敗するため) |
 | D5 | コンテンツマップ案 | 承認 / 修正(高尾山・富士山・スキットル・レディース系の扱い) | |
 | D6 | トンマナの矛盾 C1〜C10 | `style-guide.md` 11 | |
 | D7 | 公開済み記事の設計書(`docs/articles/`)を public に置き続けるか | 置く / 非公開側へ移す | |
