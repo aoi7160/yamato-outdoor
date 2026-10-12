@@ -1,0 +1,77 @@
+---
+/**
+ * コンソール共通のレイアウト。背景は公開サイトと同じ山のシルエット(静止画1枚)で、動かさない。
+ * ヘッダーは sticky にしない(sticky付近で何かが動くとfpsが落ちる。CLAUDE.md「デザインの約束」)。
+ */
+import '../styles/console.css';
+
+interface Props {
+  title: string;
+  active?: 'dashboard' | 'approvals' | 'org' | 'data' | 'settings';
+  wide?: boolean;
+}
+const { title, active, wide = false } = Astro.props;
+
+const NAV = [
+  { id: 'dashboard', href: '/', label: '本日' },
+  { id: 'approvals', href: '/approvals/', label: '承認トレイ' },
+  { id: 'org', href: '/org/', label: '組織図' },
+  { id: 'data', href: '/data/', label: 'データ取り込み' },
+  { id: 'settings', href: '/settings/', label: '設定' },
+] as const;
+---
+<!doctype html>
+<html lang="ja">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="robots" content="noindex, nofollow" />
+    <meta name="theme-color" content="#080b10" />
+    <title>{title} | BASE CAMP</title>
+    <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      rel="stylesheet"
+      href="https://fonts.googleapis.com/css2?family=Zen+Old+Mincho:wght@400;700&family=Zen+Kaku+Gothic+New:wght@400;500;700&family=Schibsted+Grotesk:wght@400;500;700&display=swap"
+    />
+  </head>
+  <body>
+    <img class="scenery" src="/scenery.svg" alt="" aria-hidden="true" />
+    <header class="topbar">
+      <a class="brand" href="/">
+        <svg class="brand__mark" viewBox="0 0 32 20" aria-hidden="true">
+          <path d="M1 19 L11 5 L16 11 L21 3 L31 19 Z" fill="currentColor" />
+        </svg>
+        <span class="brand__name">YAMATO OUTDOOR</span>
+        <span class="brand__x">×</span>
+        <span class="brand__sub">Claude Code</span>
+        <span class="brand__app">BASE CAMP</span>
+      </a>
+      <nav class="topnav" aria-label="コンソール">
+        {NAV.map((n) => (
+          <a href={n.href} aria-current={active === n.id ? 'page' : undefined}>
+            {n.label}
+            {n.id === 'approvals' && <span class="topnav__badge" data-pending-badge hidden></span>}
+          </a>
+        ))}
+      </nav>
+    </header>
+    <main class:list={['page', { 'page--wide': wide }]}>
+      <slot />
+    </main>
+    <script>
+      // 承認待ちの件数をナビに出す(どのページでも)
+      import { loadDecisions, loadSettings } from '../scripts/store';
+      import { approvalItems } from '../scripts/approvals';
+      const s = loadSettings();
+      const d = loadDecisions();
+      const pending = approvalItems(s).filter((a) => !d[a.id]).length;
+      const badge = document.querySelector<HTMLElement>('[data-pending-badge]');
+      if (badge && pending > 0) {
+        badge.textContent = String(pending);
+        badge.hidden = false;
+      }
+    </script>
+  </body>
+</html>

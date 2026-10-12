@@ -1,0 +1,65 @@
+---
+/**
+ * 部の詳細。agents/<id>.md の本文をそのまま出す(定義の文書と画面の表示を別に持たない)。
+ */
+import Base from '../../layouts/Base.astro';
+import { AGENTS, PERMISSION_LABEL, STATUS_LABEL, divisionOf, type Agent } from '../../lib/org';
+
+export function getStaticPaths() {
+  return AGENTS.map((agent) => ({ params: { id: agent.id }, props: { agent } }));
+}
+
+const { agent } = Astro.props as { agent: Agent };
+const div = divisionOf(agent.division);
+const { Content } = agent;
+---
+<Base title={agent.name} active="org">
+  <div class="page-head">
+    <p class="note"><a href="/org/">組織図</a> / {div.name}</p>
+    <h1>{agent.name}</h1>
+    <p>{agent.tagline}</p>
+  </div>
+
+  <section class="panel" style={`border-top:3px solid ${div.color}`}>
+    <dl class="meta-grid">
+      <div><dt>状態</dt><dd><span class={`chip chip--status-${agent.status}`}>{STATUS_LABEL[agent.status]}</span></dd></div>
+      <div><dt>権限の上限</dt><dd>{PERMISSION_LABEL[agent.permission]}</dd></div>
+      <div><dt>メンバー(役割)</dt><dd>{agent.members.join(' / ')}</dd></div>
+      <div><dt>報告先</dt><dd>{agent.reports_to === 'ceo' ? 'CEO' : '社長室・経営企画'}</dd></div>
+      {agent.standby_until && <div><dt>稼働の条件</dt><dd>{agent.standby_until}</dd></div>}
+      {agent.sources.length > 0 && <div><dt>見るデータ</dt><dd>{agent.sources.join('、')}</dd></div>}
+    </dl>
+  </section>
+
+  <section class="panel">
+    <h2 class="panel__title">KPI</h2>
+    <div class="table-wrap">
+      <table>
+        <thead><tr><th>指標</th><th>単位</th><th>出どころ</th></tr></thead>
+        <tbody>
+          {agent.kpi.map((k, i) => (
+            <tr><td>{k.label}{i === 0 && <span class="note">(代表)</span>}</td><td>{k.unit || '—'}</td><td>{k.source}</td></tr>
+          ))}
+        </tbody>
+      </table>
+    </div>
+  </section>
+
+  <section class="panel">
+    <h2 class="panel__title">定例</h2>
+    <div class="table-wrap">
+      <table>
+        <thead><tr><th>いつ</th><th>何を</th></tr></thead>
+        <tbody>
+          {agent.cadence.map((c) => <tr><td>{c.when}</td><td>{c.what}</td></tr>)}
+        </tbody>
+      </table>
+    </div>
+  </section>
+
+  <article class="panel prose">
+    <Content />
+  </article>
+
+  <p class="note">定義のファイル:<code>console/agents/{agent.id}.md</code></p>
+</Base>

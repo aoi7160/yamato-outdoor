@@ -1,0 +1,84 @@
+---
+/**
+ * 承認トレイ。CEOが判断するのはここだけ(console/ORG.md 4章のL2)。
+ * いまはデモ:押すと状態が変わるだけで、公開・送信は起きない(Phase 3で接続する)。
+ */
+import Base from '../layouts/Base.astro';
+import { agentsForClient } from '../lib/org';
+---
+<Base title="承認トレイ" active="approvals">
+  <div class="page-head">
+    <h1>承認トレイ</h1>
+    <p>公開・本番へのマージ・外部への連絡など、AIが自分では実行しないもの(L2)が積まれます。</p>
+    <p class="note"><span class="chip chip--demo">DEMO</span> いまは押しても実際の公開・送信は起きません。件数は「設定 → 承認依頼」で変えられます。</p>
+  </div>
+  <div data-approvals></div>
+
+  <script type="application/json" id="org-data" set:html={JSON.stringify(agentsForClient())} />
+  <script>
+    import type { ClientAgent } from '../lib/org';
+    import { approvalItems } from '../scripts/approvals';
+    import { esc, loadDecisions, loadSettings, saveDecisions } from '../scripts/store';
+
+    const agents: ClientAgent[] = JSON.parse(document.getElementById('org-data')!.textContent || '[]');
+    const root = document.querySelector<HTMLElement>('[data-approvals]')!;
+    const s = loadSettings();
+    const items = approvalItems(s);
+    let decisions = loadDecisions();
+
+    function render() {
+      if (items.length === 0) {
+        root.innerHTML = '<section class="panel"><p class="note">承認待ちはありません。</p></section>';
+        return;
+      }
+      const sorted = [...items].sort((a, b) => Number(!!decisions[a.id]) - Number(!!decisions[b.id]));
+      root.innerHTML = sorted
+        .map((it) => {
+          const a = agents.find((x) => x.id === it.from);
+          const d = decisions[it.id];
+          const state = d
+            ? `<span class="chip ${d.state === 'approved' ? 'chip--status-active' : 'chip--status-standby'}">${d.state === 'approved' ? '承認済み' : '差し戻し'}</span>
+               ${d.note ? `<span class="note">理由:${esc(d.note)}</span>` : ''}
+               <button class="btn" data-undo="${it.id}">取り消す</button>`
+            : `<button class="btn btn--primary" data-approve="${it.id}">承認</button>
+               <button class="btn" data-reject="${it.id}">差し戻し</button>`;
+          return `<section class="panel approval ${d ? 'approval--done' : ''}" style="--div:${a?.color ?? '#9ea6b0'}">
+            <div class="approval__meta">
+              <span class="chip">${esc(it.type)}</span>
+              <span>${esc(a?.name ?? it.from)}から</span>
+            </div>
+            <p class="approval__title">${esc(it.title)}</p>
+            <ul>${it.basis.map((b) => `<li>${esc(b)}</li>`).join('')}</ul>
+            <p class="note">承認すると:${esc(it.effect)}</p>
+            <div class="approval__actions">${state}</div>
+          </section>`;
+        })
+        .join('');
+    }
+
+    root.addEventListener('click', (e) => {
+      const t = (e.target as HTMLElement).closest('button');
+      if (!t) return;
+      const at = new Date().toISOString();
+      if (t.dataset.approve) decisions[t.dataset.approve] = { state: 'approved', at };
+      if (t.dataset.reject) {
+        const note = prompt('差し戻しの理由(依頼元の部に返します)') ?? '';
+        decisions[t.dataset.reject] = { state: 'rejected', at, note: note.trim() };
+      }
+      if (t.dataset.undo) {
+        const { [t.dataset.undo]: _removed, ...rest } = decisions;
+        decisions = rest;
+      }
+      saveDecisions(decisions);
+      render();
+      const pending = items.filter((x) => !decisions[x.id]).length;
+      const badge = document.querySelector<HTMLElement>('[data-pending-badge]');
+      if (badge) {
+        badge.textContent = String(pending);
+        badge.hidden = pending === 0;
+      }
+    });
+
+    render();
+  </script>
+</Base>

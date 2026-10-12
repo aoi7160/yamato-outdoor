@@ -1,0 +1,263 @@
+---
+/**
+ * データ取り込み。ASP・SUZURIの売上を、CSVか手入力でこのブラウザに入れる。
+ * 無料APIで自動取得できるものが無かったため(lib/sources.ts に調査結果)。
+ */
+import Base from '../layouts/Base.astro';
+import { DATA_SOURCES } from '../lib/sources';
+---
+<Base title="データ取り込み" active="data">
+  <div class="page-head">
+    <h1>データ取り込み</h1>
+    <p>
+      ASPとSUZURIの売上を、CSVか手入力で入れます。入れたデータは<strong>このブラウザの中だけ</strong>に保存し、
+      サーバーやGitには送りません(リポジトリが公開のため)。
+    </p>
+    <p class="note">集計ボードに出すには「設定 → 実データを使う」をONにします。</p>
+  </div>
+
+  <section class="panel">
+    <h2 class="panel__title">取り込み元と、自動取得できるか(2026年10月に調査)</h2>
+    <div class="table-wrap">
+      <table>
+        <thead>
+          <tr><th>取り込み元</th><th>無料API</th><th>取り込み方</th><th>取り込み済み</th><th>調べた結果</th></tr>
+        </thead>
+        <tbody>
+          {DATA_SOURCES.map((src) => (
+            <tr>
+              <td>{src.name}</td>
+              <td>{src.api === 'none' ? 'なし' : '一部(売上は不可)'}</td>
+              <td>{src.csv ? 'CSV' : '手入力'}</td>
+              <td data-imported={src.id}>—</td>
+              <td class="note">{src.note}</td>
+            </tr>
+          ))}
+        </tbody>
+      </table>
+    </div>
+  </section>
+
+  <section class="panel">
+    <h2 class="panel__title">CSVを取り込む</h2>
+    <div class="form-grid">
+      <label class="field">
+        <span>取り込み元</span>
+        <select name="source" data-csv-source>
+          {DATA_SOURCES.filter((s) => s.csv).map((s) => <option value={s.id}>{s.name}</option>)}
+        </select>
+      </label>
+      <label class="field">
+        <span>CSVファイル(UTF-8 / Shift_JIS)</span>
+        <input type="file" accept=".csv,.tsv,.txt,text/csv" data-csv-file />
+      </label>
+    </div>
+
+    <div data-csv-mapping hidden>
+      <p class="note" data-csv-info></p>
+      <div class="form-grid">
+        <label class="field"><span>日付の列</span><select data-map="date"></select></label>
+        <label class="field"><span>金額(報酬)の列</span><select data-map="amount"></select></label>
+        <label class="field"><span>状態の列(任意)</span><select data-map="status"></select></label>
+        <label class="field">
+          <span>数えない状態(「|」区切り)</span>
+          <input type="text" data-map="excludeStatus" placeholder="否認|キャンセル|無効" />
+        </label>
+      </div>
+      <h3 class="panel__title" style="margin-top:1rem">取り込む内容(日ごとの合計)</h3>
+      <div class="table-wrap"><table data-csv-preview></table></div>
+      <p style="margin-top:0.75rem">
+        <button type="button" class="btn btn--primary" data-csv-commit>取り込む</button>
+        <span class="note">同じ日のデータがあれば上書きします。</span>
+      </p>
+    </div>
+  </section>
+
+  <section class="panel">
+    <h2 class="panel__title">手入力(SUZURIなど、CSVがないもの)</h2>
+    <form class="form-grid" data-manual>
+      <label class="field">
+        <span>取り込み元</span>
+        <select name="source">
+          {DATA_SOURCES.map((s) => <option value={s.id} selected={s.id === 'suzuri'}>{s.name}</option>)}
+        </select>
+      </label>
+      <label class="field"><span>日付</span><input type="date" name="date" required /></label>
+      <label class="field">
+        <span>金額(SUZURIはトリブン)</span>
+        <span class="field__input"><input type="number" name="amount" min="0" step="1" required /><small>円</small></span>
+      </label>
+      <label class="field">
+        <span>件数・点数</span>
+        <span class="field__input"><input type="number" name="count" min="0" step="1" value="1" required /><small>件</small></span>
+      </label>
+      <p><button class="btn btn--primary">追加</button></p>
+    </form>
+  </section>
+
+  <section class="panel">
+    <h2 class="panel__title">取り込み済み(直近31日)</h2>
+    <div class="table-wrap"><table data-imported-table></table></div>
+    <p style="margin-top:0.75rem" data-delete-buttons></p>
+  </section>
+  <p class="toast" data-toast role="status"></p>
+
+  <script>
+    import { DATA_SOURCES, sourceById } from '../lib/sources';
+    import { aggregate, decode, findHeader, guessColumns, mergeRows, parseCsv } from '../scripts/csv';
+    import { esc, loadImports, saveImports, yen } from '../scripts/store';
+
+    const $ = <T extends Element = HTMLElement>(sel: string) => document.querySelector<T>(sel)!;
+    const toast = $('[data-toast]');
+    let toastTimer = 0;
+    const say = (msg: string) => {
+      toast.textContent = msg;
+      toast.classList.add('is-shown');
+      clearTimeout(toastTimer);
+      toastTimer = window.setTimeout(() => toast.classList.remove('is-shown'), 2200);
+    };
+
+    /* ---------- 取り込み済みの表 ---------- */
+
+    function renderImported() {
+      const imports = loadImports();
+      for (const src of DATA_SOURCES) {
+        const cell = document.querySelector(`[data-imported="${src.id}"]`);
+        const data = imports[src.id];
+        if (cell)
+          cell.textContent = data?.rows.length
+            ? `${data.rows.length}日分(〜${data.rows[data.rows.length - 1].date.slice(5).replace('-', '/')})`
+            : '—';
+      }
+      const ids = DATA_SOURCES.map((s) => s.id).filter((id) => imports[id]?.rows.length);
+      const table = $('[data-imported-table]');
+      if (ids.length === 0) {
+        table.innerHTML = '<tbody><tr><td class="note">まだありません</td></tr></tbody>';
+        $('[data-delete-buttons]').innerHTML = '';
+        return;
+      }
+      const dates = [...new Set(ids.flatMap((id) => imports[id].rows.map((r) => r.date)))].sort().reverse().slice(0, 31);
+      const cell = (id: string, date: string) => {
+        const r = imports[id].rows.find((x) => x.date === date);
+        return r ? `${yen(r.amount)}<br /><span class="note">${r.count}件</span>` : '<span class="note">—</span>';
+      };
+      table.innerHTML =
+        `<thead><tr><th>日付</th>${ids.map((id) => `<th class="num">${esc(sourceById(id)?.name ?? id)}</th>`).join('')}<th class="num">合計</th></tr></thead>` +
+        `<tbody>${dates
+          .map((d) => {
+            const total = ids.reduce((t, id) => t + (imports[id].rows.find((x) => x.date === d)?.amount ?? 0), 0);
+            return `<tr><td>${d}</td>${ids.map((id) => `<td class="num">${cell(id, d)}</td>`).join('')}<td class="num">${yen(total)}</td></tr>`;
+          })
+          .join('')}</tbody>`;
+      $('[data-delete-buttons]').innerHTML = ids
+        .map((id) => `<button class="btn btn--danger" data-delete="${id}">${esc(sourceById(id)?.name ?? id)}を削除</button>`)
+        .join(' ');
+    }
+
+    $('[data-delete-buttons]').addEventListener('click', (e) => {
+      const id = (e.target as HTMLElement).closest<HTMLElement>('[data-delete]')?.dataset.delete;
+      if (!id || !confirm(`${sourceById(id)?.name}の取り込みデータを削除します。よろしいですか?`)) return;
+      const imports = loadImports();
+      delete imports[id];
+      saveImports(imports);
+      renderImported();
+      say('削除しました');
+    });
+
+    /* ---------- CSV ---------- */
+
+    let parsed: { header: string[]; body: string[][]; fileName: string } | null = null;
+    const sourceSel = $<HTMLSelectElement>('[data-csv-source]');
+    const mapSel = (k: string) => $<HTMLSelectElement & HTMLInputElement>(`[data-map="${k}"]`);
+    const currentMap = () => ({
+      date: mapSel('date').value,
+      amount: mapSel('amount').value,
+      status: mapSel('status').value || undefined,
+      excludeStatus: mapSel('excludeStatus').value || undefined,
+    });
+
+    $<HTMLInputElement>('[data-csv-file]').addEventListener('change', async (e) => {
+      const file = (e.target as HTMLInputElement).files?.[0];
+      if (!file) return;
+      const { text, encoding } = decode(await file.arrayBuffer());
+      const { header, body } = findHeader(parseCsv(text));
+      if (header.length < 2) {
+        say('CSVとして読めませんでした');
+        return;
+      }
+      parsed = { header, body, fileName: file.name };
+      // 前回この取り込み元で選んだ列があればそれを、なければ見出しから推測
+      const saved = loadImports()[sourceSel.value]?.mapping;
+      const guess = guessColumns(header);
+      const opts = (blank: boolean) =>
+        (blank ? '<option value="">(使わない)</option>' : '') + header.map((h) => `<option>${esc(h)}</option>`).join('');
+      mapSel('date').innerHTML = opts(false);
+      mapSel('amount').innerHTML = opts(false);
+      mapSel('status').innerHTML = opts(true);
+      const pick = (k: 'date' | 'amount' | 'status', v?: string) => {
+        if (v && header.includes(v)) mapSel(k).value = v;
+      };
+      pick('date', saved?.date ?? guess.date);
+      pick('amount', saved?.amount ?? guess.amount);
+      pick('status', saved?.status ?? guess.status);
+      mapSel('excludeStatus').value = saved?.excludeStatus ?? (guess.status ? '否認|キャンセル|無効' : '');
+      $('[data-csv-info]').textContent = `${file.name}(${encoding}・${body.length}行)。列が違っていたら選び直してください。`;
+      $('[data-csv-mapping]').hidden = false;
+      preview();
+    });
+
+    function preview() {
+      if (!parsed) return;
+      const { rows, skipped } = aggregate(parsed.header, parsed.body, currentMap());
+      const table = $('[data-csv-preview]');
+      table.innerHTML =
+        '<thead><tr><th>日付</th><th class="num">金額</th><th class="num">件数</th></tr></thead><tbody>' +
+        (rows.length
+          ? rows.slice(-14).map((r) => `<tr><td>${r.date}</td><td class="num">${yen(r.amount)}</td><td class="num">${r.count}</td></tr>`).join('')
+          : '<tr><td colspan="3" class="note">取り込める行がありません。日付と金額の列を確認してください。</td></tr>') +
+        `</tbody><caption class="note" style="caption-side:bottom;text-align:left;padding-top:.5rem">${rows.length}日分${rows.length > 14 ? '(直近14日を表示)' : ''}・数えなかった行 ${skipped}</caption>`;
+      $<HTMLButtonElement>('[data-csv-commit]').disabled = rows.length === 0;
+    }
+    ['date', 'amount', 'status'].forEach((k) => mapSel(k).addEventListener('change', preview));
+    mapSel('excludeStatus').addEventListener('input', preview);
+
+    $('[data-csv-commit]').addEventListener('click', () => {
+      if (!parsed) return;
+      const map = currentMap();
+      const { rows } = aggregate(parsed.header, parsed.body, map);
+      const imports = loadImports();
+      const id = sourceSel.value;
+      imports[id] = {
+        rows: mergeRows(imports[id]?.rows ?? [], rows),
+        updatedAt: new Date().toISOString(),
+        origin: parsed.fileName,
+        mapping: map,
+      };
+      say(saveImports(imports) ? `${sourceById(id)?.name}:${rows.length}日分を取り込みました` : 'このブラウザでは保存できません');
+      renderImported();
+    });
+
+    /* ---------- 手入力 ---------- */
+
+    const manual = $<HTMLFormElement>('[data-manual]');
+    (manual.elements.namedItem('date') as HTMLInputElement).valueAsDate = new Date();
+    manual.addEventListener('submit', (e) => {
+      e.preventDefault();
+      const f = new FormData(manual);
+      const id = String(f.get('source'));
+      const row = { date: String(f.get('date')), amount: Number(f.get('amount')), count: Number(f.get('count')) };
+      if (!row.date || !Number.isFinite(row.amount)) return;
+      const imports = loadImports();
+      imports[id] = {
+        ...imports[id],
+        rows: mergeRows(imports[id]?.rows ?? [], [row]),
+        updatedAt: new Date().toISOString(),
+        origin: '手入力',
+      };
+      say(saveImports(imports) ? `${sourceById(id)?.name}:${row.date} を保存しました` : 'このブラウザでは保存できません');
+      renderImported();
+    });
+
+    renderImported();
+  </script>
+</Base>

@@ -1,0 +1,20 @@
+{
+  "name": "yamato-outdoor-console",
+  "version": "0.1.0",
+  "description": "YAMATO OUTDOOR エージェント管理コンソール BASE CAMP(社内向け。公開サイトとは別にビルド・配信する)",
+  "type": "module",
+  "private": true,
+  "scripts": {
+    "dev": "astro dev",
+    "build": "astro build",
+    "preview": "astro preview",
+    "check": "astro check"
+  },
+  "dependencies": {
+    "astro": "^7.2.2"
+  },
+  "devDependencies": {
+    "@astrojs/check": "^0.9.10",
+    "typescript": "^6.0.3"
+  }
+}

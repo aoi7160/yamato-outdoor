@@ -1,0 +1,65 @@
+---
+/**
+ * 組織図。console/agents/*.md から作る(部を足すとここにも出る)。
+ */
+import Base from '../layouts/Base.astro';
+import { AGENTS, DIVISIONS, PERMISSION_LABEL, STATUS_LABEL } from '../lib/org';
+
+const counts = {
+  active: AGENTS.filter((a) => a.status === 'active').length,
+  standby: AGENTS.filter((a) => a.status === 'standby').length,
+  planned: AGENTS.filter((a) => a.status === 'planned').length,
+};
+---
+<Base title="組織図" active="org">
+  <div class="page-head">
+    <h1>組織図</h1>
+    <p>
+      稼働中 {counts.active}・準備中 {counts.standby}・将来 {counts.planned}。
+      部は <code>console/agents/&lt;id&gt;.md</code> を1枚足すと増えます(<code>_template.md</code> をコピー)。
+    </p>
+  </div>
+
+  <div class="org">
+    <section class="panel org__ceo">
+      <div class="ceo__avatar" style="--div:#e0955a" data-ceo-initial>AOI</div>
+      <div>
+        <strong data-ceo-name>AOI</strong>
+        <p class="note" style="margin:0">CEO。報告を聞いて、承認トレイで決める。作業はしない。</p>
+      </div>
+    </section>
+
+    <div class="org__divs">
+      {DIVISIONS.map((d) => {
+        const list = AGENTS.filter((a) => a.division === d.id);
+        if (list.length === 0) return null;
+        return (
+          <section class="panel org__div" style={`--div:${d.color}`}>
+            <h2>{d.name}</h2>
+            <ul class="org__list">
+              {list.map((a) => (
+                <li>
+                  <a href={`/agents/${a.id}/`}>
+                    <span class="org__row">
+                      <strong>{a.name}</strong>
+                      <span class={`chip chip--status-${a.status}`}>{STATUS_LABEL[a.status]}</span>
+                    </span>
+                    <small>{a.tagline}</small>
+                    <small>{a.members.join(' / ')}|{PERMISSION_LABEL[a.permission]}</small>
+                  </a>
+                </li>
+              ))}
+            </ul>
+          </section>
+        );
+      })}
+    </div>
+  </div>
+
+  <script>
+    import { loadSettings } from '../scripts/store';
+    const s = loadSettings();
+    document.querySelectorAll('[data-ceo-name]').forEach((el) => (el.textContent = s.ceoName));
+    document.querySelectorAll('[data-ceo-initial]').forEach((el) => (el.textContent = s.ceoName.slice(0, 3).toUpperCase()));
+  </script>
+</Base>

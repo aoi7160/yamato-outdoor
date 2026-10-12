@@ -16,3 +16,6 @@ node_modules/
 
 # wrangler
 .wrangler/
+
+# 社内コンソール(console/)の個人データ。CSVの原本などをローカルに置くときはここに(Gitには載せない)
+console/data/private/

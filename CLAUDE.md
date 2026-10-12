@@ -58,7 +58,7 @@ Astro(SSG) + microCMS + Cloudflare Pages のアウトドアメディア。
 | トップの背景グレイン(スモッグ)演出 | `src/layouts/BaseLayout.astro` の`grainDrift`props + `.scenery__grain-drift` |
 | Aboutの5カラムグリッド・点の背景・登場アニメ | `src/pages/about.astro` + `src/styles/global.css` の`.about-page` / `.about-grid` / `.dots-layer` / `[data-anim]` |
 | トップのカバー動画(雲が動くシネマグラフ) | `src/pages/index.astro` の`<section class="cover cover--video">` + `public/media/hero/01-mist.mp4` |
-| AIエージェントの組織・部の定義 / 管理コンソール「BASE CAMP」の仕様 | `console/ORG.md` / `console/agents/<部>.md` / `console/README.md`(公開サイトのビルドには含まれない) |
+| AIエージェントの組織・部の定義 / 管理コンソール「BASE CAMP」 | `console/ORG.md` / `console/agents/<部>.md` / `console/README.md`(別アプリ。公開サイトのビルドには含まれない) |
 
 ## 過去デザインのアーカイブ
 
@@ -144,6 +144,19 @@ A/Bテストや見比べ用に、過去のトップページ構成をブラン�
   対象外(rAFで動かす自前アニメーションではないため)。新しい素材に差し替える際も
   同じ手順(Veoでカバー写真から生成→ffmpegで軽量化→`ffmpeg -i <file>`で
   コーデック/解像度/尺を確認)で問題ない。
+
+## 管理コンソール(console/)の約束
+
+- `console/` は**公開サイトとは別のAstroアプリ**(独自の `package.json`)。社内向けで、別のCloudflare Pages
+  プロジェクト(ルート `console`)からCloudflare Accessの内側で配信する。公開サイトのビルドには含まれない
+  (ルートの `tsconfig.json` でも `console` を除外している)。
+- 部(エージェント)を増やすときは `console/agents/_template.md` をコピーして1枚足す。コンソールの組織図・
+  ダッシュボードに自動で並ぶ。足したら `console/ORG.md` の組織図と境界表も更新する。
+- **売上の実データ(ASPのCSV・SUZURIの金額)をリポジトリにコミットしない。** 公開リポジトリのため。
+  コンソールの「データ取り込み」はブラウザ内(localStorage)にだけ保存する。
+- `console/astro.config.mjs` の `vite.tsconfig` は消さない。消すと親の `tsconfig.json` を読みにいき、
+  Pagesのビルドが `Tsconfig not found astro/tsconfigs/strict` で落ちる。
+- コンソールにもfps制約(上の「デザインの約束」)を適用する。動かすのは文字の書き換えとopacityだけ。
 
 ## 計測タグの約束
 

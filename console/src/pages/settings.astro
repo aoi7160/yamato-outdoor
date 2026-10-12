@@ -1,0 +1,156 @@
+---
+/**
+ * 設定。デモの数字の規模(プリセット＋個別の値)・CEOの表示名・再生の速さなど。
+ * 変更はその場でこのブラウザに保存する(scripts/store.ts)。
+ */
+import Base from '../layouts/Base.astro';
+import { PRESETS, VALUE_FIELDS } from '../lib/settings';
+---
+<Base title="設定" active="settings">
+  <div class="page-head">
+    <h1>設定</h1>
+    <p>変更はその場でこのブラウザに保存されます。サーバーやGitには送りません。</p>
+  </div>
+
+  <form data-settings-form>
+    <section class="panel">
+      <h2 class="panel__title">CEO</h2>
+      <div class="form-grid">
+        <label class="field">
+          <span>表示名</span>
+          <input type="text" name="ceoName" maxlength="16" autocomplete="off" />
+        </label>
+      </div>
+    </section>
+
+    <section class="panel">
+      <h2 class="panel__title">デモの数字の規模</h2>
+      <p class="note">
+        既定は「立ち上げ期(いまの実態)」。下の値を1つでも変えると「カスタム」になります。
+        取り込んだ実データ(アフィリエイト・SUZURI)がある日は、下の「実データを使う」をONにするとそちらが優先されます。
+      </p>
+      <div class="preset-list" role="radiogroup" aria-label="プリセット">
+        {Object.entries(PRESETS).map(([id, p]) => (
+          <label class="preset">
+            <input type="radio" name="preset" value={id} />
+            <strong>{p.label}</strong>
+            <small>{p.note}</small>
+          </label>
+        ))}
+        <label class="preset">
+          <input type="radio" name="preset" value="custom" />
+          <strong>カスタム</strong>
+          <small>下の値を自分で決める。</small>
+        </label>
+      </div>
+    </section>
+
+    {VALUE_FIELDS.map((g) => (
+      <section class="panel">
+        <h2 class="panel__title">{g.group}(1日あたり)</h2>
+        <div class="form-grid">
+          {g.fields.map((f) => (
+            <label class="field">
+              <span>{f.label}</span>
+              <span class="field__input">
+                <input type="number" min="0" step={f.step ?? 1} inputmode="decimal" name={`v.${f.key}`} />
+                <small>{f.unit}</small>
+              </span>
+            </label>
+          ))}
+        </div>
+      </section>
+    ))}
+
+    <section class="panel">
+      <h2 class="panel__title">表示</h2>
+      <div class="form-grid">
+        <label class="field">
+          <span>台本1周の長さ(19:00から日報まで)</span>
+          <span class="field__input">
+            <input type="number" min="30" max="300" step="10" name="loopSeconds" />
+            <small>秒</small>
+          </span>
+        </label>
+      </div>
+      <p class="check">
+        <input type="checkbox" id="showStandby" name="showStandby" />
+        <label for="showStandby">準備中の部(SNS部など)もダッシュボードに出す</label>
+      </p>
+      <p class="check">
+        <input type="checkbox" id="useImported" name="useImported" />
+        <label for="useImported">集計ボードのアフィリエイト・SUZURIに、取り込んだ実データ(最新日)を使う</label>
+      </p>
+    </section>
+
+    <section class="panel">
+      <button type="button" class="btn btn--danger" data-reset>既定に戻す</button>
+    </section>
+  </form>
+  <p class="toast" data-toast role="status">保存しました</p>
+
+  <script>
+    import { DEFAULT_SETTINGS, PRESETS, type DemoValues, type PresetId } from '../lib/settings';
+    import { loadSettings, resetSettings, saveSettings } from '../scripts/store';
+
+    const form = document.querySelector<HTMLFormElement>('[data-settings-form]')!;
+    const toast = document.querySelector<HTMLElement>('[data-toast]')!;
+    let s = loadSettings();
+    let toastTimer = 0;
+
+    const field = <T extends HTMLInputElement>(name: string) => form.elements.namedItem(name) as T | null;
+
+    function fill() {
+      field('ceoName')!.value = s.ceoName;
+      form.querySelectorAll<HTMLInputElement>('input[name="preset"]').forEach((r) => (r.checked = r.value === s.preset));
+      for (const [k, v] of Object.entries(s.values)) {
+        const el = field(`v.${k}`);
+        if (el) el.value = String(v);
+      }
+      field('loopSeconds')!.value = String(s.loopSeconds);
+      field('showStandby')!.checked = s.showStandby;
+      field('useImported')!.checked = s.useImported;
+    }
+
+    function save() {
+      const ok = saveSettings(s);
+      toast.textContent = ok ? '保存しました' : 'このブラウザでは保存できません(プライベートモードなど)';
+      toast.classList.add('is-shown');
+      clearTimeout(toastTimer);
+      toastTimer = window.setTimeout(() => toast.classList.remove('is-shown'), 1400);
+    }
+
+    form.addEventListener('change', (e) => {
+      const t = e.target as HTMLInputElement;
+      if (t.name === 'preset') {
+        s.preset = t.value as PresetId;
+        if (s.preset !== 'custom') s.values = { ...PRESETS[s.preset].values };
+        fill();
+      } else if (t.name.startsWith('v.')) {
+        const key = t.name.slice(2) as keyof DemoValues;
+        const n = Number(t.value);
+        s.values = { ...s.values, [key]: Number.isFinite(n) && n >= 0 ? n : 0 };
+        s.preset = 'custom';
+        fill();
+      } else if (t.name === 'ceoName') {
+        s.ceoName = t.value.trim() || DEFAULT_SETTINGS.ceoName;
+      } else if (t.name === 'loopSeconds') {
+        s.loopSeconds = Math.min(300, Math.max(30, Number(t.value) || DEFAULT_SETTINGS.loopSeconds));
+        fill();
+      } else if (t.name === 'showStandby' || t.name === 'useImported') {
+        s[t.name] = t.checked;
+      }
+      save();
+    });
+
+    form.querySelector('[data-reset]')!.addEventListener('click', () => {
+      if (!confirm('設定を既定(立ち上げ期・AOI)に戻します。よろしいですか?')) return;
+      resetSettings();
+      s = loadSettings();
+      fill();
+      save();
+    });
+
+    fill();
+  </script>
+</Base>

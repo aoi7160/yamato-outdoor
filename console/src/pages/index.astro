@@ -1,0 +1,139 @@
+---
+/**
+ * ダッシュボード(本日)。動画の画面に相当するメイン。
+ * 骨組み(部カード・人形)はビルド時に agents/*.md から作り、数字と台詞は
+ * ブラウザ側で設定(scripts/store.ts)から組み立てて再生する(scripts/dashboard.ts)。
+ */
+import Base from '../layouts/Base.astro';
+import Figure from '../components/Figure.astro';
+import { AGENTS, DIVISIONS, agentsForClient, divisionOf } from '../lib/org';
+
+const executive = AGENTS.find((a) => a.id === 'executive');
+// ダッシュボードには稼働中と準備中だけ。準備中は設定でON/OFF(ブラウザ側で隠す)
+const onBoard = AGENTS.filter((a) => a.id !== 'executive' && a.status !== 'planned');
+const divisions = DIVISIONS.filter((d) => onBoard.some((a) => a.division === d.id));
+---
+<Base title="本日" active="dashboard" wide>
+  <div class="dash">
+    <section class="dash__status panel status-bar" aria-label="稼働状況">
+      <p class="status-bar__copy">
+        社員は全員AI<small>CEOは報告を聞いて、決めるだけ</small>
+      </p>
+      <span class="chip chip--live">稼働中</span>
+      <span class="chip chip--demo" data-mode-chip>DEMO|数値はイメージ</span>
+      <span class="status-bar__spacer"></span>
+      <time class="clock" data-clock>19:00:00</time>
+    </section>
+
+    <div class="dash__left">
+      <section class="panel office" aria-label="社長室">
+        <h2 class="panel__title">社長室</h2>
+        <div class="office__people">
+          <div class="ceo">
+            <div class="ceo__avatar" data-ceo-initial>AOI</div>
+            <span class="ceo__role">CEO</span>
+          </div>
+          {executive && (
+            <div class="crew" data-agent-crew="executive">
+              <Figure label="経営企画AI" index={0} />
+            </div>
+          )}
+        </div>
+        <a class="office__pending" href="/approvals/">
+          <span>承認待ち</span>
+          <span><strong class="num" data-pending>0</strong> 件 →</span>
+        </a>
+      </section>
+
+      <section class="panel board" aria-label="集計ボード">
+        <div class="board__head">
+          <span>本日の成果</span>
+          <span class="chip" data-board-chip>経営企画AIが記帳</span>
+        </div>
+        <ul class="board__rows">
+          <li><span>アフィリエイト</span><span class="num" data-board="affiliate">¥0</span></li>
+          <li><span>SUZURI(トリブン)</span><span class="num" data-board="goods">¥0</span></li>
+          <li><span>soft CV(LINE・メール)</span><span class="num" data-board="cv">0件</span></li>
+          <li><span>公開・更新</span><span class="num" data-board="published">0本</span></li>
+        </ul>
+        <div class="board__total">
+          <span>売上合計</span>
+          <span class="num" data-board="total">¥0</span>
+        </div>
+        <p class="board__src note" data-board-src hidden></p>
+      </section>
+    </div>
+
+    <section class="dash__center" aria-label="本部と部">
+      <div class="tabs" role="tablist" aria-label="本部で絞り込む">
+        <button role="tab" aria-selected="true" data-tab="all">すべて</button>
+        {divisions.map((d) => (
+          <button role="tab" aria-selected="false" data-tab={d.id}>{d.name}</button>
+        ))}
+      </div>
+      {divisions.map((d) => (
+        <section class="division" data-division={d.id} style={`--div:${d.color}`}>
+          <h2 class="division__title">{d.name}</h2>
+          <div class="division__grid">
+            {onBoard
+              .filter((a) => a.division === d.id)
+              .map((a) => (
+                <article
+                  class:list={['dept', { 'dept--standby': a.status === 'standby' }]}
+                  data-agent={a.id}
+                  data-status={a.status}
+                  style={`--div:${divisionOf(a.division).color}`}
+                >
+                  <header class="dept__head">
+                    <a class="dept__name" href={`/agents/${a.id}/`}>{a.name}</a>
+                    <span class="dept__tag">{a.tagline}</span>
+                  </header>
+                  {a.status === 'standby' && <p class="dept__standby">準備中:{a.standby_until}</p>}
+                  <div class="screen">
+                    <div class="screen__bar"><i></i><i></i><i></i><span data-screen-title>{a.name}</span></div>
+                    <ul class="screen__rows" data-screen-rows></ul>
+                  </div>
+                  <div class="dept__foot">
+                    <div class="crew" data-agent-crew={a.id}>
+                      {a.members.slice(0, 3).map((m, i) => <Figure label={m} index={i} />)}
+                    </div>
+                    <div class="tile">
+                      <span class="tile__label" data-tile-label>{a.kpi[0]?.label}</span>
+                      <span class="tile__value" data-tile-value>—</span>
+                      <span class="tile__sub" data-tile-sub></span>
+                    </div>
+                  </div>
+                </article>
+              ))}
+          </div>
+        </section>
+      ))}
+    </section>
+
+    <section class="dash__chat panel chat" aria-label="報告グループ">
+      <div class="chat__head">
+        <span>報告グループ(<span data-member-count>0</span>)</span>
+        <span class="chip chip--status-active">自動報告</span>
+      </div>
+      <ol class="chat__list" data-chat aria-live="polite"></ol>
+      <p class="chat__typing" data-typing></p>
+    </section>
+
+    <section class="dash__feed feed" aria-label="直近の動き">
+      <div>
+        <h2 class="panel__title">直近の発生</h2>
+        <ul class="feed__list" data-feed-money><li class="feed__empty">まだありません</li></ul>
+      </div>
+      <div>
+        <h2 class="panel__title">活動ログ</h2>
+        <ul class="feed__list" data-feed-log></ul>
+      </div>
+    </section>
+  </div>
+
+  <script type="application/json" id="org-data" set:html={JSON.stringify(agentsForClient())} />
+  <script>
+    import { startDashboard } from '../scripts/dashboard';
+    startDashboard();
+  </script>
+</Base>
