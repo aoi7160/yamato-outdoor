@@ -58,6 +58,7 @@ Astro(SSG) + microCMS + Cloudflare Pages のアウトドアメディア。
 | トップの背景グレイン(スモッグ)演出 | `src/layouts/BaseLayout.astro` の`grainDrift`props + `.scenery__grain-drift` |
 | Aboutの5カラムグリッド・点の背景・登場アニメ | `src/pages/about.astro` + `src/styles/global.css` の`.about-page` / `.about-grid` / `.dots-layer` / `[data-anim]` |
 | トップのカバー動画(雲が動くシネマグラフ) | `src/pages/index.astro` の`<section class="cover cover--video">` + `public/media/hero/01-mist.mp4` |
+| 事業報告部(月次P&L・事業報告書・事業計画書) | `console/agents/reporting.md`(部の定義) + `.claude/skills/business-report/`(書式・計上ルール・過去の失敗・PDF生成)。**売上・費用・時間の実データと写真はリポジトリに入れない**(Notion) |
 | AIエージェントの組織・部の定義 / 管理コンソール「BASE CAMP」 | `console/ORG.md` / `console/agents/<部>.md` / `console/README.md`(別アプリ。公開サイトのビルドには含まれない) |
 
 ## 過去デザインのアーカイブ

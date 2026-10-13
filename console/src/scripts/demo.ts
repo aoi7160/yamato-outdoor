@@ -163,6 +163,7 @@ const TILES: Record<string, (c: DemoContext) => Tile> = {
   goods: (c) => ({ label: 'SUZURI(トリブン)', value: yen(sum(c.goods)), sub: `${c.goods.length}点`, real: c.realKeys.has('suzuriAmount') }),
   analytics: (c) => ({ label: '本日のPV', value: num(c.s.values.pv), sub: `自然検索 ${c.s.values.organicShare}%`, real: c.realKeys.has('pv') }),
   legal: (c) => ({ label: '未解決の指摘', value: '0件', sub: `次の監査 ${c.nextAuditDay}` }),
+  reporting: (c) => ({ label: '本日の記帳', value: yen(sum(c.affiliate) + sum(c.goods)), sub: `次の月次締め ${c.nextAuditDay}` }),
 };
 
 export const tileFor = (a: ClientAgent, c: DemoContext): Tile =>
@@ -289,6 +290,15 @@ const SCREENS: Record<string, (c: DemoContext) => Screen> = {
       ...(c.extra.clarity?.scrollDepth != null ? [{ label: 'スクロールの深さ(Clarity)', value: `${Math.round(c.extra.clarity.scrollDepth)}%` }] : []),
     ],
   }),
+  'pl-ledger': (c) => ({
+    title: '台帳 — 今月',
+    rows: [
+      { label: '売上(本日の記帳)', value: yen(sum(c.affiliate) + sum(c.goods)) },
+      { label: '費用(未回収の領収書)', value: '2件', tone: 'warn' },
+      { label: '作業時間(本日)', value: '記帳待ち' },
+      { label: '次の月次締め', value: c.nextAuditDay, tone: 'total' },
+    ],
+  }),
   audit: () => ({
     title: '監査 — 月次',
     rows: [
@@ -327,6 +337,7 @@ const WORK: Record<string, string> = {
   goods: 'SUZURIの売上を確認中',
   analytics: '本日の数字を集計中',
   legal: '外部送信一覧と /privacy を照合中',
+  reporting: '本日の売上・費用・作業時間を台帳に記帳中',
 };
 
 const ANSWERS: Record<string, (c: DemoContext) => string> = {
@@ -374,6 +385,8 @@ const ANSWERS: Record<string, (c: DemoContext) => string> = {
     return `本日${num(c.s.values.pv)}PV(自然検索${c.s.values.organicShare}%)。soft CVは${c.s.values.softCv}件${ux}`;
   },
   legal: (c) => `確認依頼は0件。${c.nextAuditDay}の月次監査に向けて外部送信一覧を照合中です`,
+  reporting: (c) =>
+    `本日の売上${yen(sum(c.affiliate) + sum(c.goods))}を台帳に記帳しました。${c.nextAuditDay}締めの月次P&Lに向けて、費用2件の領収書が未回収です`,
 };
 
 const answerFor = (a: ClientAgent, c: DemoContext) => ANSWERS[a.id]?.(c) ?? '本日の作業は予定どおりです';

@@ -1,0 +1,4 @@
+date,item,category,amount,business_ratio,allocation,receipt,note
+2099-01-01,サンプルドメイン(年額),通信費,1200,1,monthly12,有,年額を12ヶ月に配る
+2099-01-05,スマホ通信,通信費,3000,0.3,once,有,事業割合30%
+2099-01-20,取材の交通費,取材費,1000,1,once,無,領収書が未回収
