@@ -23,10 +23,10 @@ globalThis.fetch = async (url, init) => {
   throw new Error('unexpected fetch ' + u);
 };
 routes['/cdn-cgi/access/certs'] = { keys: [jwk] };
-const env = { CF_ACCESS_TEAM_DOMAIN: 'aoi.cloudflareaccess.com', ALLOWED_EMAILS: 'aoi3507160@gmail.com, other@x.jp' };
+const env = { CF_ACCESS_TEAM_DOMAIN: 'aoi.cloudflareaccess.com', ALLOWED_EMAILS: 'ceo@example.com, other@example.jp' };
 const req = (t) => new Request('https://basecamp.pages.dev/api/x', { headers: t ? { 'Cf-Access-Jwt-Assertion': t } : {} });
 const exp = Math.floor(Date.now() / 1000) + 600;
-const good = { iss: 'https://aoi.cloudflareaccess.com', email: 'AOI3507160@gmail.com', exp };
+const good = { iss: 'https://aoi.cloudflareaccess.com', email: 'CEO@example.com', exp };
 assert.equal((await verifyAccess(req(await sign(good)), env)).ok, true);
 assert.equal((await verifyAccess(req(await sign({ ...good, email: 'evil@x.com' })), env)).status, 403);
 assert.equal((await verifyAccess(req(await sign({ ...good, exp: 1 })), env)).ok, false);

@@ -162,7 +162,7 @@ export const CONNECTORS: Connector[] = [
     kind: 'mcp',
     method: 'MCP',
     feeds: '経営企画:日報・週次レポートの置き場所(BASE CAMPのページ)',
-    needs: 'Claudeに接続済み。各部の定例をClaudeで回すとき(Phase 2)に書き込む',
+    needs: 'Claude側のコネクタ。YAMATO用の個人アカウントにつなぎ直してから使う(会社のワークスペースには作らない)',
     setup: '手順9 Notion',
   },
   {
@@ -171,7 +171,7 @@ export const CONNECTORS: Connector[] = [
     kind: 'mcp',
     method: 'MCP',
     feeds: '企画・編集会議部:需要の山・編集会議・公開予定日をカレンダーに置く',
-    needs: 'Claudeに接続済み(Googleカレンダー)。TimeTreeへはスマホ側で取り込む',
+    needs: 'メインのアカウントの「YAMATO BASE CAMP」カレンダーを Claudeにつないでいるアカウントに共有して、Claudeがそこに書く。TimeTreeへはiPhone側で表示',
     setup: '手順10 Googleカレンダー → TimeTree',
   },
   {
