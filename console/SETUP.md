@@ -66,13 +66,17 @@ Cloudflareの作成画面は「**Workers**」の画面(Set up your application)�
    (右の「ON THIS PAGE」の「Team domain」を押すと飛べる。下の方の Admin controls / Plan / Permissions ではない)
 2. 普通のダッシュボードに戻る:左上の「**Back to (メールアドレス)**」→ 左メニュー「**Workers & Pages**」→ **yamato-basecamp** を開く
    → 上のタブ「**Settings**」→「**Variables and Secrets**」→「**+ Add**」で、Type「**Text**」で2つ入れる
+   - **「Build」の中にある「Variables and secrets」ではない**(すぐ下に「Deploy Hooks」「Build cache」が並んでいる方は
+     ビルド中だけ使う変数で、コンソールからは読めない)。Settings の上の方にある、Build とは別の「Variables and Secrets」を使う
+   - 「+ Add」を押すと入力の画面が開き、いちばん下に「**Deploy**」ボタンがある。これを押すと反映される(「Deployments」に新しい版が並ぶ)
 
    | 変数名 | 値 |
    |---|---|
    | `CF_ACCESS_TEAM_DOMAIN` | `◯◯.cloudflareaccess.com`(1でコピーしたもの) |
    | `ALLOWED_EMAILS` | Cloudflareにログインしているメールアドレス(Accessのログインで別のアドレスを使うなら、カンマ区切りで足す) |
 
-3. 「デプロイ(Deploy)」を押して保存する(Workersは保存と同時に反映される)
+3. 「**Deploy**」を押す。反映されたかは、コンソールの「データ連携」画面で分かる
+   (「CF_ACCESS_TEAM_DOMAIN と ALLOWED_EMAILS が未設定です」と出たら、入れた場所が違う)
 
 ここまでで公開は完了。URLをスマホのホーム画面に追加しておくと便利。
 **GitHubのビルド結果**とPageSpeedの数字は、この時点で自動で出る(回数制限に当たると出ないことがある → 手順4の4・手順6)。
@@ -169,5 +173,5 @@ GitHubのAPIは、トークンなしだと1時間60回の制限があり、Cloud
 | ビルドが失敗する | Build command・Deploy command の頭に `cd console &&` が付いているか。Project name が `yamato-basecamp`(`console/wrangler.jsonc` の `name`)と同じか |
 | URLを開いてもログイン画面が出ない | 手順2の2。シークレットウィンドウで確認 |
 | 数字がずっとデモのまま | 「データ連携」画面の状態。「未設定」なら足りない変数名が出る。環境変数を入れたあと保存(デプロイ)したか |
-| 「CF_ACCESS_TEAM_DOMAIN と ALLOWED_EMAILS が未設定です」 | 手順3 |
+| 「CF_ACCESS_TEAM_DOMAIN と ALLOWED_EMAILS が未設定です」 | 手順3。「Build」の中の Variables and secrets に入れていないか(そこはビルド用で、コンソールからは読めない) |
 | 「このメールアドレスには許可がありません」 | `ALLOWED_EMAILS` とログインしたメールアドレスが一致しているか |
