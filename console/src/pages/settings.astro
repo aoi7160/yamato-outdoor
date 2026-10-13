@@ -27,7 +27,8 @@ import { PRESETS, VALUE_FIELDS } from '../lib/settings';
       <h2 class="panel__title">デモの数字の規模</h2>
       <p class="note">
         既定は「立ち上げ期(いまの実態)」。下の値を1つでも変えると「カスタム」になります。
-        GA4などの連携や取り込んだCSVで実データがある数字は、下の「実データを使う」がONのあいだ(既定ON)そちらが優先されます。
+        ここの数字が使われるのは、下の「実データモード」をOFFにしたとき(デモモード)だけです。
+        ON(既定)のあいだは、GA4などの連携と取り込んだCSVの数字だけを出し、無いものは「—」と「未接続」で表示します。
       </p>
       <div class="preset-list" role="radiogroup" aria-label="プリセット">
         {Object.entries(PRESETS).map(([id, p]) => (
@@ -79,7 +80,7 @@ import { PRESETS, VALUE_FIELDS } from '../lib/settings';
       </p>
       <p class="check">
         <input type="checkbox" id="useReal" name="useReal" />
-        <label for="useReal">実データがある数字は実データを使う(GA4・Search Consoleなどの連携と、取り込んだCSV。無いものはデモのまま)</label>
+        <label for="useReal">実データモード(GA4・Search Consoleなどの連携と、取り込んだCSVで分かることだけを報告する。OFFにすると、上の数字で作ったイメージの1日を流すデモモード)</label>
       </p>
     </section>
 

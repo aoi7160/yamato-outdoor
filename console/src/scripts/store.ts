@@ -75,23 +75,29 @@ export type ImportedSource = {
 export const loadImports = () => read<Record<string, ImportedSource>>(KEY.imports, {});
 export const saveImports = (d: Record<string, ImportedSource>) => write(KEY.imports, d);
 
-/** 取り込みデータの最新日と、その日の種類別の合計 */
-export function latestImported(kindOf: (sourceId: string) => 'affiliate' | 'goods' | undefined) {
+export type ImportedTotal = { date: string; amount: number; count: number };
+/** 種類ごと(ASP / SUZURI)の、取り込み済みの最新日の合計。取り込んでいない種類は null */
+export type ImportedTotals = { affiliate: ImportedTotal | null; goods: ImportedTotal | null };
+
+export function latestImported(kindOf: (sourceId: string) => 'affiliate' | 'goods' | undefined): ImportedTotals | null {
   const imports = loadImports();
-  let latest = '';
-  for (const src of Object.values(imports)) for (const r of src.rows) if (r.date > latest) latest = r.date;
-  if (!latest) return null;
-  const sum = { affiliate: { amount: 0, count: 0 }, goods: { amount: 0, count: 0 } };
-  for (const [id, src] of Object.entries(imports)) {
-    const kind = kindOf(id);
-    if (!kind) continue;
-    for (const r of src.rows)
-      if (r.date === latest) {
-        sum[kind].amount += r.amount;
-        sum[kind].count += r.count;
-      }
+  const out: ImportedTotals = { affiliate: null, goods: null };
+  // ASPとSUZURIは取り込む日がずれるので、最新日は種類ごとに見る
+  // (まとめて見ると、SUZURIだけ新しい日に「ASPの発生 ¥0」と出てしまう)
+  for (const kind of ['affiliate', 'goods'] as const) {
+    const rows = Object.entries(imports)
+      .filter(([id]) => kindOf(id) === kind)
+      .flatMap(([, src]) => src.rows);
+    const latest = rows.reduce((d, r) => (r.date > d ? r.date : d), '');
+    if (!latest) continue;
+    const day = rows.filter((r) => r.date === latest);
+    out[kind] = {
+      date: latest,
+      amount: day.reduce((t, r) => t + r.amount, 0),
+      count: day.reduce((t, r) => t + r.count, 0),
+    };
   }
-  return { date: latest, ...sum };
+  return out.affiliate || out.goods ? out : null;
 }
 
 /* ---------- 表示の小物 ---------- */

@@ -5,7 +5,7 @@
 import type { ClientAgent } from '../lib/org';
 import { sourceById } from '../lib/sources';
 import { approvalItems } from './approvals';
-import { buildScript, makeContext, moneyRows, screenFor, sum, tileFor, type DemoContext, type Row, type Step } from './demo';
+import { buildScript, known, makeContext, moneyEmptyLabel, moneyRows, screenFor, sum, tileFor, type DemoContext, type Row, type Step } from './demo';
 import { loadReal, realSourceNames, type RealState } from './real';
 import { esc, latestImported, loadDecisions, loadSettings, yen } from './store';
 
@@ -37,19 +37,18 @@ export async function startDashboard() {
   const pending = approvalItems(s).filter((a) => !decisions[a.id]).length;
   setText('[data-pending]', String(pending));
 
-  // 取り込んだ実データ(CSV・手入力)
+  // 取り込んだ実データ(CSV・手入力)。ASPとSUZURIで最新日が違うことがある
   const real = s.useReal ? latestImported((id) => sourceById(id)?.kind) : null;
-  if (real) {
-    const chip = document.querySelector<HTMLElement>('[data-board-chip]');
-    if (chip) {
-      chip.textContent = `実データ ${real.date.slice(5).replace('-', '/')}`;
-      chip.classList.add('chip--real');
-    }
-    const src = document.querySelector<HTMLElement>('[data-board-src]');
-    if (src) {
-      src.hidden = false;
-      src.textContent = `アフィリエイト・SUZURIは「データ取り込み」の ${real.date} の合計。ほかの数字はデモ。`;
-    }
+  const src = document.querySelector<HTMLElement>('[data-board-src]');
+  if (src && s.useReal) {
+    const day = (t: { date: string } | null) => (t ? `${t.date}分` : '未取り込み');
+    src.hidden = false;
+    src.textContent = `実データのみ表示(「—」は未接続・未取り込み)。アフィリエイト:${day(real?.affiliate ?? null)} / SUZURI:${day(real?.goods ?? null)}。`;
+  }
+  const boardChip = document.querySelector<HTMLElement>('[data-board-chip]');
+  if (boardChip && s.useReal) {
+    boardChip.textContent = '実データ';
+    boardChip.classList.add('chip--real');
   }
 
   setupTabs();
@@ -63,9 +62,14 @@ export async function startDashboard() {
     const names = realSourceNames(live);
     if (live?.extra.build) names.push('GitHub');
     if (real) names.push('CSV');
-    chip.textContent = names.length ? `実データ:${names.join('・')}|ほかはイメージ` : 'DEMO|数値はイメージ';
-    chip.classList.toggle('chip--real', names.length > 0);
-    chip.classList.toggle('chip--demo', names.length === 0);
+    // 実データモードでは、つながっていないものはイメージで埋めずに「—」にする
+    chip.textContent = !s.useReal
+      ? 'DEMO|数字と出来事はイメージ'
+      : names.length
+        ? `実データ:${names.join('・')}|未接続は「—」`
+        : '実データ:取得中・未接続';
+    chip.classList.toggle('chip--real', s.useReal);
+    chip.classList.toggle('chip--demo', !s.useReal);
   };
   if (s.useReal) {
     const first = loadReal((st) => {
@@ -102,8 +106,8 @@ export async function startDashboard() {
       if (!card) continue;
       const scr = screenFor(a, ctx);
       setIn(card, '[data-screen-title]', scr.title);
-      if (a.id === 'affiliate') renderRows(card, moneyRows([], 'まだ発生していません'));
-      else if (a.id === 'goods') renderRows(card, moneyRows([], 'まだ売れていません'));
+      if (a.id === 'affiliate') renderRows(card, moneyRows([], moneyEmptyLabel(ctx, 'affiliate')));
+      else if (a.id === 'goods') renderRows(card, moneyRows([], moneyEmptyLabel(ctx, 'goods')));
       else renderRows(card, scr.rows);
       const tile = tileFor(a, ctx);
       setIn(card, '[data-tile-label]', tile.label);
@@ -120,11 +124,14 @@ export async function startDashboard() {
   const updateBoard = () => {
     const aff = sum(money.affiliate);
     const goods = sum(money.goods);
-    setText('[data-board="affiliate"]', yen(aff));
-    setText('[data-board="goods"]', yen(goods));
-    setText('[data-board="cv"]', `${cv}件`);
-    setText('[data-board="published"]', `${published}本`);
-    setText('[data-board="total"]', yen(aff + goods));
+    // 実データモードで分からないものは「—」(0円と「分からない」を見分けられるように)
+    const affKnown = known(ctx, 'affiliateAmount');
+    const goodsKnown = known(ctx, 'suzuriAmount');
+    setText('[data-board="affiliate"]', affKnown ? yen(aff) : '—');
+    setText('[data-board="goods"]', goodsKnown ? yen(goods) : '—');
+    setText('[data-board="cv"]', known(ctx, 'softCv') ? `${cv}件` : '—');
+    setText('[data-board="published"]', known(ctx, 'publishedUpdated') ? `${published}本` : '—');
+    setText('[data-board="total"]', affKnown || goodsKnown ? yen(aff + goods) : '—');
   };
 
   const run = (st: Step, clock: string) => {
@@ -154,7 +161,10 @@ export async function startDashboard() {
         if (card) {
           renderRows(card, moneyRows(money[st.agent], ''), true);
           setIn(card, '[data-tile-value]', yen(sum(money[st.agent])));
-          setIn(card, '[data-tile-sub]', `${money[st.agent].length}${st.agent === 'goods' ? '点' : '件'}`);
+          // 実データは1日分の合計を1行で流すので、件数は取り込んだ数字の方を出す
+          const a = byId.get(st.agent);
+          const sub = ctx.grounded && a ? tileFor(a, ctx).sub : `${money[st.agent].length}${st.agent === 'goods' ? '点' : '件'}`;
+          setIn(card, '[data-tile-sub]', sub ?? '');
         }
         addFeed('[data-feed-money]', st.agent, st.label, clock, `+${yen(st.amount)}`);
         addFeed('[data-feed-log]', st.agent, `${labelOf(st.agent)}:発生 +${yen(st.amount)}`, clock);
