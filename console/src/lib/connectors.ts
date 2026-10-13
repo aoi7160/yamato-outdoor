@@ -162,7 +162,7 @@ export const CONNECTORS: Connector[] = [
     kind: 'mcp',
     method: 'MCP',
     feeds: '経営企画:日報・週次レポートの置き場所(BASE CAMPのページ)',
-    needs: 'Claude側のコネクタ。YAMATO用の個人アカウントにつなぎ直してから使う(会社のワークスペースには作らない)',
+    needs: 'Claude側のコネクタ。YAMATO OUTDOOR ワークスペースの「YAMATO BASE CAMP」→「日報・週報」に書く(2026-10 つないだ)',
     setup: '手順9 Notion',
   },
   {
