@@ -147,8 +147,8 @@ A/Bテストや見比べ用に、過去のトップページ構成をブラン�
 
 ## 管理コンソール(console/)の約束
 
-- `console/` は**公開サイトとは別のAstroアプリ**(独自の `package.json`)。社内向けで、別のCloudflare Pages
-  プロジェクト(ルート `console`)からCloudflare Accessの内側で配信する。公開サイトのビルドには含まれない
+- `console/` は**公開サイトとは別のAstroアプリ**(独自の `package.json`)。社内向けで、別のCloudflareプロジェクト
+  (Workers。`console/wrangler.jsonc`。ビルド・デプロイのコマンドは `cd console && …`)からCloudflare Accessの内側で配信する。公開サイトのビルドには含まれない
   (ルートの `tsconfig.json` でも `console` を除外している)。
 - 部(エージェント)を増やすときは `console/agents/_template.md` をコピーして1枚足す。コンソールの組織図・
   ダッシュボードに自動で並ぶ。足したら `console/ORG.md` の組織図と境界表も更新する。
@@ -157,7 +157,7 @@ A/Bテストや見比べ用に、過去のトップページ構成をブラン�
 - `console/astro.config.mjs` の `vite.tsconfig` は消さない。消すと親の `tsconfig.json` を読みにいき、
   Pagesのビルドが `Tsconfig not found astro/tsconfigs/strict` で落ちる。
 - コンソールにもfps制約(上の「デザインの約束」)を適用する。動かすのは文字の書き換えとopacityだけ。
-- **コンソールのAPI(`console/functions/api/`)は、Cloudflare AccessのJWTを検証してからしか返さない**
+- **コンソールのAPI(`/api/*`。本体は `console/server/api.js`)は、Cloudflare AccessのJWTを検証してからしか返さない**
   (`console/server/access.js`。`CF_ACCESS_TEAM_DOMAIN` と `ALLOWED_EMAILS` が無ければ閉じる)。この検証を外さない。
   Googleの鍵などは環境変数(シークレット)にだけ置き、ブラウザに渡さない。
 - API連携は `console/server/connectors.js`(本体)・`console/src/lib/connectors.ts`(一覧と候補)・

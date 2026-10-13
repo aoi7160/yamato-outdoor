@@ -24,7 +24,7 @@ npm run check    # 型チェック
 npm test         # サーバー側(Access検証・各API連携)のテスト
 
 # APIまで含めてローカルで動かすとき(.dev.vars.example を .dev.vars にコピー)
-npm run build && ../node_modules/.bin/wrangler pages dev dist --compatibility-date=2026-08-01
+npm run build && npx wrangler dev   # Workersと同じ形で、ページとAPIを一緒に動かす
 ```
 
 | 画面 | パス | 中身 |
@@ -50,9 +50,9 @@ npm run build && ../node_modules/.bin/wrangler pages dev dist --compatibility-da
 | ブラウザ内の保存 | `src/scripts/store.ts` |
 | API連携の一覧(画面用。候補も含む) | `src/lib/connectors.ts` |
 | 実データの取得と、デモの値への割り当て | `src/scripts/real.ts` |
-| API連携の本体(Pages Functionsから呼ぶ) | `server/connectors.js` / `server/google.js` |
-| Accessの検証(/api/* の入口) | `server/access.js` / `functions/api/_middleware.js` |
-| APIの口 | `functions/api/connectors/index.js`(状態)/ `functions/api/connectors/[id].js`(数字) |
+| API連携の本体 | `server/connectors.js` / `server/google.js` |
+| /api/* の本体(Accessの検証 → 振り分け) | `server/api.js` / `server/access.js` |
+| 配信の入口 | Workers:`server/worker.js` + `wrangler.jsonc`(いまの標準)/ Pages:`functions/api/[[path]].js` |
 | 公開・API設定の手順 | `SETUP.md` |
 | 見た目 | `src/styles/console.css` |
 
@@ -64,7 +64,7 @@ npm run build && ../node_modules/.bin/wrangler pages dev dist --compatibility-da
 |---|---|
 | 目的 | まずデモ(数字はイメージ)で見た目と組織を固め、そのあと実データ・実行につなぐ |
 | 置き場所 | このリポジトリの `console/`。公開サイト(`src/`)のビルドには含めない |
-| 配信 | 公開サイトとは別のCloudflare Pagesプロジェクト(ルート: `console/`)。Cloudflare AccessでCEOだけが見られるようにする(`SETUP.md`) |
+| 配信 | 公開サイトとは別のCloudflareプロジェクト(Workers。`console/wrangler.jsonc`)。Cloudflare AccessでCEOだけが見られるようにする(`SETUP.md`)。旧いPagesの画面でも動く |
 | CEO | 表示名は **AOI**(設定で変えられる) |
 | デモの数字 | **いまの実態(立ち上げ期)に寄せる。** 規模は設定画面で変えられる(プリセット:立ち上げ期 / 3ヶ月後 / 1年後 / カスタム) |
 | 売上の取り込み | 無料APIで自動取得できるものはなかった → **CSV**(ASP)と**手入力**(SUZURI)。ブラウザ内に保存(7章) |
@@ -303,7 +303,7 @@ APIの提供状況は変わりやすい。出たら `src/lib/sources.ts` を書�
 **ブラウザの localStorage だけ。** サーバーにもGitにも送らない。リポジトリが公開なので、
 売上のCSVや数字を `console/` に置いてコミットしないこと(ローカルに置くなら `console/data/private/`。`.gitignore` 済み)。
 別の端末で見るとデータは空になる。複数端末で見たくなったら、Phase 2で Cloudflare Access の内側
-(Pages Functions + KV/R2)に保存先を移す。
+(Workers + KV/R2)に保存先を移す。
 
 ---
 
@@ -341,7 +341,7 @@ APIの提供状況は変わりやすい。出たら `src/lib/sources.ts` を書�
 ### 10-1. 仕組み
 
 ```
-ブラウザ(BASE CAMP)── GET /api/connectors/<id> ──▶ Pages Functions(functions/api/)
+ブラウザ(BASE CAMP)── GET /api/connectors/<id> ──▶ server/worker.js(Workers)→ server/api.js
                                                      │ ① Access のJWTを検証(server/access.js)。設定が無ければ返さない
                                                      │ ② エッジのキャッシュにあれば返す(連携ごとのttl)
                                                      ▼

@@ -8,47 +8,51 @@ Googleの部分(手順4)は**10分**、microCMS(手順5)は1分。手順4・5は
 
 ---
 
-## 手順1 コンソール用のPagesプロジェクトを作る(2分)
+## 手順1 コンソールを作る(2分)
+
+Cloudflareの作成画面は「**Workers**」の画面(Set up your application)になっている。その画面のまま進める。
 
 1. 開く → **https://dash.cloudflare.com/?to=/:account/workers-and-pages/create**
-2. 「**Pages**」タブ → 「**既存のGitリポジトリをインポート**(Import an existing Git repository)」
-3. リポジトリ `aoi7160/yamato-outdoor` を選ぶ → 「セットアップの開始(Begin setup)」
-4. 次のとおり入れる
+2. 「Gitリポジトリをインポート(Import a repository)」→ `aoi7160/yamato-outdoor` を選ぶ
+3. 「Set up your application」の画面で、次のとおり入れる
 
    | 項目 | 入れる値 |
    |---|---|
-   | プロジェクト名 | `yamato-basecamp`(→ URLが `https://yamato-basecamp.pages.dev` になる) |
-   | 本番ブランチ | `main` |
-   | フレームワーク プリセット | `Astro` |
-   | ビルドコマンド | `npm run build` |
-   | ビルド出力ディレクトリ | `dist` |
-   | ルートディレクトリ(「ルートディレクトリ(詳細)」/ Root directory を開く) | `console` |
+   | Project name | `yamato-basecamp`(`console/wrangler.jsonc` の `name` と同じにする。違うとデプロイが止まる) |
+   | Build command | `cd console && npm ci && npm run build` |
+   | Deploy command | `cd console && npx wrangler deploy` |
+   | Preview command | `cd console && npx wrangler versions upload` |
+   | Enable Preview builds | **オフ**(作業ブランチごとのプレビューは要らない) |
+   | Protect with Cloudflare Access | **オン**(これで鍵がかかる。手順2がほぼ済む) |
 
-5. 「保存してデプロイする(Save and Deploy)」→ 1〜2分でビルドが終わる
-6. **まだURLは開かない・人に教えない**(次の手順で鍵をかける)
+4. 「**Deploy**」→ 2〜3分でビルドとデプロイが終わる
+   - URLは `https://yamato-basecamp.<アカウントのサブドメイン>.workers.dev`(プロジェクトの画面に出る)
 
-> 公開サイト用の既存のPagesプロジェクトは**触らない**。同じリポジトリから2つ目のプロジェクトを作るだけ。
-> プロジェクト名が使われていると、末尾に文字が足されたURLになる(以下は自分のURLに読み替える)。
+> 公開サイト用の既存のプロジェクトは**触らない**。同じリポジトリから2つ目を作るだけ。
+> コマンドの頭の `cd console &&` は消さない(コンソールは `console/` フォルダにあるため。消すと公開サイトの方がビルドされる)。
+
+<details>
+<summary>「Pages」の作成画面が出た場合(旧い画面)</summary>
+
+「Pages」→「既存のGitリポジトリをインポート」で、プロジェクト名 `yamato-basecamp`・本番ブランチ `main`・
+フレームワーク `Astro`・ビルドコマンド `npm run build`・ビルド出力 `dist`・ルートディレクトリ `console` にして
+「保存してデプロイ」。鍵は「設定 → 一般 → アクセスポリシーを有効にする」→ Zero Trustの「Access → アプリケーション」で
+そのアプリの「サブドメイン」の `*` を消して保存 → もう一度「アクセスポリシーを有効にする」。
+環境変数は「設定 → 変数とシークレット」、入れた後は「デプロイを再試行」。
+
+</details>
 
 ---
 
-## 手順2 Cloudflare Access で鍵をかける(2分)
+## 手順2 鍵がかかっていることを確かめる(1分)
 
-1. 手順1のプロジェクトを開く → 「**設定**(Settings)」→「**一般**(General)」
-2. 「**アクセスポリシーを有効にする**(Enable access policy)」を押す
-   - 初めてZero Trustを使うときは、**チーム名**を決める画面と、プランを選ぶ画面が出る。
-     チーム名は何でもよい(例:`yamato`)。プランは **Free(50人まで0円)** を選ぶ
-     (支払い方法の登録を求められることがあるが、Freeなら請求は0円)
-   - これで「プレビュー用のURL」に鍵がかかる。**本番のURLにはまだかかっていない**ので、次へ
-3. 開く → **https://one.dash.cloudflare.com/** → 「**Access**(Access controls)」→「**アプリケーション**(Applications)」
-4. `yamato-basecamp` の名前が付いたアプリケーションを「編集(Edit / Configure)」
-5. 「公開ホスト名(Public hostname)」の「サブドメイン(Subdomain)」にある **`*` を消して** 保存
-   - エラーが出たら、アプリケーション名の末尾に `-prod` などを足してから保存
-   - これで本番の `yamato-basecamp.pages.dev` に鍵がかかる
-6. 手順1のプロジェクトの「設定」→「一般」に戻り、もう一度「**アクセスポリシーを有効にする**」を押す
-   (プレビュー用の鍵を作り直す。Accessのアプリケーションが2つ並べば正しい)
-7. ブラウザのシークレットウィンドウで `https://yamato-basecamp.pages.dev` を開き、
+1. 初めてZero Trustを使うときは、デプロイの途中か後で**チーム名**とプランを聞かれる。
+   チーム名は何でもよい(例:`yamato`)。プランは **Free(50人まで0円)**
+   (支払い方法の登録を求められることがあるが、Freeなら請求は0円)
+2. ブラウザのシークレットウィンドウで手順1のURLを開き、
    **Cloudflareのログイン画面(メールでコードが届く画面)が出れば成功**
+   - 中身が見えてしまったら:プロジェクトの「設定(Settings)」→「ドメインとルート(Domains & Routes)」で
+     `workers.dev` の行の「Cloudflare Access」をオンにする
 
 ---
 
@@ -59,18 +63,17 @@ Googleの部分(手順4)は**10分**、microCMS(手順5)は1分。手順4・5は
 
 1. チームドメインを確認する:**https://one.dash.cloudflare.com/** →「設定(Settings)」→
    「チーム名とドメイン(Team name and domain)」に出ている `◯◯.cloudflareaccess.com`
-2. 手順1のプロジェクト →「設定(Settings)」→「**変数とシークレット**(Variables and Secrets)」→「追加」
+2. 手順1のプロジェクト →「設定(Settings)」→「**変数とシークレット**(Variables and Secrets)」→「追加(Add)」
 
    | 変数名 | 種類 | 値 |
    |---|---|---|
    | `CF_ACCESS_TEAM_DOMAIN` | テキスト | `◯◯.cloudflareaccess.com`(1で確認したもの) |
    | `ALLOWED_EMAILS` | テキスト | Cloudflareにログインしているメールアドレス(複数ならカンマ区切り) |
 
-3. 「デプロイ(Deployments)」→ 最新のデプロイの「…」→「**デプロイを再試行**(Retry deployment)」
-   (環境変数は、次のデプロイから効く)
+3. 「デプロイ(Deploy)」を押して保存する(Workersは保存と同時に反映される)
 
-ここまでで公開は完了。`https://yamato-basecamp.pages.dev` をスマホのホーム画面に追加しておくと便利。
-**GitHubのビルド結果**とPageSpeedの数字は、この時点で自動で出る(回数制限に当たると出ないことがある → 手順6)。
+ここまでで公開は完了。URLをスマホのホーム画面に追加しておくと便利。
+**GitHubのビルド結果**とPageSpeedの数字は、この時点で自動で出る(回数制限に当たると出ないことがある → 手順4の4・手順6)。
 
 ---
 
@@ -95,7 +98,7 @@ Googleの「サービスアカウント」(ロボット用のアカウント)を
 6. **Search Consoleに招待する**:開く → **https://search.google.com/search-console/users?resource_id=sc-domain%3Ayamato-outdoor.com**
    →「ユーザーを追加」→ 2でコピーしたアドレス・権限「**制限付き**」→ 追加
    - URLプレフィックスで登録している場合は、Search Consoleの左上でそのプロパティを選んでから「設定 → ユーザーと権限」
-7. **Cloudflareに入れる**:手順1のプロジェクト →「設定」→「変数とシークレット」→「追加」
+7. **Cloudflareに入れる**:手順1のプロジェクト →「設定(Settings)」→「変数とシークレット」→「追加」
 
    | 変数名 | 種類 | 値 |
    |---|---|---|
@@ -104,7 +107,7 @@ Googleの「サービスアカウント」(ロボット用のアカウント)を
    | `PSI_API_KEY` | シークレット | 4のAPIキー |
    | `GSC_SITE_URL` | テキスト | (URLプレフィックスで登録しているときだけ)`https://yamato-outdoor.com/` |
 
-8. 「デプロイ」→ 最新のデプロイの「…」→「デプロイを再試行」
+8. 「デプロイ(Deploy)」を押して保存する
 9. コンソールの「**データ連携**」画面で、GA4・Search Console・PageSpeedが「**接続OK**」になれば完了
    - 「エラー:閲覧権限がない」と出たら、5・6の招待を確認(反映に数分かかることがある)
 
@@ -124,7 +127,7 @@ Googleの「サービスアカウント」(ロボット用のアカウント)を
 | `MICROCMS_SERVICE_DOMAIN` | テキスト | 公開サイトと同じ |
 | `MICROCMS_API_KEY` | シークレット | 公開サイトと同じ(GETだけ許可したキーで十分) |
 
-入れたら「デプロイを再試行」。
+入れたら「デプロイ(Deploy)」を押して保存する。
 
 ---
 
@@ -135,7 +138,7 @@ GitHubのAPIは、トークンなしだと1時間60回の制限があり、Cloud
 
 1. 開く → **https://github.com/settings/personal-access-tokens/new**
 2. 名前 `basecamp`・有効期限1年・Repository access「**Public repositories**(読み取りのみ)」→ 権限は何も足さずに作成
-3. Cloudflareに `GITHUB_TOKEN`(シークレット)として入れ、「デプロイを再試行」
+3. Cloudflareに `GITHUB_TOKEN`(シークレット)として入れて保存する
 
 ---
 
@@ -161,8 +164,8 @@ GitHubのAPIは、トークンなしだと1時間60回の制限があり、Cloud
 
 | 症状 | 見るところ |
 |---|---|
-| ビルドが失敗する | ルートディレクトリが `console`、出力が `dist` になっているか |
-| URLを開いてもログイン画面が出ない | 手順2の5(`*` を消す)が済んでいるか。シークレットウィンドウで確認 |
-| 数字がずっとデモのまま | 「データ連携」画面の状態。「未設定」なら足りない変数名が出る。環境変数を入れたあと「デプロイを再試行」したか |
+| ビルドが失敗する | Build command・Deploy command の頭に `cd console &&` が付いているか。Project name が `yamato-basecamp`(`console/wrangler.jsonc` の `name`)と同じか |
+| URLを開いてもログイン画面が出ない | 手順2の2。シークレットウィンドウで確認 |
+| 数字がずっとデモのまま | 「データ連携」画面の状態。「未設定」なら足りない変数名が出る。環境変数を入れたあと保存(デプロイ)したか |
 | 「CF_ACCESS_TEAM_DOMAIN と ALLOWED_EMAILS が未設定です」 | 手順3 |
 | 「このメールアドレスには許可がありません」 | `ALLOWED_EMAILS` とログインしたメールアドレスが一致しているか |
