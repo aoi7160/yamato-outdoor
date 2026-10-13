@@ -3,7 +3,7 @@
  * 部のメンバー(役割)のアバター。
  *
  * 顔は描かず、夕暮れの稜線に立つ人のような「シルエット＋本部色のリムライト」で描く。
- * 背景は等高線(山の地形図)。人ごとの違いは、髪・帽子の輪郭と、細い線で描く小物(メガネ・ヘッドセットなど)で出す。
+ * 人ごとの違いは、髪・帽子の輪郭と、細い線で描く小物(メガネ・ヘッドセットなど)で出す。
  *
  *   社長室・経営企画 … ダウンベストの襟とキルト。整えた髪、四角いメガネ
  *   プロダクト・コンテンツ … フーディー。ニット帽・丸メガネ・首にヘッドホン・耳にペン
@@ -64,25 +64,6 @@ const pick = <T,>(xs: T[], n: number) => xs[n % xs.length];
 const look = byRole(pick(LOOKS[division] ?? LOOKS.corporate, index + hash), label);
 const uid = `fig-${seed}-${index}`.replace(/[^a-z0-9-]/gi, '');
 
-// 等高線:山頂(右上寄り)のまわりに、少し歪んだ輪を4本。部とメンバーごとに形が変わる
-const rnd = (() => {
-  let a = hash + index * 977;
-  return () => {
-    a = (a * 1103515245 + 12345) >>> 0;
-    return a / 4294967296;
-  };
-})();
-const peak = { x: 30 + rnd() * 6, y: 11 + rnd() * 6 };
-const phase = [rnd() * 6.28, rnd() * 6.28];
-const contours = [6, 10.5, 15, 19.5, 24].map((r0, k) => {
-  const pts = Array.from({ length: 28 }, (_, i) => {
-    const t = (i / 28) * Math.PI * 2;
-    const r = r0 * (1 + 0.1 * Math.sin(3 * t + phase[0] + k * 0.4) + 0.06 * Math.sin(5 * t + phase[1]));
-    return `${(peak.x + r * Math.cos(t)).toFixed(1)} ${(peak.y + r * Math.sin(t) * 0.82).toFixed(1)}`;
-  });
-  return `M${pts.join(' L')} Z`;
-});
-
 /* シルエットの部品(塗りと輪郭で同じ形を使う) */
 const HEAD = 'M24 12.4 C28.2 12.4 30.9 15.6 30.9 20.4 C30.9 25.4 28 28.6 24 28.6 C20 28.6 17.1 25.4 17.1 20.4 C17.1 15.6 19.8 12.4 24 12.4 Z';
 const NECK = 'M21 26 L27 26 L27.6 33.6 L20.4 33.6 Z';
@@ -122,13 +103,9 @@ const glass = '#dfe6ec';
       </linearGradient>
     </defs>
 
-    {/* 台座(等高線) */}
+    {/* 台座 */}
     <circle cx="24" cy="24" r="22" fill="#0c1218"></circle>
     <g clip-path={`url(#${uid}-clip)`}>
-      <g fill="none" style="stroke: var(--div)" stroke-width="0.55" stroke-opacity="0.2">
-        {contours.map((d) => <path d={d}></path>)}
-      </g>
-      <circle cx={peak.x} cy={peak.y} r="0.9" style="fill: var(--div)" fill-opacity="0.5"></circle>
 
       {/* リムライト(本部色の輪郭)→ その上に同じ形の塗りを重ねて、外側の輪郭だけを残す */}
       <g style={`stroke: ${line}`} stroke-width="1.7" fill="none" stroke-linejoin="round">
