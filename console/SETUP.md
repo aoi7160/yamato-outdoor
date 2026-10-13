@@ -61,14 +61,16 @@ Cloudflareの作成画面は「**Workers**」の画面(Set up your application)�
 コンソールは、Accessを通ったことを自分でも確かめてからデータを返す(設定漏れでデータが外に出ないように)。
 この2つが入るまで、GA4などの数字は**出ない**(デモのまま)。
 
-1. チームドメインを確認する:**https://one.dash.cloudflare.com/** →「設定(Settings)」→
-   「チーム名とドメイン(Team name and domain)」に出ている `◯◯.cloudflareaccess.com`
-2. 手順1のプロジェクト →「設定(Settings)」→「**変数とシークレット**(Variables and Secrets)」→「追加(Add)」
+1. チームドメインを確認する:**https://one.dash.cloudflare.com/**(Cloudflare One)→ 左メニューの**いちばん下の「Settings」**
+   → ページの**いちばん上の「Team domain」**に出ている `◯◯.cloudflareaccess.com` をコピー
+   (右の「ON THIS PAGE」の「Team domain」を押すと飛べる。下の方の Admin controls / Plan / Permissions ではない)
+2. 普通のダッシュボードに戻る:左上の「**Back to (メールアドレス)**」→ 左メニュー「**Workers & Pages**」→ **yamato-basecamp** を開く
+   → 上のタブ「**Settings**」→「**Variables and Secrets**」→「**+ Add**」で、Type「**Text**」で2つ入れる
 
-   | 変数名 | 種類 | 値 |
-   |---|---|---|
-   | `CF_ACCESS_TEAM_DOMAIN` | テキスト | `◯◯.cloudflareaccess.com`(1で確認したもの) |
-   | `ALLOWED_EMAILS` | テキスト | Cloudflareにログインしているメールアドレス(複数ならカンマ区切り) |
+   | 変数名 | 値 |
+   |---|---|
+   | `CF_ACCESS_TEAM_DOMAIN` | `◯◯.cloudflareaccess.com`(1でコピーしたもの) |
+   | `ALLOWED_EMAILS` | Cloudflareにログインしているメールアドレス(Accessのログインで別のアドレスを使うなら、カンマ区切りで足す) |
 
 3. 「デプロイ(Deploy)」を押して保存する(Workersは保存と同時に反映される)
 
