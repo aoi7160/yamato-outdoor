@@ -130,7 +130,7 @@ export async function startDashboard() {
   const run = (st: Step, clock: string) => {
     switch (st.kind) {
       case 'say': {
-        addMessage(st.from, st.text, st.type);
+        addMessage(st.from, st.text, st.type, st.href);
         speak(st.from);
         setText('[data-typing]', '');
         break;
@@ -301,7 +301,7 @@ function appendChat(html: string, isMessage: boolean) {
   }
 }
 
-function addMessage(from: string, text: string, type: string) {
+function addMessage(from: string, text: string, type: string, href?: string) {
   const a = agentOf(from);
   const name = from === 'executive' ? 'Claude Code(経営企画・統括)' : `${a?.name ?? from}AI`;
   const avatar = from === 'executive' ? 'C' : (a?.short ?? from).slice(0, 2);
@@ -309,7 +309,11 @@ function addMessage(from: string, text: string, type: string) {
   appendChat(
     `<li class="msg ${cls}" style="--div:${colorOf(from)}">
       <span class="msg__avatar" aria-hidden="true">${esc(avatar)}</span>
-      <div><span class="msg__name">${esc(name)}</span><span class="msg__type">${esc(type)}</span><br /><span class="msg__bubble">${esc(text)}</span></div>
+      <div><span class="msg__name">${esc(name)}</span><span class="msg__type">${esc(type)}</span><br />${
+        href
+          ? `<a class="msg__bubble msg__bubble--link" href="${esc(href)}">${esc(text)}<span class="msg__more">詳細を見る →</span></a>`
+          : `<span class="msg__bubble">${esc(text)}</span>`
+      }</div>
     </li>`,
     true,
   );

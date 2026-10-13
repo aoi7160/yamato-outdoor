@@ -58,7 +58,7 @@ function split(total: number, count: number, rnd: () => number) {
 }
 
 const AFFILIATE_ITEMS = [
-  'サロモン X ULTRA 4 GTX(楽天)',
+  'サロモン X ULTRA 5 MID GTX(楽天)',
   'ペツル ヘッドランプ(Amazon)',
   'モンベル レインウェア(A8.net)',
   'ダイワ 渓流ロッド(もしも)',
@@ -383,7 +383,7 @@ const answerFor = (a: ClientAgent, c: DemoContext) => ANSWERS[a.id]?.(c) ?? '本
 export type ReportType = '定例' | '速報' | '相談' | '差し戻し' | '承認依頼' | '日報';
 
 export type Step =
-  | { t: number; kind: 'say'; from: string; text: string; type: ReportType }
+  | { t: number; kind: 'say'; from: string; text: string; type: ReportType; href?: string }
   | { t: number; kind: 'typing'; from: string }
   | { t: number; kind: 'work'; agent: string; member: number; on: boolean }
   | { t: number; kind: 'log'; agent: string; text: string }
@@ -441,6 +441,7 @@ export function buildScript(agents: ClientAgent[], c: DemoContext): Step[] {
           from: a.id,
           type: '承認依頼',
           text: `承認トレイに積みました:${ap.title}`,
+          href: `/approvals/#${ap.id}`,
         }),
       );
   });

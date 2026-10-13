@@ -17,7 +17,7 @@ import { agentsForClient } from '../lib/org';
   <script type="application/json" id="org-data" set:html={JSON.stringify(agentsForClient())} />
   <script>
     import type { ClientAgent } from '../lib/org';
-    import { approvalItems } from '../scripts/approvals';
+    import { approvalItems, type ApprovalItem } from '../scripts/approvals';
     import { esc, loadDecisions, loadSettings, saveDecisions } from '../scripts/store';
 
     const agents: ClientAgent[] = JSON.parse(document.getElementById('org-data')!.textContent || '[]');
@@ -26,7 +26,42 @@ import { agentsForClient } from '../lib/org';
     const items = approvalItems(s);
     let decisions = loadDecisions();
 
+    /** 詳細(承認トレイから離れずに中身を確かめるための部分) */
+    function detailHtml(it: ApprovalItem) {
+      const d = it.detail;
+      const links = (d.links ?? [])
+        .map(
+          (l) => `<li><a class="btn" href="${esc(l.href)}" target="_blank" rel="noopener">${esc(l.label)} ↗</a>${
+            l.note ? `<span class="note">${esc(l.note)}</span>` : ''
+          }</li>`,
+        )
+        .join('');
+      const changes = (d.changes ?? []).map((c) => `<li>${esc(c)}</li>`).join('');
+      const diffs = (d.diffs ?? [])
+        .map(
+          (x) => `<figure class="diff">
+            <figcaption>${esc(x.where)}</figcaption>
+            <div class="diff__row diff__row--before"><span class="diff__tag">変更前</span><p>${esc(x.before)}</p></div>
+            <div class="diff__row diff__row--after"><span class="diff__tag">変更後</span><p>${esc(x.after)}</p></div>
+          </figure>`,
+        )
+        .join('');
+      return `<details class="approval__detail" data-detail="${it.id}">
+        <summary>詳細を見る</summary>
+        <div class="approval__detail-body">
+          <p>${esc(d.summary)}</p>
+          ${links ? `<h3>開いて確かめる</h3><ul class="approval__links">${links}</ul>` : ''}
+          ${changes ? `<h3>変更点</h3><ul>${changes}</ul>` : ''}
+          ${diffs ? `<h3>本文の変更前 / 変更後</h3>${diffs}` : ''}
+          ${d.imageSvg ? `<h3>デザイン案</h3><div class="approval__image">${d.imageSvg}</div>` : ''}
+          ${d.draft ? `<h3>${esc(d.draft.label)}</h3><pre class="approval__draft">${esc(d.draft.text)}</pre>` : ''}
+        </div>
+      </details>`;
+    }
+
     function render() {
+      // 承認・差し戻しで描き直しても、開いていた詳細は開いたままにする
+      const open = new Set([...root.querySelectorAll<HTMLDetailsElement>('details[open]')].map((x) => x.dataset.detail));
       if (items.length === 0) {
         root.innerHTML = '<section class="panel"><p class="note">承認待ちはありません。</p></section>';
         return;
@@ -42,7 +77,7 @@ import { agentsForClient } from '../lib/org';
                <button class="btn" data-undo="${it.id}">取り消す</button>`
             : `<button class="btn btn--primary" data-approve="${it.id}">承認</button>
                <button class="btn" data-reject="${it.id}">差し戻し</button>`;
-          return `<section class="panel approval ${d ? 'approval--done' : ''}" style="--div:${a?.color ?? '#9ea6b0'}">
+          return `<section class="panel approval ${d ? 'approval--done' : ''}" id="${it.id}" style="--div:${a?.color ?? '#9ea6b0'}">
             <div class="approval__meta">
               <span class="chip">${esc(it.type)}</span>
               <span>${esc(a?.name ?? it.from)}から</span>
@@ -50,11 +85,24 @@ import { agentsForClient } from '../lib/org';
             <p class="approval__title">${esc(it.title)}</p>
             <ul>${it.basis.map((b) => `<li>${esc(b)}</li>`).join('')}</ul>
             <p class="note">承認すると:${esc(it.effect)}</p>
+            ${detailHtml(it)}
             <div class="approval__actions">${state}</div>
           </section>`;
         })
         .join('');
+      open.forEach((id) => root.querySelector<HTMLDetailsElement>(`details[data-detail="${id}"]`)?.setAttribute('open', ''));
     }
+
+    /** ダッシュボードの報告から来たとき(/approvals/#ap-…)は、その依頼の詳細を開いて見せる */
+    function openFromHash() {
+      const id = decodeURIComponent(location.hash.slice(1));
+      if (!id) return;
+      const details = root.querySelector<HTMLDetailsElement>(`details[data-detail="${CSS.escape(id)}"]`);
+      if (!details) return;
+      details.open = true;
+      document.getElementById(id)?.scrollIntoView({ block: 'start' });
+    }
+    window.addEventListener('hashchange', openFromHash);
 
     root.addEventListener('click', (e) => {
       const t = (e.target as HTMLElement).closest('button');
@@ -80,5 +128,6 @@ import { agentsForClient } from '../lib/org';
     });
 
     render();
+    openFromHash();
   </script>
 </Base>
