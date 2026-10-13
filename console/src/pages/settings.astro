@@ -27,7 +27,7 @@ import { PRESETS, VALUE_FIELDS } from '../lib/settings';
       <h2 class="panel__title">デモの数字の規模</h2>
       <p class="note">
         既定は「立ち上げ期(いまの実態)」。下の値を1つでも変えると「カスタム」になります。
-        取り込んだ実データ(アフィリエイト・SUZURI)がある日は、下の「実データを使う」をONにするとそちらが優先されます。
+        GA4などの連携や取り込んだCSVで実データがある数字は、下の「実データを使う」がONのあいだ(既定ON)そちらが優先されます。
       </p>
       <div class="preset-list" role="radiogroup" aria-label="プリセット">
         {Object.entries(PRESETS).map(([id, p]) => (
@@ -78,8 +78,8 @@ import { PRESETS, VALUE_FIELDS } from '../lib/settings';
         <label for="showStandby">準備中の部(SNS部など)もダッシュボードに出す</label>
       </p>
       <p class="check">
-        <input type="checkbox" id="useImported" name="useImported" />
-        <label for="useImported">集計ボードのアフィリエイト・SUZURIに、取り込んだ実データ(最新日)を使う</label>
+        <input type="checkbox" id="useReal" name="useReal" />
+        <label for="useReal">実データがある数字は実データを使う(GA4・Search Consoleなどの連携と、取り込んだCSV。無いものはデモのまま)</label>
       </p>
     </section>
 
@@ -109,7 +109,7 @@ import { PRESETS, VALUE_FIELDS } from '../lib/settings';
       }
       field('loopSeconds')!.value = String(s.loopSeconds);
       field('showStandby')!.checked = s.showStandby;
-      field('useImported')!.checked = s.useImported;
+      field('useReal')!.checked = s.useReal;
     }
 
     function save() {
@@ -137,7 +137,7 @@ import { PRESETS, VALUE_FIELDS } from '../lib/settings';
       } else if (t.name === 'loopSeconds') {
         s.loopSeconds = Math.min(300, Math.max(30, Number(t.value) || DEFAULT_SETTINGS.loopSeconds));
         fill();
-      } else if (t.name === 'showStandby' || t.name === 'useImported') {
+      } else if (t.name === 'showStandby' || t.name === 'useReal') {
         s[t.name] = t.checked;
       }
       save();

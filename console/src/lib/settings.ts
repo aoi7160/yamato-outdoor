@@ -98,8 +98,8 @@ export type Settings = {
   loopSeconds: number;
   /** 準備中(standby)の部もダッシュボードに出す */
   showStandby: boolean;
-  /** 集計ボードのアフィリエイト・SUZURIに、取り込んだ実データを使う */
-  useImported: boolean;
+  /** 実データ(API連携・CSV取り込み)があるものは、デモの数字の代わりに実データを使う */
+  useReal: boolean;
 };
 
 export const DEFAULT_SETTINGS: Settings = {
@@ -108,7 +108,7 @@ export const DEFAULT_SETTINGS: Settings = {
   values: { ...PRESETS.now.values },
   loopSeconds: 60,
   showStandby: false,
-  useImported: false,
+  useReal: true,
 };
 
 /** 設定画面のフォームの並び。ここに足せば画面にも出る */

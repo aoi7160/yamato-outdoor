@@ -157,6 +157,12 @@ A/Bテストや見比べ用に、過去のトップページ構成をブラン�
 - `console/astro.config.mjs` の `vite.tsconfig` は消さない。消すと親の `tsconfig.json` を読みにいき、
   Pagesのビルドが `Tsconfig not found astro/tsconfigs/strict` で落ちる。
 - コンソールにもfps制約(上の「デザインの約束」)を適用する。動かすのは文字の書き換えとopacityだけ。
+- **コンソールのAPI(`console/functions/api/`)は、Cloudflare AccessのJWTを検証してからしか返さない**
+  (`console/server/access.js`。`CF_ACCESS_TEAM_DOMAIN` と `ALLOWED_EMAILS` が無ければ閉じる)。この検証を外さない。
+  Googleの鍵などは環境変数(シークレット)にだけ置き、ブラウザに渡さない。
+- API連携は `console/server/connectors.js`(本体)・`console/src/lib/connectors.ts`(一覧と候補)・
+  `console/src/scripts/real.ts`(画面の数字への割り当て)。足したら `cd console && npm test`。
+  公開・環境変数の手順は `console/SETUP.md`(CEOが読む前提で、リンク付き・上から順に書く)。
 
 ## 計測タグの約束
 

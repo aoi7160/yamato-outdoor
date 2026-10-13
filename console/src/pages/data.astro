@@ -1,23 +1,51 @@
 ---
 /**
- * データ取り込み。ASP・SUZURIの売上を、CSVか手入力でこのブラウザに入れる。
- * 無料APIで自動取得できるものが無かったため(lib/sources.ts に調査結果)。
+ * データ連携。上:API連携の状態と候補(lib/connectors.ts)/ 下:ASP・SUZURIの売上のCSV・手入力。
+ * 売上はAPIで取れるところが無かったため、CSVと手入力にしている(lib/sources.ts に調査結果)。
  */
 import Base from '../layouts/Base.astro';
+import { CONNECTORS } from '../lib/connectors';
 import { DATA_SOURCES } from '../lib/sources';
+
+const KIND_LABEL = { live: 'つないである', csv: 'CSV・手入力', candidate: '次の候補' } as const;
 ---
-<Base title="データ取り込み" active="data">
+<Base title="データ連携" active="data">
   <div class="page-head">
-    <h1>データ取り込み</h1>
+    <h1>データ連携</h1>
     <p>
-      ASPとSUZURIの売上を、CSVか手入力で入れます。入れたデータは<strong>このブラウザの中だけ</strong>に保存し、
-      サーバーやGitには送りません(リポジトリが公開のため)。
+      GA4・Search ConsoleなどはAPIで自動連携し、ASPとSUZURIの売上はCSVか手入力で入れます。
+      実データがある数字は、ダッシュボードでデモの代わりに使われます(「設定 → 実データを使う」、既定ON)。
     </p>
-    <p class="note">集計ボードに出すには「設定 → 実データを使う」をONにします。</p>
   </div>
 
   <section class="panel">
-    <h2 class="panel__title">取り込み元と、自動取得できるか(2026年10月に調査)</h2>
+    <h2 class="panel__title">連携の一覧</h2>
+    <p class="note" data-api-note>状態を確認中…</p>
+    <div class="table-wrap">
+      <table>
+        <thead><tr><th>連携先</th><th>方法</th><th>状態</th><th>何の数字になるか</th><th>必要なもの</th></tr></thead>
+        <tbody>
+          {(['live', 'csv', 'candidate'] as const).flatMap((kind) =>
+            CONNECTORS.filter((c) => c.kind === kind).map((c) => (
+              <tr data-connector={c.id} data-kind={c.kind}>
+                <td>{c.name}</td>
+                <td>{c.method}</td>
+                <td data-connector-state>
+                  <span class={`chip ${c.kind === 'candidate' ? 'chip--status-planned' : c.kind === 'csv' ? 'chip--status-standby' : ''}`}>{KIND_LABEL[c.kind]}</span>
+                </td>
+                <td class="note">{c.feeds}</td>
+                <td class="note">{c.needs}{c.setup && <><br />つなぎ方:<code>console/SETUP.md</code>「{c.setup}」</>}</td>
+              </tr>
+            )),
+          )}
+        </tbody>
+      </table>
+    </div>
+    <p style="margin-top:0.75rem"><button type="button" class="btn" data-recheck>取り直す(キャッシュを使わない)</button></p>
+  </section>
+
+  <section class="panel">
+    <h2 class="panel__title">売上の取り込み元(APIで取れないことを2026年10月に確認済み)</h2>
     <div class="table-wrap">
       <table>
         <thead>
@@ -101,6 +129,41 @@ import { DATA_SOURCES } from '../lib/sources';
     <p style="margin-top:0.75rem" data-delete-buttons></p>
   </section>
   <p class="toast" data-toast role="status"></p>
+
+  <script>
+    import { fetchConnector, fetchStatus } from '../scripts/real';
+
+    /* ---------- API連携の状態 ---------- */
+
+    async function checkConnectors(fresh = false) {
+      const note = document.querySelector<HTMLElement>('[data-api-note]')!;
+      const status = await fetchStatus();
+      if (!status.ok) {
+        note.textContent = status.error?.includes('APIがありません')
+          ? 'この環境にはAPIがありません(ローカルの npm run dev など)。Cloudflare Pagesに置くと動きます。'
+          : `APIに入れません:${status.error ?? '不明'}`;
+        return;
+      }
+      note.textContent = '「つないである」の連携は、環境変数がそろうと自動で数字を取りにいきます。';
+      for (const c of status.connectors as { id: string; configured: boolean; missing: string[] }[]) {
+        const cell = document.querySelector(`[data-connector="${c.id}"] [data-connector-state]`);
+        if (!cell) continue;
+        if (!c.configured) {
+          cell.innerHTML = `<span class="chip chip--status-standby">未設定</span><br /><span class="note">${c.missing.map(escapeHtml).join('、')}</span>`;
+          continue;
+        }
+        cell.innerHTML = '<span class="chip">確認中…</span>';
+        fetchConnector(c.id, fresh).then((r) => {
+          cell.innerHTML = r.ok
+            ? `<span class="chip chip--status-active">接続OK</span><br /><span class="note">${r.fetchedAt ? new Date(r.fetchedAt).toLocaleString('ja-JP') : ''}</span>`
+            : `<span class="chip chip--status-standby">エラー</span><br /><span class="note">${escapeHtml(r.error ?? '')}</span>`;
+        });
+      }
+    }
+    const escapeHtml = (s: string) => s.replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' })[c]!);
+    checkConnectors();
+    document.querySelector('[data-recheck]')!.addEventListener('click', () => checkConnectors(true));
+  </script>
 
   <script>
     import { DATA_SOURCES, sourceById } from '../lib/sources';

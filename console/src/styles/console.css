@@ -1202,3 +1202,17 @@ input[type='file'] {
 [hidden] {
   display: none !important;
 }
+
+/* 実データのKPIタイル(デモの数字と見分ける) */
+.tile--real {
+  border-color: rgba(76, 175, 110, 0.45);
+}
+.tile--real .tile__label::after {
+  content: '実データ';
+  margin-left: 0.35rem;
+  padding: 0 0.3rem;
+  border-radius: 0.25rem;
+  background: rgba(76, 175, 110, 0.18);
+  color: var(--ember-soft);
+  font-size: 0.625rem;
+}

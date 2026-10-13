@@ -7,6 +7,7 @@
 import type { ClientAgent } from '../lib/org';
 import type { Settings } from '../lib/settings';
 import { approvalItems, type ApprovalItem } from './approvals';
+import type { RealState } from './real';
 import { num, yen } from './store';
 
 /* ---------- 需要カレンダー ---------- */
@@ -78,14 +79,27 @@ export type DemoContext = {
   approvals: ApprovalItem[];
   pending: number;
   nextAuditDay: string;
+  /** API連携で取れた追加情報と、実データになった項目 */
+  extra: RealState['extra'];
+  realKeys: Set<string>;
 };
 
 /** 取り込んだ実データ(その日の種類別の合計)。あればデモの金額の代わりに使う */
 export type RealTotals = { date: string; affiliate: { amount: number; count: number }; goods: { amount: number; count: number } };
 
-export function makeContext(s: Settings, pending: number, today = new Date(), real?: RealTotals | null): DemoContext {
+export function makeContext(
+  base: Settings,
+  pending: number,
+  today = new Date(),
+  real?: RealTotals | null,
+  live?: RealState | null,
+): DemoContext {
   const rnd = seeded(today.toDateString());
+  // API連携で取れた数字で、デモの値を上書きする
+  const s: Settings = live ? { ...base, values: { ...base.values, ...live.values } } : base;
   const v = s.values;
+  const realKeys = new Set<string>(live ? Object.keys(live.sources) : []);
+  if (real) realKeys.add('affiliateAmount').add('suzuriAmount');
   const md = real ? real.date.slice(5).replace('-', '/') : '';
   // 実データは明細を持たないので、件数で割って「実データ」として流す
   const affiliate = real
@@ -115,24 +129,39 @@ export function makeContext(s: Settings, pending: number, today = new Date(), re
     approvals: approvalItems(s),
     pending,
     nextAuditDay: `${next.getMonth() + 1}/1`,
+    extra: live?.extra ?? {},
+    realKeys,
   };
 }
 
 /* ---------- KPIタイル ---------- */
 
-export type Tile = { label: string; value: string; sub?: string };
+export type Tile = { label: string; value: string; sub?: string; real?: boolean };
 
 const TILES: Record<string, (c: DemoContext) => Tile> = {
   planning: (c) => ({ label: '次の需要の山まで', value: `${c.peaks[0]?.days ?? '—'}日`, sub: c.peaks[0]?.name }),
-  seo: (c) => ({ label: '10位以内のKW', value: `${num(c.s.values.top10)}件`, sub: `AI引用 ${c.s.values.aiCitations}件` }),
-  content: (c) => ({ label: '公開・更新(本日)', value: `${c.s.values.publishedUpdated}本`, sub: `下書き ${c.s.values.draftsReady}本` }),
+  seo: (c) =>
+    c.realKeys.has('top10')
+      ? { label: '10位以内のクエリ(7日)', value: `${num(c.s.values.top10)}件`, sub: `クリック ${num(c.extra.gscClicks ?? 0)}`, real: true }
+      : { label: '10位以内のKW', value: `${num(c.s.values.top10)}件`, sub: `AI引用 ${c.s.values.aiCitations}件` },
+  content: (c) => ({
+    label: '公開・更新(本日)',
+    value: `${c.s.values.publishedUpdated}本`,
+    sub: `下書き ${c.s.values.draftsReady}本`,
+    real: c.realKeys.has('publishedUpdated'),
+  }),
   editorial: (c) => ({ label: '審査(本日)', value: `${c.s.values.reviewed}本`, sub: `差し戻し ${c.s.values.rejects}件` }),
   creative: (c) => ({ label: '納品(本日)', value: `${c.s.values.assets}点`, sub: 'alt設定 100%' }),
-  dev: (c) => ({ label: 'mainのビルド', value: 'OK', sub: `LCP ${c.s.values.lcp}s・INP ${c.s.values.inp}ms` }),
-  affiliate: (c) => ({ label: '本日の発生', value: yen(sum(c.affiliate)), sub: `${c.affiliate.length}件` }),
+  dev: (c) => ({
+    label: 'mainのビルド',
+    value: buildLabel(c),
+    sub: `LCP ${c.s.values.lcp}s・INP ${c.s.values.inp}ms`,
+    real: !!c.extra.build || c.realKeys.has('lcp'),
+  }),
+  affiliate: (c) => ({ label: '本日の発生', value: yen(sum(c.affiliate)), sub: `${c.affiliate.length}件`, real: c.realKeys.has('affiliateAmount') }),
   sns: () => ({ label: 'SNS経由の登録', value: '—', sub: '準備中' }),
-  goods: (c) => ({ label: 'SUZURI(トリブン)', value: yen(sum(c.goods)), sub: `${c.goods.length}点` }),
-  analytics: (c) => ({ label: '本日のPV', value: num(c.s.values.pv), sub: `自然検索 ${c.s.values.organicShare}%` }),
+  goods: (c) => ({ label: 'SUZURI(トリブン)', value: yen(sum(c.goods)), sub: `${c.goods.length}点`, real: c.realKeys.has('suzuriAmount') }),
+  analytics: (c) => ({ label: '本日のPV', value: num(c.s.values.pv), sub: `自然検索 ${c.s.values.organicShare}%`, real: c.realKeys.has('pv') }),
   legal: (c) => ({ label: '未解決の指摘', value: '0件', sub: `次の監査 ${c.nextAuditDay}` }),
 };
 
@@ -140,6 +169,14 @@ export const tileFor = (a: ClientAgent, c: DemoContext): Tile =>
   TILES[a.id]?.(c) ?? { label: a.kpi[0]?.label ?? '本日', value: '—', sub: a.kpi[0]?.source };
 
 export const sum = (xs: { amount: number }[]) => xs.reduce((t, x) => t + x.amount, 0);
+
+const BUILD_LABEL: Record<string, string> = { ok: 'OK', failed: '失敗', building: 'ビルド中', unknown: '—' };
+const buildLabel = (c: DemoContext) => (c.extra.build ? (BUILD_LABEL[c.extra.build.state] ?? '—') : 'OK');
+const cut = (s: string, n = 18) => (s.length > n ? `${s.slice(0, n)}…` : s);
+const md = (iso: string) => {
+  const d = new Date(iso);
+  return Number.isNaN(d.getTime()) ? '' : `${d.getMonth() + 1}/${d.getDate()}`;
+};
 
 /* ---------- ミニ画面 ---------- */
 
@@ -151,7 +188,20 @@ const SCREENS: Record<string, (c: DemoContext) => Screen> = {
     title: '需要カレンダー',
     rows: c.peaks.map((p, i) => ({ label: p.name, value: `あと${p.days}日`, tone: i === 0 ? 'warn' : undefined })),
   }),
-  'rank-tracker': (c) => ({
+  'rank-tracker': (c) =>
+    c.extra.topQueries?.length
+      ? {
+          title: `Search Console — 直近7日`,
+          rows: [
+            ...c.extra.topQueries.slice(0, 4).map((q) => ({
+              label: q.query,
+              value: `${q.position}位・${q.clicks}クリック`,
+              tone: q.position <= 10 ? ('good' as const) : undefined,
+            })),
+            { label: '10位以内のクエリ', value: `${num(c.s.values.top10)}件`, tone: 'total' as const },
+          ],
+        }
+      : {
     title: 'Rank Tracker — 今日の変動',
     rows: [
       { label: 'サロモン 登山靴', value: '5位 →' },
@@ -160,8 +210,13 @@ const SCREENS: Record<string, (c: DemoContext) => Screen> = {
       { label: '渓流 入門 装備', value: '圏外' },
       { label: '10位以内', value: `${num(c.s.values.top10)}件`, tone: 'total' },
     ],
-  }),
+  },
   'microcms-drafts': (c) => {
+    if (c.extra.recent?.length)
+      return {
+        title: 'microCMS — 最近の更新',
+        rows: c.extra.recent.map((r) => ({ label: r.title, value: `更新 ${md(r.revisedAt)}`, tone: 'good' as const })),
+      };
     const titles = ['冬キャンプの暖房、何を選ぶか', '紅葉の六甲山、日帰りの装備', '渓流釣りを始める前に揃えるもの', '雨の日の山、レインウェアの選び方'];
     const rows: Row[] = titles.slice(0, Math.max(1, c.s.values.draftsReady)).map((t, i) => ({
       label: t,
@@ -192,16 +247,24 @@ const SCREENS: Record<string, (c: DemoContext) => Screen> = {
       })),
     };
   },
-  'build-vitals': (c) => ({
-    title: 'Build / Core Web Vitals',
-    rows: [
-      { label: 'main ビルド', value: 'OK', tone: 'good' },
-      { label: 'LCP p75', value: `${c.s.values.lcp}s`, tone: c.s.values.lcp <= 2.5 ? 'good' : 'bad' },
-      { label: 'INP p75', value: `${c.s.values.inp}ms`, tone: c.s.values.inp <= 200 ? 'good' : 'bad' },
-      { label: 'CLS p75', value: '0.02', tone: 'good' },
-      { label: 'スクロール中のfps', value: '60', tone: 'good' },
-    ],
-  }),
+  'build-vitals': (c) => {
+    const b = c.extra.build;
+    const lab = c.extra.psiSource === 'lab';
+    const cls = c.extra.cls ?? 0.02;
+    return {
+      title: 'Build / Core Web Vitals',
+      rows: [
+        {
+          label: b?.sha ? `main ビルド(${b.sha})` : 'main ビルド',
+          value: buildLabel(c),
+          tone: !b || b.state === 'ok' ? 'good' : b.state === 'failed' ? 'bad' : 'warn',
+        },
+        { label: lab ? 'LCP(ラボ値)' : 'LCP p75', value: `${c.s.values.lcp}s`, tone: c.s.values.lcp <= 2.5 ? 'good' : 'bad' },
+        { label: 'INP p75', value: lab && !c.realKeys.has('inp') ? '実測待ち' : `${c.s.values.inp}ms`, tone: c.s.values.inp <= 200 ? 'good' : 'bad' },
+        { label: 'CLS', value: String(Math.round(cls * 100) / 100), tone: cls <= 0.1 ? 'good' : 'bad' },
+      ],
+    };
+  },
   'asp-dashboard': () => ({ title: 'ASP管理画面 — 本日の発生', rows: [] }),
   'suzuri-sales': () => ({ title: 'SUZURI — 本日の売上', rows: [] }),
   'post-queue': () => ({
@@ -218,7 +281,7 @@ const SCREENS: Record<string, (c: DemoContext) => Screen> = {
       { label: 'PV', value: num(c.s.values.pv) },
       { label: '自然検索の割合', value: `${c.s.values.organicShare}%` },
       { label: 'soft CV', value: `${c.s.values.softCv}件`, tone: c.s.values.softCv > 0 ? 'good' : undefined },
-      { label: 'よく読まれた記事', value: 'サロモン登山靴' },
+      { label: 'よく読まれた記事', value: c.extra.topPages?.[0] ? cut(c.extra.topPages[0].title, 14) : 'サロモン登山靴' },
     ],
   }),
   audit: () => ({
@@ -266,14 +329,24 @@ const ANSWERS: Record<string, (c: DemoContext) => string> = {
     const [p0, p1] = c.peaks;
     return `次の需要の山「${p0?.name}」まで${p0?.days}日。その次の「${p1?.name}」(${p1?.days}日後)に向けた比較記事を発注しました`;
   },
-  seo: (c) =>
-    `10位以内は${num(c.s.values.top10)}件。「ナイトハイク 装備」が9位に上がりました。AI回答での引用は${c.s.values.aiCitations}件です`,
+  seo: (c) => {
+    const q = c.extra.topQueries?.[0];
+    if (c.realKeys.has('top10'))
+      return `直近7日で10位以内のクエリは${num(c.s.values.top10)}件、クリック${num(c.extra.gscClicks ?? 0)}回。` + (q ? `いちばん多いのは「${q.query}」(${q.position}位)です` : 'まだクリックはありません');
+    return `10位以内は${num(c.s.values.top10)}件。「ナイトハイク 装備」が9位に上がりました。AI回答での引用は${c.s.values.aiCitations}件です`;
+  },
   content: (c) =>
     `下書き${c.s.values.draftsReady}本を校閲に出しました。本日の公開・更新は${c.s.values.publishedUpdated}本です`,
   editorial: (c) =>
     `${c.s.values.reviewed}本審査、${c.s.values.rejects}本差し戻し。公開済み記事の価格・廃番チェックは異常なしです`,
   creative: (c) => `サムネ・図解を${c.s.values.assets}点納品。altも設定済みです`,
-  dev: (c) => `mainのビルドOK。LCP ${c.s.values.lcp}秒・INP ${c.s.values.inp}msで基準内です`,
+  dev: (c) => {
+    const b = c.extra.build;
+    if (b?.state === 'failed') return `mainのビルドが失敗しています(${b.sha}「${cut(b.message ?? '', 20)}」)。原因を確認します`;
+    if (b?.state === 'building') return `mainをビルド中です(${b.sha})。LCP ${c.s.values.lcp}秒`;
+    const ok = c.s.values.lcp <= 2.5 && c.s.values.inp <= 200;
+    return `mainのビルドOK。LCP ${c.s.values.lcp}秒・INP ${c.s.values.inp}msで${ok ? '基準内です' : '基準を超えています。改善案を作ります'}`;
+  },
   affiliate: (c) =>
     c.affiliate.length > 0
       ? `本日の発生は${yen(sum(c.affiliate))}(${c.affiliate.length}件)。提携状況に変化はありません`

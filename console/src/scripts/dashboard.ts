@@ -6,12 +6,15 @@ import type { ClientAgent } from '../lib/org';
 import { sourceById } from '../lib/sources';
 import { approvalItems } from './approvals';
 import { buildScript, makeContext, moneyRows, screenFor, sum, tileFor, type DemoContext, type Row, type Step } from './demo';
+import { loadReal, realSourceNames, type RealState } from './real';
 import { esc, latestImported, loadDecisions, loadSettings, yen } from './store';
 
 const HOLD_AFTER_END = 6; // 日報のあと、次の周に入るまでの余韻(秒)
 const SPEAK_MS = 2600;
+const FIRST_WAIT_MS = 2500; // 最初の周は、実データが届くのをこれだけ待ってから始める
+const REFRESH_MS = 10 * 60 * 1000; // 実データの取り直し
 
-export function startDashboard() {
+export async function startDashboard() {
   const agents: ClientAgent[] = JSON.parse(document.getElementById('org-data')!.textContent || '[]');
   const s = loadSettings();
   const byId = new Map(agents.map((a) => [a.id, a]));
@@ -34,8 +37,8 @@ export function startDashboard() {
   const pending = approvalItems(s).filter((a) => !decisions[a.id]).length;
   setText('[data-pending]', String(pending));
 
-  // 取り込んだ実データを使うか
-  const real = s.useImported ? latestImported((id) => sourceById(id)?.kind) : null;
+  // 取り込んだ実データ(CSV・手入力)
+  const real = s.useReal ? latestImported((id) => sourceById(id)?.kind) : null;
   if (real) {
     const chip = document.querySelector<HTMLElement>('[data-board-chip]');
     if (chip) {
@@ -47,18 +50,34 @@ export function startDashboard() {
       src.hidden = false;
       src.textContent = `アフィリエイト・SUZURIは「データ取り込み」の ${real.date} の合計。ほかの数字はデモ。`;
     }
-  } else if (s.useImported) {
-    const src = document.querySelector<HTMLElement>('[data-board-src]');
-    if (src) {
-      src.hidden = false;
-      src.textContent = '実データを使う設定ですが、まだ取り込みがありません(デモの数字を表示中)。';
-    }
   }
 
   setupTabs();
 
-  const ctx = makeContext(s, pending, new Date(), real);
-  const steps = buildScript(visible, ctx);
+  // API連携の実データ(GA4・Search Consoleなど)。届いたものから次の周に反映する
+  let live: RealState | null = null;
+  const updateModeChip = () => {
+    const chip = document.querySelector<HTMLElement>('[data-mode-chip]');
+    if (!chip) return;
+    const names = realSourceNames(live);
+    if (live?.extra.build) names.push('GitHub');
+    if (real) names.push('CSV');
+    chip.textContent = names.length ? `実データ:${names.join('・')}|ほかはイメージ` : 'DEMO|数値はイメージ';
+    chip.classList.toggle('chip--real', names.length > 0);
+    chip.classList.toggle('chip--demo', names.length === 0);
+  };
+  if (s.useReal) {
+    const first = loadReal((st) => {
+      live = st;
+      updateModeChip();
+    });
+    await Promise.race([first, new Promise((r) => setTimeout(r, FIRST_WAIT_MS))]);
+    setInterval(() => loadReal((st) => (live = st)).then(updateModeChip), REFRESH_MS);
+  }
+  updateModeChip();
+
+  let ctx = makeContext(s, pending, new Date(), real, live);
+  let steps = buildScript(visible, ctx);
   const loopEnd = Math.max(30, s.loopSeconds) + HOLD_AFTER_END;
 
   let cursor = 0;
@@ -69,6 +88,9 @@ export function startDashboard() {
   let round = 0;
 
   const reset = () => {
+    // 周ごとに、届いている実データで台本を組み直す
+    ctx = makeContext(s, pending, new Date(), real, live);
+    steps = buildScript(visible, ctx);
     cursor = 0;
     started = performance.now();
     money = { affiliate: [], goods: [] };
@@ -86,6 +108,7 @@ export function startDashboard() {
       setIn(card, '[data-tile-label]', tile.label);
       setIn(card, '[data-tile-value]', '—');
       setIn(card, '[data-tile-sub]', '');
+      card.querySelector('.tile')?.classList.toggle('tile--real', !!tile.real);
     }
     updateBoard();
     const chat = document.querySelector('[data-chat]')!;

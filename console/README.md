@@ -8,8 +8,10 @@ AIエージェントで構成した「部」の稼働状況・成果・報告を
 - 組織とエージェントの定義 → `ORG.md` と `agents/*.md`
 - このファイル → コンソールの画面・データ・作る順番
 
-> **現状:Phase 1(デモ)まで実装済み。** 数字はイメージ(既定は立ち上げ期の実態に寄せた値)。
-> ASP・SUZURIの売上だけは、CSV/手入力で入れた実データに切り替えられる。
+> **現状:Phase 1(デモ)＋ Phase 2 の一部(API連携)まで実装済み。**
+> GA4・Search Console・PageSpeed・microCMS・GitHub はAPIで自動連携(環境変数を入れたものから実データになる)。
+> ASP・SUZURIの売上はCSV/手入力。実データが無い数字はデモ(既定は立ち上げ期の実態に寄せた値)。
+> **公開(Cloudflare)とAPIの設定手順は `SETUP.md`**(上から押していけば終わるように書いてある)。
 
 ## 動かし方
 
@@ -19,6 +21,10 @@ npm install
 npm run dev      # http://localhost:4321
 npm run build    # dist/ に出力
 npm run check    # 型チェック
+npm test         # サーバー側(Access検証・各API連携)のテスト
+
+# APIまで含めてローカルで動かすとき(.dev.vars.example を .dev.vars にコピー)
+npm run build && ../node_modules/.bin/wrangler pages dev dist --compatibility-date=2026-08-01
 ```
 
 | 画面 | パス | 中身 |
@@ -42,6 +48,12 @@ npm run check    # 型チェック
 | 承認トレイの依頼(デモ) | `src/scripts/approvals.ts` |
 | CSVの読み込み(Shift_JIS対応・列の推測) | `src/scripts/csv.ts` |
 | ブラウザ内の保存 | `src/scripts/store.ts` |
+| API連携の一覧(画面用。候補も含む) | `src/lib/connectors.ts` |
+| 実データの取得と、デモの値への割り当て | `src/scripts/real.ts` |
+| API連携の本体(Pages Functionsから呼ぶ) | `server/connectors.js` / `server/google.js` |
+| Accessの検証(/api/* の入口) | `server/access.js` / `functions/api/_middleware.js` |
+| APIの口 | `functions/api/connectors/index.js`(状態)/ `functions/api/connectors/[id].js`(数字) |
+| 公開・API設定の手順 | `SETUP.md` |
 | 見た目 | `src/styles/console.css` |
 
 ---
@@ -52,10 +64,11 @@ npm run check    # 型チェック
 |---|---|
 | 目的 | まずデモ(数字はイメージ)で見た目と組織を固め、そのあと実データ・実行につなぐ |
 | 置き場所 | このリポジトリの `console/`。公開サイト(`src/`)のビルドには含めない |
-| 配信 | 公開サイトとは別のCloudflare Pagesプロジェクト(ルート: `console/`)。Cloudflare AccessでCEOだけが見られるようにする(9章) |
+| 配信 | 公開サイトとは別のCloudflare Pagesプロジェクト(ルート: `console/`)。Cloudflare AccessでCEOだけが見られるようにする(`SETUP.md`) |
 | CEO | 表示名は **AOI**(設定で変えられる) |
 | デモの数字 | **いまの実態(立ち上げ期)に寄せる。** 規模は設定画面で変えられる(プリセット:立ち上げ期 / 3ヶ月後 / 1年後 / カスタム) |
 | 売上の取り込み | 無料APIで自動取得できるものはなかった → **CSV**(ASP)と**手入力**(SUZURI)。ブラウザ内に保存(7章) |
+| API連携 | **GA4・Search ConsoleはAPI**。ほかにもAPI・MCP・コネクタでつなげられるものは**どんどんつなぐ**(10章) |
 | main | 入れてよい(CEO確認済み)。ただし**売上の実データはGitに載せない**(公開リポジトリのため) |
 | 見た目 | YAMATOのブランド(山のシルエット・Zen Old Mincho / Zen Kaku Gothic New / Schibsted Grotesk・落ち着いた色)。組織の呼び方は会社のまま(本部・部) |
 | 組織 | CEO → 社長室・経営企画 → 3本部(プロダクト・コンテンツ / ビジネス・レベニュー / コーポレート)→ 部 |
@@ -240,7 +253,7 @@ type ConsoleEvent = {
 |---|---|---|
 | **0. 定義**(いま) | `ORG.md` / `agents/*.md` / このファイル | CEOがOKを出す |
 | **1. デモ**(済) | Astroで 1-1〜1-4・設定・データ取り込み。`agents/*.md` を読んで描画、台本(3章)を再生 | スマホとPCで60fps前後(実測:idle 61 / スクロール 59〜60)、部の追加がファイル1枚で反映される |
-| **2. 実データ** | 各部の定例をRoutine(Claude Codeの定期実行)にし、イベントを書かせる。GA4(Data API・無料)・Ahrefs/GSC・SUZURIのアイテム数(API)を自動取得。保存先をAccessの内側(KV/R2)へ。**イベントや売上は公開リポジトリにコミットしない** | 「DEMO」バッジが消える |
+| **2. 実データ**(一部済) | 済:GA4・Search Console・PageSpeed・microCMS・GitHubのAPI連携(10章)。残り:各部の定例をRoutine(Claude Codeの定期実行)にし、Ahrefs(MCP)なども使ってイベントを書かせる。CSVの保存先をAccessの内側(KV/R2)へ。**イベントや売上は公開リポジトリにコミットしない** | 「DEMO」バッジが消える |
 | **3. 実行** | 承認トレイの承認で、実際の公開・マージ・投稿の処理を起動する | CEOがスマホから承認して記事が公開される |
 
 Phase 2以降で `agents/*.md` をClaude Codeのサブエージェント定義(`.claude/agents/`)に変換して、
@@ -254,6 +267,8 @@ Phase 2以降で `agents/*.md` をClaude Codeのサブエージェント定義(`
 - [x] CEOの表示名は **AOI**
 - [x] この定義とコンソールは `main` に入れてよい
 - [x] 売上は「無料APIで自動連携できるならAPI、できなければCSV」→ 調べた結果、どこも成果を取るAPIがない → CSV/手入力 → 7章
+- [x] (2026-10-13)アフィリエイト・SUZURIはCSVか手入力。**GA4・Search ConsoleはAPI連携。ほかもAPI・MCP・コネクタでつなげるものはどんどんつなぐ** → 10章
+- [x] (2026-10-13)公開の手順は、リンク付きで5分で終わるようにする → `SETUP.md`
 
 ---
 
@@ -280,7 +295,7 @@ APIの提供状況は変わりやすい。出たら `src/lib/sources.ts` を書�
 - 「数えない状態」(例:`否認|キャンセル|無効`)に当たる行は除く。日ごとの合計(金額・件数)にして保存する。
 - 同じ日を2回取り込んでも二重にならない(日付単位で上書き)。選んだ列は取り込み元ごとに覚え、次回の初期値にする。
 - CSVがないもの(SUZURI)は手入力。
-- 「設定 → 実データを使う」をONにすると、ダッシュボードのアフィリエイト・SUZURIが**取り込んだ最新日の合計**になり、
+- 「設定 → 実データを使う」(既定ON)のあいだ、ダッシュボードのアフィリエイト・SUZURIが**取り込んだ最新日の合計**になり、
   集計ボードに「実データ M/D」と出る(台本の台詞・日報の合計もその数字になる)。ほかの数字はデモのまま。
 
 ### 7-3. 保存先(大事)
@@ -303,7 +318,7 @@ APIの提供状況は変わりやすい。出たら `src/lib/sources.ts` を書�
 | 1日あたりの値 | アフィリエイト(額・件数)、SUZURI(トリブン・点数)、PV、自然検索の割合、soft CV、10位以内KW、AI引用、公開・更新、下書き、審査、差し戻し、納品、承認依頼、LCP、INP |
 | 台本1周の長さ | 30〜300秒(既定60秒) |
 | 準備中の部も出す | SNS部などをダッシュボードに出す |
-| 実データを使う | 7-2 |
+| 実データを使う | 既定ON。API連携(10章)と取り込んだCSV(7章)で実データがある数字は、デモの代わりにそれを使う |
 
 プリセットの数字そのものを直したいときは `src/lib/settings.ts` の `PRESETS` を書き換える
 (「立ち上げ期」は実態に合わせて随時更新する。プリセットを選んでいるブラウザには、書き換えた値がそのまま反映される)。
@@ -313,14 +328,60 @@ APIの提供状況は変わりやすい。出たら `src/lib/sources.ts` を書�
 
 ## 9. 配信(Cloudflare Pages。CEOの作業)
 
-公開サイトとは**別のPagesプロジェクト**を作る。
-
-1. Cloudflare → Workers & Pages → 作成 → Pages → このリポジトリを接続
-2. 本番ブランチ `main` / ルートディレクトリ `console` / ビルドコマンド `npm run build` / 出力 `dist`
-3. Zero Trust → Access → アプリケーションを追加(セルフホスト)→ コンソールのドメインを指定し、
-   ポリシーで自分のメールアドレスだけを許可する(**これを入れるまでURLを人に教えない**)
-4. 公開サイト側のPagesプロジェクトは触らない(ルート直下のビルドは `console/` を含まない)
+**手順は `SETUP.md`。** Cloudflare(5分)→ Google(10分)→ microCMS(1分)の順。
 
 `astro.config.mjs` で `vite.tsconfig` を `console/tsconfig.json` に固定している。これがないと、
 親(公開サイト)の `tsconfig.json` を読みにいき、親の `node_modules` が無いPagesのビルドで
-`Tsconfig not found astro/tsconfigs/strict` と落ちる。
+`Tsconfig not found astro/tsconfigs/strict` と落ちる。Nodeのバージョンは `.node-version`(22)。
+
+---
+
+## 10. API連携
+
+### 10-1. 仕組み
+
+```
+ブラウザ(BASE CAMP)── GET /api/connectors/<id> ──▶ Pages Functions(functions/api/)
+                                                     │ ① Access のJWTを検証(server/access.js)。設定が無ければ返さない
+                                                     │ ② エッジのキャッシュにあれば返す(連携ごとのttl)
+                                                     ▼
+                                       server/connectors.js ──▶ GA4 / Search Console / PageSpeed / microCMS / GitHub
+```
+
+- 鍵(GoogleのサービスアカウントJSON・APIキー)は**Cloudflareの環境変数(シークレット)にだけ**置く。ブラウザには渡らない。
+- 届いた数字は `src/scripts/real.ts` でデモの値に上書きする。ダッシュボードは周ごとに組み直すので、
+  遅れて届いた連携(PageSpeedは初回20秒ほど)も次の周から反映される。10分ごとに取り直す。
+- 実データになった数字は、KPIタイルに「実データ」の印、上のバーに「実データ:GA4・…」と出る。
+- 失敗・未設定の連携はデモのまま。理由は「データ連携」画面に出る。
+
+| 連携 | 数字 | キャッシュ | 必要な環境変数 |
+|---|---|---|---|
+| GA4 | 本日のPV・セッション・自然検索の割合・soft CV(`cv_click`)・読了・よく読まれた記事 | 10分 | `GOOGLE_SERVICE_ACCOUNT_JSON` `GA4_PROPERTY_ID` |
+| Search Console | 直近7日(昨日まで)のクリック・表示回数・10位以内のクエリ数・上位クエリ | 6時間 | `GOOGLE_SERVICE_ACCOUNT_JSON`(`GSC_SITE_URL` 任意) |
+| PageSpeed Insights | LCP・INP・CLS(実ユーザー値。無ければラボ値)・スコア | 6時間 | なし(`PSI_API_KEY` 推奨) |
+| microCMS | 本日の公開・更新本数・最近の更新 | 10分 | `MICROCMS_SERVICE_DOMAIN` `MICROCMS_API_KEY` |
+| GitHub | mainの最新コミットとCloudflare Pagesのビルド成否 | 5分 | なし(`GITHUB_TOKEN` 任意) |
+
+### 10-2. 次につなぐ候補
+
+「どんどんつなぐ」方針。候補と必要なものは `src/lib/connectors.ts`(画面の「データ連携」にも出る)。
+
+| 候補 | 方法 | 数字 | 必要なもの |
+|---|---|---|---|
+| Ahrefs | MCP(Claudeに接続済み) | 順位追跡・被リンク・AI回答での引用 | 各部の定例をClaudeで回すとき(Phase 2の残り) |
+| SUZURI API | API | 販売中のアイテム数 | 無料トークン |
+| Microsoft Clarity | API | デッドクリック・スクロール | Clarityの導入 |
+| Bing Webmaster Tools | API | Bing / Copilot の検索 | 無料APIキー |
+| Cloudflare | API | デプロイ履歴・Web Analytics | 読み取り専用トークン |
+| LINE公式アカウント | API | 友だち数 | LINEの開設 |
+| Instagram | API | フォロワー・保存・リーチ | プロアカウント＋Facebookページ |
+| X | API | フォロワー・インプレッション | 有料。SNS部の稼働後に判断 |
+| Slack / Notion / Googleカレンダー | MCP(Claudeに接続済み) | 日報の送り先・編集会議の予定 | 受け取り先を決めるだけ |
+
+### 10-3. 連携を足す手順
+
+1. `server/connectors.js` に関数を足し、`CONNECTORS` に `{ needs, ttl, run }` で登録する
+2. `src/lib/connectors.ts` の該当行を `kind: 'live'` にする(無ければ足す)
+3. `src/scripts/real.ts` の `LIVE_IDS` に id を足し、`applyResult` でデモのどの値に当てるかを書く
+4. `test/server.test.mjs` に応答の読み取りのテストを足して `npm test`
+5. 必要な環境変数を `SETUP.md` の表に足す

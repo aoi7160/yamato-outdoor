@@ -19,3 +19,6 @@ node_modules/
 
 # 社内コンソール(console/)の個人データ。CSVの原本などをローカルに置くときはここに(Gitには載せない)
 console/data/private/
+
+# Cloudflare Pages Functions のローカル用の秘密(コンソール)
+.dev.vars
