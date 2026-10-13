@@ -15,5 +15,8 @@
   },
   // 環境変数はCloudflareの画面(設定 → 変数とシークレット)で入れる。デプロイで消さないようにする
   "keep_vars": true,
+  // 外部APIの結果を置いておくキャッシュ(Workers KV・無料枠)。workers.dev ではCloudflareの通常のキャッシュが効かないため。
+  // id を書かなくても、初回のデプロイで wrangler が自動で作る(自動プロビジョニング)
+  "kv_namespaces": [{ "binding": "BASECAMP_CACHE" }],
   "observability": { "enabled": true }
 }

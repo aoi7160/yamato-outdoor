@@ -198,6 +198,7 @@ const SCREENS: Record<string, (c: DemoContext) => Screen> = {
               value: `${q.position}位・${q.clicks}クリック`,
               tone: q.position <= 10 ? ('good' as const) : undefined,
             })),
+            ...(c.extra.bing ? [{ label: 'Bing(7日)', value: `${num(c.extra.bing.clicks)}クリック・${num(c.extra.bing.impressions)}表示` }] : []),
             { label: '10位以内のクエリ', value: `${num(c.s.values.top10)}件`, tone: 'total' as const },
           ],
         }
@@ -282,6 +283,10 @@ const SCREENS: Record<string, (c: DemoContext) => Screen> = {
       { label: '自然検索の割合', value: `${c.s.values.organicShare}%` },
       { label: 'soft CV', value: `${c.s.values.softCv}件`, tone: c.s.values.softCv > 0 ? 'good' : undefined },
       { label: 'よく読まれた記事', value: c.extra.topPages?.[0] ? cut(c.extra.topPages[0].title, 14) : 'サロモン登山靴' },
+      ...(c.extra.clarity?.deadClickRate != null
+        ? [{ label: 'デッドクリック(Clarity)', value: `${c.extra.clarity.deadClickRate}%`, tone: c.extra.clarity.deadClickRate > 10 ? ('warn' as const) : undefined }]
+        : []),
+      ...(c.extra.clarity?.scrollDepth != null ? [{ label: 'スクロールの深さ(Clarity)', value: `${Math.round(c.extra.clarity.scrollDepth)}%` }] : []),
     ],
   }),
   audit: () => ({
@@ -332,7 +337,11 @@ const ANSWERS: Record<string, (c: DemoContext) => string> = {
   seo: (c) => {
     const q = c.extra.topQueries?.[0];
     if (c.realKeys.has('top10'))
-      return `直近7日で10位以内のクエリは${num(c.s.values.top10)}件、クリック${num(c.extra.gscClicks ?? 0)}回。` + (q ? `いちばん多いのは「${q.query}」(${q.position}位)です` : 'まだクリックはありません');
+      return (
+        `直近7日で10位以内のクエリは${num(c.s.values.top10)}件、クリック${num(c.extra.gscClicks ?? 0)}回。` +
+        (q ? `いちばん多いのは「${q.query}」(${q.position}位)です。` : 'まだクリックはありません。') +
+        (c.extra.bing ? `Bingは${num(c.extra.bing.clicks)}クリック・${num(c.extra.bing.impressions)}表示です` : '')
+      );
     return `10位以内は${num(c.s.values.top10)}件。「ナイトハイク 装備」が9位に上がりました。AI回答での引用は${c.s.values.aiCitations}件です`;
   },
   content: (c) =>
@@ -356,8 +365,14 @@ const ANSWERS: Record<string, (c: DemoContext) => string> = {
     c.goods.length > 0
       ? `SUZURIで${c.goods.length}点、トリブン${yen(sum(c.goods))}です`
       : '本日の販売はありません。冬の新作ラフを作成中で、商標を法務に確認依頼しました',
-  analytics: (c) =>
-    `本日${num(c.s.values.pv)}PV(自然検索${c.s.values.organicShare}%)。soft CVは${c.s.values.softCv}件です`,
+  analytics: (c) => {
+    const cl = c.extra.clarity;
+    const ux =
+      cl && cl.deadClickRate != null
+        ? `。Clarityではデッドクリックが${cl.deadClickRate}%のセッションで発生` + (cl.deadClickRate > 10 ? '、押せそうで押せない場所がないか確認します' : 'で問題なしです')
+        : 'です';
+    return `本日${num(c.s.values.pv)}PV(自然検索${c.s.values.organicShare}%)。soft CVは${c.s.values.softCv}件${ux}`;
+  },
   legal: (c) => `確認依頼は0件。${c.nextAuditDay}の月次監査に向けて外部送信一覧を照合中です`,
 };
 

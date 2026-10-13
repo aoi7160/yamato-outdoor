@@ -5,6 +5,7 @@
  *
  * 返す値は「その日の数字」。日付は日本時間で数える。
  */
+import { hasPersistentCache } from './cache.js';
 import { googleError, googleToken, readServiceAccount } from './google.js';
 
 const TZ = 'Asia/Tokyo';
@@ -192,6 +193,84 @@ async function github(env) {
   };
 }
 
+/* ---------- Microsoft Clarity(Data Export API) ---------- */
+
+// 1日10回まで(プロジェクトごと)。ttl を3時間にして1日8回以内に収め、KV(永続キャッシュ)が無いときは取りにいかない
+const num = (v) => {
+  const n = Number(v);
+  return Number.isFinite(n) ? n : null;
+};
+const metricKey = (s) => String(s ?? '').toLowerCase().replace(/[^a-z]/g, '');
+
+async function clarity(env) {
+  if (!hasPersistentCache(env))
+    throw new Error('Clarityは1日10回までのため、キャッシュ(KV:BASECAMP_CACHE)が無い環境では取りにいきません');
+  const res = await fetch('https://www.clarity.ms/export-data/api/v1/project-live-insights?numOfDays=1', {
+    headers: { authorization: `Bearer ${env.CLARITY_API_TOKEN}`, 'content-type': 'application/json' },
+  });
+  if (!res.ok) {
+    const why = { 401: 'トークンが無効か期限切れ', 403: 'このトークンに権限がない', 429: '今日の上限(10回)に達した' }[res.status] ?? '';
+    throw Object.assign(new Error(`Clarity:${res.status} ${why}`), { status: res.status });
+  }
+  const list = await res.json();
+  const info = (name) => (Array.isArray(list) ? list.find((m) => metricKey(m.metricName) === metricKey(name)) : null)?.information?.[0] ?? {};
+  const traffic = info('Traffic');
+  const rate = (name) => num(info(name).sessionsWithMetricPercentage);
+  return {
+    range: '直近24時間',
+    sessions: num(traffic.totalSessionCount),
+    bots: num(traffic.totalBotSessionCount),
+    users: num(traffic.distantUserCount),
+    pagesPerSession: num(traffic.PagesPerSessionPercentage),
+    deadClickRate: rate('DeadClickCount'),
+    rageClickRate: rate('RageClickCount'),
+    quickbackRate: rate('QuickbackClick'),
+    scrollDepth: num(info('ScrollDepth').averageScrollDepth),
+    activeTime: num(info('EngagementTime').activeTime),
+  };
+}
+
+/* ---------- Bing Webmaster Tools ---------- */
+
+// Bingの日付は "/Date(1693497600000-0700)/" の形
+const bingDate = (s) => Number(String(s ?? '').match(/\/Date\((-?\d+)/)?.[1] ?? NaN);
+
+async function bing(env) {
+  const site = env.BING_SITE_URL || SITE;
+  const call = async (method) => {
+    const res = await fetch(
+      `https://ssl.bing.com/webmaster/api.svc/json/${method}?siteUrl=${encodeURIComponent(site)}&apikey=${encodeURIComponent(env.BING_API_KEY)}`,
+    );
+    const body = await res.json().catch(() => ({}));
+    if (!res.ok || body.ErrorCode) {
+      const msg = String(body.Message ?? res.status).replace(/^ERROR!+\s*/, '');
+      const hint = /InvalidApiKey/i.test(msg) ? '(APIキーが違う)' : /NotAuthorized|NotFound|Site/i.test(msg) ? '(サイトがBingに登録・確認されていない)' : '';
+      throw Object.assign(new Error(`Bing:${msg}${hint}`), { status: res.status });
+    }
+    return Array.isArray(body.d) ? body.d : [];
+  };
+  const [traffic, queries] = await Promise.all([call('GetRankAndTrafficStats'), call('GetQueryStats')]);
+  const since = Date.now() - 7 * 86_400_000;
+  const recent = traffic.filter((r) => bingDate(r.Date) >= since);
+  const byQuery = new Map();
+  for (const q of queries) {
+    const cur = byQuery.get(q.Query) ?? { query: q.Query, clicks: 0, impressions: 0, position: 0 };
+    cur.clicks += q.Clicks ?? 0;
+    cur.impressions += q.Impressions ?? 0;
+    cur.position = q.AvgImpressionPosition ?? cur.position;
+    byQuery.set(q.Query, cur);
+  }
+  return {
+    range: '直近7日',
+    clicks: recent.reduce((t, r) => t + (r.Clicks ?? 0), 0),
+    impressions: recent.reduce((t, r) => t + (r.Impressions ?? 0), 0),
+    topQueries: [...byQuery.values()]
+      .sort((a, b) => b.clicks - a.clicks || b.impressions - a.impressions)
+      .slice(0, 5)
+      .map((q) => ({ ...q, position: Math.round(q.position * 10) / 10 })),
+  };
+}
+
 /* ---------- 一覧 ---------- */
 
 export const CONNECTORS = {
@@ -200,6 +279,9 @@ export const CONNECTORS = {
   psi: { needs: [], ttl: 6 * 3600, run: psi },
   microcms: { needs: ['MICROCMS_SERVICE_DOMAIN', 'MICROCMS_API_KEY'], ttl: 600, run: microcms },
   github: { needs: [], ttl: 300, run: github },
+  // Clarityは1日10回まで。3時間ごと(1日8回)にしか取りにいかず、「取り直す」でも取りにいかない
+  clarity: { needs: ['CLARITY_API_TOKEN'], ttl: 3 * 3600, noFresh: true, run: clarity },
+  bing: { needs: ['BING_API_KEY'], ttl: 6 * 3600, run: bing },
 };
 
 export function missingEnv(id, env) {

@@ -13,12 +13,12 @@ members:
   - 構成設計AI
   - 順位監視AI
 kpi:
-  - { key: top10_keywords, label: 10位以内のKW, unit: 件, source: Ahrefs Rank Tracker }
-  - { key: clicks_7d, label: 検索クリック(7日), unit: 回, source: Search Console(Ahrefs経由) }
-  - { key: ai_citations, label: AI回答での引用, unit: 件, source: Ahrefs Brand Radar }
+  - { key: top10_keywords, label: 10位以内のクエリ, unit: 件, source: Search Console }
+  - { key: clicks_7d, label: 検索クリック(7日), unit: 回, source: Search Console / Bing Webmaster Tools }
+  - { key: ai_citations, label: AI回答での引用, unit: 件, source: 手で確認(主要なAI検索で週1回) }
   - { key: briefs_ready, label: 設計ドキュメント完成, unit: 本, source: docs/articles/ }
 screen: rank-tracker
-sources: [Ahrefs, Search Console(Ahrefs経由), Ahrefs Site Audit, Ahrefs Brand Radar]
+sources: [Search Console, Bing Webmaster Tools, GA4(流入種別 ai), サイト内リンクの自前チェック]
 cadence:
   - { when: "daily 07:00", what: 順位・インデックス・外部リンク切れの差分 }
   - { when: "weekly mon 07:00", what: 順位が落ちた記事・前年モデルのままの記事の一覧 }
@@ -37,9 +37,9 @@ reports_to: executive
 - `docs/articles/<slug>.md` の作成(ペルソナの具体化・SERP調査・見出し構成の根拠・内部リンク計画。書式は `docs/articles/README.md`)
 - 内部リンク計画(新記事から既存記事へ / 既存記事から新記事へ。どの記事のどの段落に足すか)
 - **LLMO**:生成AIの回答に引用されるための対策。`docs/tone-and-manner.md` 9章に沿った構成の指示、
-  `llms.txt`(`src/pages/llms.txt.ts`)の内容の見直し案、AI回答での引用状況の追跡(Ahrefs Brand Radar)
-- 順位の追跡とGSCの分析(Ahrefs経由)
-- **検知**:順位が落ちた記事 / 前年モデルのまま残っている記事 / 外部リンク切れ(Ahrefs Site Audit)
+  `llms.txt`(`src/pages/llms.txt.ts`)の内容の見直し案、AI回答での引用状況の追跡(GA4の流入種別 `ai` と、主要なAI検索での週1回の手確認。Ahrefsは有料のため見送り)
+- 順位の追跡とGSCの分析(Search Console API。Bing / Copilot は Bing Webmaster Tools)
+- **検知**:順位が落ちた記事 / 前年モデルのまま残っている記事 / 外部リンク切れ(サイト内の外部リンクを定期に叩いて確かめる自前チェック)
   → 検知したら境界表(`ORG.md` 3章)の「判断」の部に渡す
 
 ## やらないこと(他部の担当)

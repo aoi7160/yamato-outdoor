@@ -186,9 +186,9 @@ members:                     # 役割。コンソールの人形
   - 構成設計AI
   - 順位監視AI
 kpi:                         # 先頭が部カードの代表KPI
-  - { key: top10_keywords, label: 10位以内のKW, unit: 件, source: Ahrefs Rank Tracker }
+  - { key: top10_keywords, label: 10位以内のクエリ, unit: 件, source: Search Console }
 screen: rank-tracker         # 部カードのミニ画面の種類(コンソール側の部品名)
-sources: [Ahrefs, Search Console]
+sources: [Search Console, Bing Webmaster Tools]
 cadence:                     # 定例の時刻(実運用でRoutineにする)
   - { when: "daily 07:00", what: 順位・インデックス・リンク切れの差分 }
 reports_to: executive
@@ -259,7 +259,7 @@ type ConsoleEvent = {
 |---|---|---|
 | **0. 定義**(いま) | `ORG.md` / `agents/*.md` / このファイル | CEOがOKを出す |
 | **1. デモ**(済) | Astroで 1-1〜1-4・設定・データ取り込み。`agents/*.md` を読んで描画、台本(3章)を再生 | スマホとPCで60fps前後(実測:idle 61 / スクロール 59〜60)、部の追加がファイル1枚で反映される |
-| **2. 実データ**(一部済) | 済:GA4・Search Console・PageSpeed・microCMS・GitHubのAPI連携(10章)。残り:各部の定例をRoutine(Claude Codeの定期実行)にし、Ahrefs(MCP)なども使ってイベントを書かせる。CSVの保存先をAccessの内側(KV/R2)へ。**イベントや売上は公開リポジトリにコミットしない** | 「DEMO」バッジが消える |
+| **2. 実データ**(一部済) | 済:GA4・Search Console・PageSpeed・microCMS・GitHub・Clarity・BingのAPI連携(10章)。残り:各部の定例をRoutine(Claude Codeの定期実行)にし、Notion(日報)・Googleカレンダー(MCP)も使ってイベントを書かせる。CSVの保存先をAccessの内側(KV/R2)へ。**イベントや売上は公開リポジトリにコミットしない** | 「DEMO」バッジが消える |
 | **3. 実行** | 承認トレイの承認で、実際の公開・マージ・投稿の処理を起動する | CEOがスマホから承認して記事が公開される |
 
 Phase 2以降で `agents/*.md` をClaude Codeのサブエージェント定義(`.claude/agents/`)に変換して、
@@ -355,6 +355,7 @@ APIの提供状況は変わりやすい。出たら `src/lib/sources.ts` を書�
 ```
 
 - 鍵(GoogleのサービスアカウントJSON・APIキー)は**Cloudflareの環境変数(シークレット)にだけ**置く。ブラウザには渡らない。
+- 結果のキャッシュは Workers KV(`BASECAMP_CACHE`。`server/cache.js`)。workers.dev ではCloudflareの通常のキャッシュが効かないため。KVが無い環境では Cache API。
 - 届いた数字は `src/scripts/real.ts` でデモの値に上書きする。ダッシュボードは周ごとに組み直すので、
   遅れて届いた連携(PageSpeedは初回20秒ほど)も次の周から反映される。10分ごとに取り直す。
 - 実データになった数字は、KPIタイルに「実データ」の印、上のバーに「実データ:GA4・…」と出る。
@@ -367,6 +368,8 @@ APIの提供状況は変わりやすい。出たら `src/lib/sources.ts` を書�
 | PageSpeed Insights | LCP・INP・CLS(実ユーザー値。無ければラボ値)・スコア | 6時間 | なし(`PSI_API_KEY` 推奨) |
 | microCMS | 本日の公開・更新本数・最近の更新 | 10分 | `MICROCMS_SERVICE_DOMAIN` `MICROCMS_API_KEY` |
 | GitHub | mainの最新コミットとCloudflare Pagesのビルド成否 | 5分 | なし(`GITHUB_TOKEN` 任意) |
+| Microsoft Clarity | 直近24時間のセッション・デッドクリック・レイジクリック・スクロールの深さ | 3時間(1日10回の制限のため。KV必須) | `CLARITY_API_TOKEN` |
+| Bing Webmaster Tools | 直近7日のクリック・表示回数・上位クエリ | 6時間 | `BING_API_KEY`(`BING_SITE_URL` 任意) |
 
 ### 10-2. 次につなぐ候補
 
@@ -374,15 +377,14 @@ APIの提供状況は変わりやすい。出たら `src/lib/sources.ts` を書�
 
 | 候補 | 方法 | 数字 | 必要なもの |
 |---|---|---|---|
-| Ahrefs | MCP(Claudeに接続済み) | 順位追跡・被リンク・AI回答での引用 | 各部の定例をClaudeで回すとき(Phase 2の残り) |
 | SUZURI API | API | 販売中のアイテム数 | 無料トークン |
-| Microsoft Clarity | API | デッドクリック・スクロール | Clarityの導入 |
-| Bing Webmaster Tools | API | Bing / Copilot の検索 | 無料APIキー |
 | Cloudflare | API | デプロイ履歴・Web Analytics | 読み取り専用トークン |
 | LINE公式アカウント | API | 友だち数 | LINEの開設 |
 | Instagram | API | フォロワー・保存・リーチ | プロアカウント＋Facebookページ |
 | X | API | フォロワー・インプレッション | 有料。SNS部の稼働後に判断 |
-| Slack / Notion / Googleカレンダー | MCP(Claudeに接続済み) | 日報の送り先・編集会議の予定 | 受け取り先を決めるだけ |
+| Slack | MCP(Claudeに接続済み) | 日報の通知 | Notionで足りなければ |
+
+見送り:Ahrefs(有料のため。2026-10)。Notion・Googleカレンダーは「Claude経由」でつなぐ(`SETUP.md` 手順9・10)。
 
 ### 10-3. 連携を足す手順
 

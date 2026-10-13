@@ -24,10 +24,12 @@ export type RealState = {
     cls?: number | null;
     psiSource?: string;
     cvNote?: string;
+    clarity?: { sessions: number | null; deadClickRate: number | null; rageClickRate: number | null; scrollDepth: number | null };
+    bing?: { clicks: number; impressions: number; topQueries: { query: string; position: number; clicks: number }[] };
   };
 };
 
-export const LIVE_IDS = ['ga4', 'gsc', 'psi', 'microcms', 'github'] as const;
+export const LIVE_IDS = ['ga4', 'gsc', 'psi', 'microcms', 'github', 'clarity', 'bing'] as const;
 
 async function getJson(url: string, timeoutMs: number): Promise<any> {
   const ctl = new AbortController();
@@ -89,6 +91,8 @@ export function applyResult(state: RealState, id: string, r: ConnectorResult) {
     state.extra.recent = d.recent;
   }
   if (id === 'github') state.extra.build = { state: d.state, sha: d.sha, message: d.message };
+  if (id === 'clarity') state.extra.clarity = d;
+  if (id === 'bing') state.extra.bing = d;
 }
 
 /** すべての連携を並行して取りにいき、届いた順に onUpdate を呼ぶ。全部そろうと resolve する */
@@ -105,4 +109,10 @@ export function loadReal(onUpdate: (s: RealState) => void, fresh = false) {
 }
 
 /** 実データになった項目の出どころ(重複なし) */
-export const realSourceNames = (s: RealState | null) => [...new Set(Object.values(s?.sources ?? {}))];
+export const realSourceNames = (s: RealState | null) => [
+  ...new Set([
+    ...Object.values(s?.sources ?? {}),
+    ...(s?.extra.clarity ? ['Clarity'] : []),
+    ...(s?.extra.bing ? ['Bing'] : []),
+  ]),
+];

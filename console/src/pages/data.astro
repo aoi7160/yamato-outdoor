@@ -7,7 +7,8 @@ import Base from '../layouts/Base.astro';
 import { CONNECTORS } from '../lib/connectors';
 import { DATA_SOURCES } from '../lib/sources';
 
-const KIND_LABEL = { live: 'つないである', csv: 'CSV・手入力', candidate: '次の候補' } as const;
+const KIND_LABEL = { live: 'つないである', csv: 'CSV・手入力', mcp: 'Claude経由', candidate: '次の候補', skip: '見送り' } as const;
+const KIND_CHIP = { live: '', csv: 'chip--status-standby', mcp: 'chip--status-active', candidate: 'chip--status-planned', skip: 'chip--status-planned' } as const;
 ---
 <Base title="データ連携" active="data">
   <div class="page-head">
@@ -25,13 +26,13 @@ const KIND_LABEL = { live: 'つないである', csv: 'CSV・手入力', candida
       <table>
         <thead><tr><th>連携先</th><th>方法</th><th>状態</th><th>何の数字になるか</th><th>必要なもの</th></tr></thead>
         <tbody>
-          {(['live', 'csv', 'candidate'] as const).flatMap((kind) =>
+          {(['live', 'csv', 'mcp', 'candidate', 'skip'] as const).flatMap((kind) =>
             CONNECTORS.filter((c) => c.kind === kind).map((c) => (
               <tr data-connector={c.id} data-kind={c.kind}>
                 <td>{c.name}</td>
                 <td>{c.method}</td>
                 <td data-connector-state>
-                  <span class={`chip ${c.kind === 'candidate' ? 'chip--status-planned' : c.kind === 'csv' ? 'chip--status-standby' : ''}`}>{KIND_LABEL[c.kind]}</span>
+                  <span class={`chip ${KIND_CHIP[c.kind]}`}>{KIND_LABEL[c.kind]}</span>
                 </td>
                 <td class="note">{c.feeds}</td>
                 <td class="note">{c.needs}{c.setup && <><br />つなぎ方:<code>console/SETUP.md</code>「{c.setup}」</>}</td>
@@ -140,7 +141,7 @@ const KIND_LABEL = { live: 'つないである', csv: 'CSV・手入力', candida
       const status = await fetchStatus();
       if (!status.ok) {
         note.textContent = status.error?.includes('APIがありません')
-          ? 'この環境にはAPIがありません(ローカルの npm run dev など)。Cloudflare Pagesに置くと動きます。'
+          ? 'この環境にはAPIがありません(ローカルの npm run dev など)。Cloudflareに置くと動きます。'
           : `APIに入れません:${status.error ?? '不明'}`;
         return;
       }

@@ -9,6 +9,7 @@
  * ローカル(localhost)だけ、LOCAL_DEV_SKIP_ACCESS=1 で検証を飛ばせる(本番の環境変数には入れない)。
  */
 import { verifyAccess } from './access.js';
+import { getCached, putCached } from './cache.js';
 import { CONNECTORS, missingEnv } from './connectors.js';
 
 const json = (body, status = 200, headers = {}) =>
@@ -41,16 +42,16 @@ export async function handleApi(request, env, waitUntil) {
   const missing = missingEnv(id, env);
   if (missing.length) return json({ ok: false, configured: false, missing });
 
-  // 外部APIの回数制限よけのキャッシュ。workers.dev ではキャッシュが効かない(毎回取りにいく)が、動きは同じ
-  const cache = typeof caches !== 'undefined' ? caches.default : null;
-  const cacheKey = new Request(`https://basecamp-cache.internal/connectors/${id}`);
-  if (cache && url.searchParams.get('fresh') !== '1') {
-    const hit = await cache.match(cacheKey);
-    if (hit) return json(await hit.json());
+  // 外部APIの回数制限よけのキャッシュ(server/cache.js)。
+  // 1日の回数が厳しい連携(Clarity)は「取り直す」でもキャッシュを使う
+  const fresh = url.searchParams.get('fresh') === '1' && !c.noFresh;
+  if (!fresh) {
+    const hit = await getCached(env, id);
+    if (hit) return json(hit);
   }
   try {
     const body = { ok: true, configured: true, fetchedAt: new Date().toISOString(), data: await c.run(env) };
-    if (cache) waitUntil(cache.put(cacheKey, Response.json(body, { headers: { 'cache-control': `max-age=${c.ttl}` } })));
+    putCached(env, id, body, c.ttl, waitUntil);
     return json(body);
   } catch (e) {
     return json({ ok: false, configured: true, error: e instanceof Error ? e.message : String(e) });

@@ -5,6 +5,7 @@
  */
 import { verifyAccess } from '../server/access.js';
 import { CONNECTORS } from '../server/connectors.js';
+import { handleApi } from '../server/api.js';
 import assert from 'node:assert/strict';
 
 const { publicKey, privateKey } = await crypto.subtle.generateKey({ name: 'RSASSA-PKCS1-v1_5', modulusLength: 2048, publicExponent: new Uint8Array([1, 0, 1]), hash: 'SHA-256' }, true, ['sign', 'verify']);
@@ -93,4 +94,55 @@ routes['/commits/main'] = { sha: 'abcdef1234', commit: { message: 'テスト\n�
 const gh = await CONNECTORS.github.run({});
 assert.deepEqual([gh.state, gh.sha, gh.message], ['failed', 'abcdef1', 'テスト']);
 console.log('github: OK');
+
+// --- Clarity ---
+const fakeKV = () => { const m = new Map(); return { m, get: async (k, t) => (m.has(k) ? (t === 'json' ? JSON.parse(m.get(k)) : m.get(k)) : null), put: async (k, v) => { m.set(k, v); } }; };
+await assert.rejects(() => CONNECTORS.clarity.run({ CLARITY_API_TOKEN: 't' }), /KV/);
+let clarityCalls = 0;
+routes['clarity.ms'] = (u, init) => {
+  clarityCalls++;
+  assert.equal(init.headers.authorization, 'Bearer t');
+  return Response.json([
+    { metricName: 'Traffic', information: [{ totalSessionCount: '42', totalBotSessionCount: '3', distantUserCount: '30', PagesPerSessionPercentage: 1.8 }] },
+    { metricName: 'DeadClickCount', information: [{ sessionsCount: '42', sessionsWithMetricPercentage: 7.14 }] },
+    { metricName: 'RageClickCount', information: [{ sessionsWithMetricPercentage: 2.38 }] },
+    { metricName: 'ScrollDepth', information: [{ averageScrollDepth: 61.5 }] },
+    { metricName: 'EngagementTime', information: [{ totalTime: '120', activeTime: '45' }] },
+  ]);
+};
+const cl = await CONNECTORS.clarity.run({ CLARITY_API_TOKEN: 't', BASECAMP_CACHE: fakeKV() });
+assert.deepEqual([cl.sessions, cl.users, cl.deadClickRate, cl.rageClickRate, cl.scrollDepth, cl.activeTime, cl.quickbackRate], [42, 30, 7.14, 2.38, 61.5, 45, null]);
+routes['clarity.ms'] = () => new Response('', { status: 429 });
+await assert.rejects(() => CONNECTORS.clarity.run({ CLARITY_API_TOKEN: 't', BASECAMP_CACHE: fakeKV() }), /上限/);
+console.log('clarity: OK');
+
+// --- Bing ---
+const d = (daysAgo) => `/Date(${Date.now() - daysAgo * 86400000}-0700)/`;
+routes['GetRankAndTrafficStats'] = { d: [{ Date: d(1), Clicks: 3, Impressions: 50 }, { Date: d(2), Clicks: 1, Impressions: 20 }, { Date: d(30), Clicks: 9, Impressions: 900 }] };
+routes['GetQueryStats'] = { d: [
+  { Query: 'サロモン 登山靴', Clicks: 2, Impressions: 30, AvgImpressionPosition: 7.4, Date: d(3) },
+  { Query: 'サロモン 登山靴', Clicks: 1, Impressions: 10, AvgImpressionPosition: 6.9, Date: d(10) },
+  { Query: 'ナイトハイク', Clicks: 0, Impressions: 25, AvgImpressionPosition: 14.2, Date: d(3) },
+] };
+const bg = await CONNECTORS.bing.run({ BING_API_KEY: 'k' });
+assert.deepEqual([bg.clicks, bg.impressions, bg.topQueries[0].query, bg.topQueries[0].clicks, bg.topQueries.length], [4, 70, 'サロモン 登山靴', 3, 2]);
+routes['GetRankAndTrafficStats'] = () => Response.json({ ErrorCode: 3, Message: 'ERROR!!! InvalidApiKey' }, { status: 400 });
+await assert.rejects(() => CONNECTORS.bing.run({ BING_API_KEY: 'bad' }), /InvalidApiKey.*APIキー/);
+console.log('bing: OK');
+
+// --- API(KVキャッシュ・Clarityは「取り直す」でもキャッシュ)---
+routes['clarity.ms'] = () => { clarityCalls++; return Response.json([{ metricName: 'Traffic', information: [{ totalSessionCount: '5' }] }]); };
+const kv = fakeKV();
+const apiEnv = { LOCAL_DEV_SKIP_ACCESS: '1', CLARITY_API_TOKEN: 't', BASECAMP_CACHE: kv };
+const pending = [];
+const call = async (path) => (await handleApi(new Request('http://localhost' + path), apiEnv, (p) => pending.push(p))).json();
+clarityCalls = 0;
+const r1 = await call('/api/connectors/clarity'); await Promise.all(pending);
+const r2 = await call('/api/connectors/clarity?fresh=1'); await Promise.all(pending);
+assert.equal(r1.data.sessions, 5); assert.equal(r2.data.sessions, 5); assert.equal(clarityCalls, 1);
+assert.ok(kv.m.has('connectors:clarity'));
+const st = await call('/api/connectors');
+assert.equal(st.connectors.find((c) => c.id === 'clarity').configured, true);
+assert.equal(st.connectors.find((c) => c.id === 'bing').configured, false);
+console.log('api cache: OK');
 console.log('ALL OK');

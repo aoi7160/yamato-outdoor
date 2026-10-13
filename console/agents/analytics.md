@@ -16,7 +16,7 @@ kpi:
   - { key: soft_cv_today, label: soft CV(LINE/メール/フォロー), unit: 件, source: GA4(cv_click) }
   - { key: organic_share, label: 自然検索の割合, unit: "%", source: GA4 }
 screen: ga4-today
-sources: [GA4, Search Console(Ahrefs経由), Microsoft Clarity, CrUX, 各部の数字]
+sources: [GA4, Search Console, Microsoft Clarity, PageSpeed Insights, 各部の数字]
 cadence:
   - { when: "daily 06:00", what: 前日の数字の確定 }
   - { when: "weekly mon 06:00", what: 週次の集計(経営企画の週次レポート用) }

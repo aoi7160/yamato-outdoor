@@ -148,6 +148,59 @@ GitHubのAPIは、トークンなしだと1時間60回の制限があり、Cloud
 
 ---
 
+## 手順7 Microsoft Clarity をつなぐ(5分)
+
+Clarity(無料のヒートマップ)を**公開サイトに入れて**から、コンソールに数字を出す。
+
+1. **https://clarity.microsoft.com/** →「**+ New project**」→ 名前 `YAMATO OUTDOOR`・URL `https://yamato-outdoor.com` → 作成
+2. 「Settings」→「Setup」に出る**プロジェクトID**(10文字ほどの英数字)をコピー
+3. **公開サイト側**のCloudflareプロジェクト(コンソールではない方)→ Settings → 変数とシークレット(Production)に
+   `CLARITY_ID`(テキスト)= 2のID を入れて、デプロイし直す(サイトにClarityのタグが入る。`/privacy` の外部送信一覧にも自動で載る)
+4. Clarityに戻り「**Settings**」→「**Data Export**」→「**Generate new API token**」→ 名前 `basecamp`(空白なし)→ トークンをコピー
+5. **コンソール**のCloudflareプロジェクト(yamato-basecamp)→ Settings →「Runtime variables and secrets」→「+ Add variable」
+   - Type **Secret**・名前 `CLARITY_API_TOKEN`・値 = 4のトークン →「Deploy」
+
+> ClarityのAPIは**1日10回まで**。コンソールは3時間ごと(1日8回)にしか取りにいかず、結果はKV(下の注)に置いておく。
+> 「取り直す」ボタンでもClarityだけは取りにいかない。数字は直近24時間の分(セッション・デッドクリック・レイジクリック・スクロールの深さ)。
+
+> **KV(キャッシュ)について**:`console/wrangler.jsonc` に `BASECAMP_CACHE` を書いてあり、次のデプロイで自動で作られる(無料枠)。
+> デプロイが「KV」や「権限」のエラーで失敗したら、Claudeに伝える(手で作ってIDを書く方法に切り替える)。
+
+---
+
+## 手順8 Bing Webmaster Tools をつなぐ(3分)
+
+1. **https://www.bing.com/webmasters/** にログイン(Microsoftアカウント)
+2. 「サイトを追加」→「**Google Search Consoleからインポート**」を選ぶ(確認作業がいらない)→ `yamato-outdoor.com` を選んでインポート
+3. 右上の**歯車(設定)**→「**APIアクセス**」→「**APIキー**」→ 生成してコピー
+4. コンソールのCloudflareプロジェクト → Settings →「Runtime variables and secrets」→「+ Add variable」
+   - Type **Secret**・名前 `BING_API_KEY`・値 = 3のキー →「Deploy」
+   - Bingに登録したURLが `https://yamato-outdoor.com/` 以外(`www` 付きなど)なら、Text で `BING_SITE_URL` にそのURLを入れる
+
+> Bingは登録してから数字が出るまで数日かかる。それまでは「接続OK」でも0のまま。
+
+---
+
+## 手順9 Notion(日報の置き場所)
+
+Notion はClaude側のコネクタでつないである(コンソールの画面からは呼ばない)。各部の定例をClaudeで回すときに、
+経営企画の日報・週次レポートをNotionのページに書き込む。置き場所(ワークスペースとページ)を決めるだけ。
+
+---
+
+## 手順10 Googleカレンダー → TimeTree
+
+企画・編集会議部の「需要の山」「編集会議」「公開予定日」を、Claude側のコネクタでGoogleカレンダーに置く。
+TimeTreeへはスマホ側で取り込む(TimeTreeの公開APIは終了しているため、Googleカレンダーを経由する)。
+
+1. Googleカレンダー(PC)→ 設定 →「全般」→「タイムゾーン」を **(GMT+09:00) 日本標準時** にする(UTCのままだと時刻がずれる)
+2. 「他のカレンダー」の「+」→「新しいカレンダーを作成」→ 名前 `YAMATO BASE CAMP`(BASE CAMPの予定はここだけに入れる)
+3. iPhoneの「設定」→「カレンダー」→「アカウント」→ Googleアカウントを追加し、「カレンダー」をオン
+4. TimeTreeで、iPhoneのカレンダー(`YAMATO BASE CAMP`)を表示する設定にする(TimeTreeのバージョンで名前が違う。
+   「設定」→「カレンダーの表示」/「iPhoneのカレンダーの予定を表示」のような項目)。共有カレンダーに入れたいときは「インポート」を使う
+
+---
+
 ## 入れる環境変数のまとめ
 
 | 変数名 | 必須 | 種類 | 何に使うか |
@@ -161,6 +214,9 @@ GitHubのAPIは、トークンなしだと1時間60回の制限があり、Cloud
 | `PSI_URL` | 任意 | テキスト | 計測するURL。既定はトップページ |
 | `MICROCMS_SERVICE_DOMAIN` / `MICROCMS_API_KEY` | microCMS | テキスト / シークレット | 公開・更新の本数 |
 | `GITHUB_TOKEN` | 任意 | シークレット | GitHub APIの回数制限よけ |
+| `CLARITY_API_TOKEN` | Clarity | シークレット | ClarityのData Export API(1日10回) |
+| `BING_API_KEY` | Bing | シークレット | Bing Webmaster ToolsのAPI |
+| `BING_SITE_URL` | 任意 | テキスト | Bingに登録したURL。既定は `https://yamato-outdoor.com/` |
 
 **`LOCAL_DEV_SKIP_ACCESS` は本番に絶対に入れない**(ローカル開発用。入れても localhost 以外では無視するが、念のため)。
 
