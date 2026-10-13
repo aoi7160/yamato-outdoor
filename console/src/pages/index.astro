@@ -35,7 +35,7 @@ const divisions = DIVISIONS.filter((d) => onBoard.some((a) => a.division === d.i
           </div>
           {executive && (
             <div class="crew" data-agent-crew="executive">
-              <Figure label="経営企画AI" index={0} />
+              <Figure label="経営企画AI" index={0} division="executive" seed="executive-office" />
             </div>
           )}
         </div>
@@ -95,7 +95,7 @@ const divisions = DIVISIONS.filter((d) => onBoard.some((a) => a.division === d.i
                   </div>
                   <div class="dept__foot">
                     <div class="crew" data-agent-crew={a.id}>
-                      {a.members.slice(0, 3).map((m, i) => <Figure label={m} index={i} />)}
+                      {a.members.slice(0, 3).map((m, i) => <Figure label={m} index={i} division={a.division} seed={a.id} />)}
                     </div>
                     <div class="tile">
                       <span class="tile__label" data-tile-label>{a.kpi[0]?.label}</span>
@@ -116,6 +116,7 @@ const divisions = DIVISIONS.filter((d) => onBoard.some((a) => a.division === d.i
         <span class="chip chip--status-active">自動報告</span>
       </div>
       <ol class="chat__list" data-chat aria-live="polite"></ol>
+      <button type="button" class="chat__new" data-chat-new hidden></button>
       <p class="chat__typing" data-typing></p>
     </section>
 

@@ -53,6 +53,7 @@ export async function startDashboard() {
   }
 
   setupTabs();
+  setupChat();
 
   // API連携の実データ(GA4・Search Consoleなど)。届いたものから次の周に反映する
   let live: RealState | null = null;
@@ -111,10 +112,8 @@ export async function startDashboard() {
       card.querySelector('.tile')?.classList.toggle('tile--real', !!tile.real);
     }
     updateBoard();
-    const chat = document.querySelector('[data-chat]')!;
-    if (round > 0) chat.insertAdjacentHTML('beforeend', `<li class="msg__divider">— 翌日 —</li>`);
-    chat.insertAdjacentHTML('beforeend', `<li class="msg__divider">— 19:00 定例ヒアリング —</li>`);
-    trimChildren(chat, 60);
+    if (round > 0) appendChat(`<li class="msg__divider">— 翌日 —</li>`, false);
+    appendChat(`<li class="msg__divider">— 19:00 定例ヒアリング —</li>`, false);
     round++;
   };
 
@@ -242,22 +241,78 @@ const agentOf = (id: string) => (cache ??= new Map(agentsData().map((a) => [a.id
 const labelOf = (id: string) => (id === 'executive' ? '経営企画' : `${agentOf(id)?.short ?? id}部`);
 const colorOf = (id: string) => agentOf(id)?.color ?? '#9ea6b0';
 
-function addMessage(from: string, text: string, type: string) {
-  const chat = document.querySelector<HTMLElement>('[data-chat]');
+/* ---------- 報告グループ ----------
+ * Slackと同じく、上に遡って読んでいる間は新着で下に飛ばさない。
+ * 下端にいるときだけ自動で追い、遡っているときは「新着メッセージ ◯件」を出す(押すと下へ)。
+ */
+const CHAT_MAX = 60;
+const NEAR_BOTTOM_PX = 48;
+let unread = 0;
+
+const chatList = () => document.querySelector<HTMLElement>('[data-chat]');
+const isNearBottom = (el: HTMLElement) => el.scrollHeight - el.scrollTop - el.clientHeight < NEAR_BOTTOM_PX;
+
+function renderUnread() {
+  const pill = document.querySelector<HTMLButtonElement>('[data-chat-new]');
+  if (!pill) return;
+  pill.hidden = unread === 0;
+  pill.textContent = `新着メッセージ ${unread}件 ↓`;
+}
+
+function scrollChatToBottom(smooth: boolean) {
+  const chat = chatList();
   if (!chat) return;
+  const reduce = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+  chat.scrollTo({ top: chat.scrollHeight, behavior: smooth && !reduce ? 'smooth' : 'auto' });
+  unread = 0;
+  renderUnread();
+}
+
+function setupChat() {
+  const chat = chatList();
+  document.querySelector('[data-chat-new]')?.addEventListener('click', () => scrollChatToBottom(true));
+  // 自分で下端まで戻ったら、新着の表示を消す
+  chat?.addEventListener(
+    'scroll',
+    () => {
+      if (unread > 0 && isNearBottom(chat)) {
+        unread = 0;
+        renderUnread();
+      }
+    },
+    { passive: true },
+  );
+}
+
+/** 1件足す。isMessage=false は区切り線(新着の件数に数えない) */
+function appendChat(html: string, isMessage: boolean) {
+  const chat = chatList();
+  if (!chat) return;
+  const stick = isNearBottom(chat);
+  // 古いものを上から消す。遡って読んでいる最中は、消えた高さの分だけ位置を戻して表示をずらさない
+  const before = chat.scrollHeight;
+  trimChildren(chat, CHAT_MAX - 1);
+  if (!stick) chat.scrollTop -= before - chat.scrollHeight;
+  chat.insertAdjacentHTML('beforeend', html);
+  if (stick) chat.scrollTop = chat.scrollHeight;
+  else if (isMessage) {
+    unread++;
+    renderUnread();
+  }
+}
+
+function addMessage(from: string, text: string, type: string) {
   const a = agentOf(from);
   const name = from === 'executive' ? 'Claude Code(経営企画・統括)' : `${a?.name ?? from}AI`;
   const avatar = from === 'executive' ? 'C' : (a?.short ?? from).slice(0, 2);
   const cls = type === '差し戻し' ? 'msg--reject' : type === '承認依頼' ? 'msg--approval' : type === '日報' ? 'msg--brief' : '';
-  chat.insertAdjacentHTML(
-    'beforeend',
+  appendChat(
     `<li class="msg ${cls}" style="--div:${colorOf(from)}">
       <span class="msg__avatar" aria-hidden="true">${esc(avatar)}</span>
       <div><span class="msg__name">${esc(name)}</span><span class="msg__type">${esc(type)}</span><br /><span class="msg__bubble">${esc(text)}</span></div>
     </li>`,
+    true,
   );
-  trimChildren(chat, 60);
-  chat.scrollTop = chat.scrollHeight;
 }
 
 function addFeed(sel: string, agent: string, text: string, clock: string, amount?: string) {
