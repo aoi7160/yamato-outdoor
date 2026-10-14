@@ -1,0 +1,621 @@
+---
+/**
+ * 記事レビュー。部(Claude)が書いた記事の全文を読み、Googleドキュメントのコメント・提案モードのように、
+ * 選んだ箇所に「コメント」か「修正案」を付けて、まとめて修正依頼として返す。
+ *
+ * - 記事は承認トレイの依頼(Notion)の本文の article(src/scripts/approvals.ts の DraftArticle)
+ * - 【要実測:…】【要確認:…】【体験を入れる:…】は、CEOの体験や確認が要る箇所。色を付けて一覧にする
+ * - 書きかけのコメントはこのブラウザに保存する(送るまで消えない)
+ * - 送ると承認トレイの「修正依頼」になり、箇所(引用)ごとの指示としてNotionに残る。Claudeはそれを読んで直す
+ */
+import Base from '../layouts/Base.astro';
+import { agentsForClient } from '../lib/org';
+---
+<Base title="記事レビュー" active="approvals" wide>
+  <div class="page-head">
+    <p class="note"><a href="/approvals/">← 承認トレイ</a></p>
+    <h1 data-review-title>記事レビュー</h1>
+    <p class="note" data-review-note>読み込んでいます…</p>
+  </div>
+
+  <div class="review" data-review hidden>
+    <article class="review-article panel" data-article></article>
+
+    <aside class="review-side">
+      <section class="panel review-box" data-meta></section>
+
+      <section class="panel review-box" data-todo-box hidden>
+        <h2 class="review-box__title">あなたの体験・確認が要る箇所 <span class="chip" data-todo-count></span></h2>
+        <p class="note">AIには書けない実測・体験の箇所です。押すとその場所に飛びます。</p>
+        <ol class="review-todo-list" data-todos></ol>
+      </section>
+
+      <section class="panel review-box">
+        <h2 class="review-box__title">コメント・修正案 <span class="chip" data-count>0</span></h2>
+        <p class="note">本文の気になるところを選択すると「コメント」「修正案」が出ます。</p>
+        <ol class="review-comments" data-comments></ol>
+        <label class="revise__label" for="review-note">全体への指示</label>
+        <textarea id="review-note" class="review-input" rows="3" maxlength="2000" placeholder="例:結論をもっと前に。全体に説明が多いので、言い切って止める"></textarea>
+        <fieldset class="revise__size">
+          <label><input type="radio" name="review-size" value="小さな修正" checked /> <strong>小さな修正</strong><small>コメントした箇所を直す</small></label>
+          <label><input type="radio" name="review-size" value="大きな修正" /> <strong>大きな修正</strong><small>方向から書き直す(コンテンツ制作部・SEO部)</small></label>
+        </fieldset>
+        <div class="revise__actions">
+          <button class="btn btn--revise" data-send>コメントを送る(修正依頼)</button>
+        </div>
+      </section>
+
+      <section class="panel review-box" data-decide>
+        <h2 class="review-box__title">判断</h2>
+        <div class="revise__actions">
+          <button class="btn btn--primary" data-approve>承認</button>
+          <button class="btn" data-reject>差し戻し</button>
+        </div>
+        <p class="note" data-approve-note></p>
+      </section>
+    </aside>
+  </div>
+
+  <div class="review-pop" data-pop hidden>
+    <button type="button" class="btn btn--tiny" data-pop-kind="comment">コメント</button>
+    <button type="button" class="btn btn--tiny" data-pop-kind="suggest">修正案</button>
+  </div>
+
+  <dialog class="review-dialog" data-dialog>
+    <form method="dialog" data-dialog-form>
+      <p class="review-dialog__title" data-dialog-title></p>
+      <blockquote class="review-quote" data-dialog-quote></blockquote>
+      <label class="revise__label" data-suggest-label for="dialog-suggest">こう直す</label>
+      <textarea id="dialog-suggest" class="review-input" rows="4" maxlength="1000" data-dialog-suggest></textarea>
+      <label class="revise__label" for="dialog-text" data-text-label>コメント</label>
+      <textarea id="dialog-text" class="review-input" rows="3" maxlength="1000" data-dialog-text></textarea>
+      <div class="revise__actions">
+        <button class="btn btn--primary" value="ok">追加</button>
+        <button class="btn" value="cancel" formnovalidate>やめる</button>
+      </div>
+    </form>
+  </dialog>
+
+  <p class="toast" data-toast role="status"></p>
+  <script type="application/json" id="org-data" set:html={JSON.stringify(agentsForClient())} />
+
+  <script>
+    import type { ClientAgent } from '../lib/org';
+    import { cmsEditUrl, loadTray, safeUrl, sendDecision, type DecisionInput, type Tray, type TrayItem } from '../scripts/approvals';
+    import { esc, loadSettings } from '../scripts/store';
+
+    type Note = { kind: 'comment' | 'suggest'; quote: string; text: string; suggest?: string };
+
+    const agents: ClientAgent[] = JSON.parse(document.getElementById('org-data')!.textContent || '[]');
+    const $ = <T extends Element = HTMLElement>(sel: string) => document.querySelector<T>(sel)!;
+    const id = new URLSearchParams(location.search).get('id') ?? '';
+    const KEY = `basecamp:review:${id}`;
+    const TODO = /【(?:要実測|要確認|体験を入れる)[^】]*】/g;
+    const HAS_TODO = /【(?:要実測|要確認|体験を入れる)[^】]*】/;
+
+    let tray: Tray;
+    let item: TrayItem | undefined;
+    let notes: Note[] = [];
+    let pending: { quote: string; range: Range | null } | null = null;
+
+    const toast = (msg: string) => {
+      const t = $('[data-toast]');
+      t.textContent = msg;
+      t.classList.add('is-shown');
+      setTimeout(() => t.classList.remove('is-shown'), 2600);
+    };
+    const save = () => {
+      try {
+        localStorage.setItem(KEY, JSON.stringify({ notes, note: $<HTMLTextAreaElement>('#review-note').value }));
+      } catch {}
+    };
+    const load = () => {
+      try {
+        const v = JSON.parse(localStorage.getItem(KEY) ?? 'null');
+        if (v) {
+          notes = Array.isArray(v.notes) ? v.notes : [];
+          $<HTMLTextAreaElement>('#review-note').value = v.note ?? '';
+        }
+      } catch {}
+    };
+
+    /** 本文のHTMLは部(Claude)が書いたもの。表示する前に、スクリプトやイベント属性を落とす */
+    function sanitize(html: string) {
+      const doc = new DOMParser().parseFromString(`<div>${html}</div>`, 'text/html');
+      const root = doc.body.firstElementChild!;
+      root.querySelectorAll('script,style,iframe,object,embed,form,link,meta,input,button').forEach((el) => el.remove());
+      root.querySelectorAll('*').forEach((el) => {
+        for (const a of [...el.attributes]) {
+          const n = a.name.toLowerCase();
+          if (n.startsWith('on') || n === 'style' || n === 'srcset') el.removeAttribute(a.name);
+          if ((n === 'href' || n === 'src') && !safeUrl(new URL(a.value, 'https://yamato-outdoor.com/').href)) el.removeAttribute(a.name);
+        }
+        if (el.tagName === 'A') {
+          el.setAttribute('target', '_blank');
+          el.setAttribute('rel', 'noopener');
+        }
+        if (el.tagName === 'IMG') el.setAttribute('loading', 'lazy');
+      });
+      return root.innerHTML;
+    }
+
+    /** 【要実測:…】などに色を付け、一覧を作る */
+    function markTodos(root: HTMLElement) {
+      const walker = document.createTreeWalker(root, NodeFilter.SHOW_TEXT);
+      const nodes: Text[] = [];
+      while (walker.nextNode()) if (HAS_TODO.test((walker.currentNode as Text).data)) nodes.push(walker.currentNode as Text);
+      let n = 0;
+      for (const node of nodes) {
+        TODO.lastIndex = 0;
+        const frag = document.createDocumentFragment();
+        let last = 0;
+        for (const m of node.data.matchAll(TODO)) {
+          frag.append(node.data.slice(last, m.index));
+          const mark = document.createElement('mark');
+          mark.className = 'review-todo';
+          mark.id = `todo-${n++}`;
+          mark.textContent = m[0];
+          frag.append(mark);
+          last = (m.index ?? 0) + m[0].length;
+        }
+        frag.append(node.data.slice(last));
+        node.replaceWith(frag);
+      }
+      const marks = [...root.querySelectorAll<HTMLElement>('mark.review-todo')];
+      $('[data-todo-box]').hidden = marks.length === 0;
+      $('[data-todo-count]').textContent = String(marks.length);
+      $('[data-todos]').innerHTML = marks.map((m) => `<li><a href="#${m.id}">${esc(m.textContent ?? '')}</a></li>`).join('');
+    }
+
+    function renderComments() {
+      $('[data-count]').textContent = String(notes.length);
+      $('[data-comments]').innerHTML = notes.length
+        ? notes
+            .map(
+              (c, i) => `<li class="review-comment review-comment--${c.kind}">
+                <p class="review-comment__kind">${c.kind === 'suggest' ? '修正案' : 'コメント'}
+                  <button type="button" class="btn btn--tiny" data-remove="${i}" aria-label="消す">×</button></p>
+                <blockquote class="review-quote">${esc(c.quote)}</blockquote>
+                ${c.kind === 'suggest' ? `<p class="review-comment__suggest">→ ${esc(c.suggest ?? '')}</p>` : ''}
+                ${c.text ? `<p>${esc(c.text)}</p>` : ''}
+              </li>`,
+            )
+            .join('')
+        : '<li class="note">まだありません</li>';
+    }
+
+    function renderMeta(it: TrayItem) {
+      const a = it.detail.article!;
+      const agent = agents.find((x) => x.id === it.from);
+      const edit = cmsEditUrl(tray, it);
+      $('[data-meta]').innerHTML = `
+        <h2 class="review-box__title">この記事について</h2>
+        <p class="note">${esc(agent?.name ?? it.from)}から・<span class="chip">${esc(it.state)}</span>${it.round ? `・修正${it.round}回` : ''}${
+          it.demo ? ' <span class="chip chip--demo">DEMO</span>' : ''
+        }</p>
+        <dl class="approval__facts">
+          ${a.keyword ? `<div><dt>狙うキーワード</dt><dd>${esc(a.keyword)}</dd></div>` : ''}
+          ${a.reader ? `<div><dt>想定読者</dt><dd>${esc(a.reader)}</dd></div>` : ''}
+          ${a.why ? `<div><dt>このテーマにした理由</dt><dd>${esc(a.why)}</dd></div>` : ''}
+          <div><dt>カテゴリ・タグ</dt><dd>${esc(a.category || '—')} / ${esc(a.tags.join('・') || '—')}</dd></div>
+          <div><dt>スラッグ</dt><dd>${esc(a.slug)}</dd></div>
+        </dl>
+        ${it.basis.length ? `<ul class="review-basis">${it.basis.map((b) => `<li>${esc(b)}</li>`).join('')}</ul>` : ''}
+        ${edit ? `<a class="btn" href="${esc(edit)}" target="_blank" rel="noopener">microCMSで直接直す ↗</a>` : ''}
+        ${it.notionUrl ? `<a class="approval__notion" href="${esc(it.notionUrl)}" target="_blank" rel="noopener">Notionで開く ↗</a>` : ''}`;
+    }
+
+    function renderArticle(it: TrayItem) {
+      const a = it.detail.article!;
+      const box = $('[data-article]');
+      box.innerHTML = `
+        <h1 class="review-article__title">${esc(a.title)}</h1>
+        ${a.description ? `<p class="review-article__lead">${esc(a.description)}</p>` : ''}
+        <div class="review-prose">${sanitize(a.html)}</div>
+        ${
+          a.faq.length
+            ? `<section class="review-faq"><h2>よくある質問</h2>${a.faq
+                .map((f) => `<h3>${esc(f.question)}</h3><p>${esc(f.answer)}</p>`)
+                .join('')}</section>`
+            : ''
+        }`;
+      markTodos(box);
+    }
+
+    /* ---------- 選択 → コメント・修正案 ---------- */
+
+    const pop = $('[data-pop]');
+    function onSelect() {
+      const sel = getSelection();
+      const article = $('[data-article]');
+      if (!sel || sel.isCollapsed || !sel.rangeCount || !article.contains(sel.anchorNode) || !article.contains(sel.focusNode)) {
+        pop.hidden = true;
+        return;
+      }
+      const quote = sel.toString().replace(/\s+/g, ' ').trim();
+      if (quote.length < 2) {
+        pop.hidden = true;
+        return;
+      }
+      const range = sel.getRangeAt(0);
+      const rect = range.getBoundingClientRect();
+      pending = { quote: quote.slice(0, 300), range: range.cloneRange() };
+      pop.hidden = false;
+      pop.style.top = `${window.scrollY + rect.bottom + 8}px`;
+      pop.style.left = `${Math.max(8, Math.min(window.scrollX + rect.left, document.documentElement.clientWidth - 200))}px`;
+    }
+    document.addEventListener('mouseup', () => setTimeout(onSelect, 0));
+    document.addEventListener('keyup', () => setTimeout(onSelect, 0));
+    // スマホ(長押しで選択)
+    let selTimer = 0;
+    document.addEventListener('selectionchange', () => {
+      clearTimeout(selTimer);
+      selTimer = window.setTimeout(onSelect, 400);
+    });
+
+    const dialog = $<HTMLDialogElement>('[data-dialog]');
+    let dialogKind: Note['kind'] = 'comment';
+    pop.addEventListener('mousedown', (e) => e.preventDefault()); // 押した瞬間に選択が外れないように
+    pop.addEventListener('click', (e) => {
+      const b = (e.target as HTMLElement).closest<HTMLButtonElement>('[data-pop-kind]');
+      if (!b || !pending) return;
+      dialogKind = b.dataset.popKind === 'suggest' ? 'suggest' : 'comment';
+      $('[data-dialog-title]').textContent = dialogKind === 'suggest' ? '修正案(この箇所をこう直す)' : 'コメント';
+      $('[data-dialog-quote]').textContent = pending.quote;
+      const sug = $<HTMLTextAreaElement>('[data-dialog-suggest]');
+      sug.value = dialogKind === 'suggest' ? pending.quote : '';
+      sug.hidden = dialogKind !== 'suggest';
+      $('[data-suggest-label]').hidden = dialogKind !== 'suggest';
+      $('[data-text-label]').textContent = dialogKind === 'suggest' ? '理由(任意)' : 'コメント';
+      $<HTMLTextAreaElement>('[data-dialog-text]').value = '';
+      pop.hidden = true;
+      dialog.showModal();
+      (dialogKind === 'suggest' ? sug : $<HTMLTextAreaElement>('[data-dialog-text]')).focus();
+    });
+    dialog.addEventListener('close', () => {
+      if (dialog.returnValue !== 'ok' || !pending) return;
+      const text = $<HTMLTextAreaElement>('[data-dialog-text]').value.trim();
+      const suggest = $<HTMLTextAreaElement>('[data-dialog-suggest]').value.trim();
+      if (dialogKind === 'comment' && !text) return;
+      if (dialogKind === 'suggest' && (!suggest || suggest === pending.quote)) return;
+      notes.push({ kind: dialogKind, quote: pending.quote, text, suggest: dialogKind === 'suggest' ? suggest : undefined });
+      // 選んだ箇所に印を付ける(段落をまたぐ選択は印を付けられないので、一覧にだけ出す)
+      try {
+        const mark = document.createElement('mark');
+        mark.className = `review-mark review-mark--${dialogKind}`;
+        pending.range?.surroundContents(mark);
+      } catch {}
+      getSelection()?.removeAllRanges();
+      pending = null;
+      save();
+      renderComments();
+    });
+
+    $('[data-comments]').addEventListener('click', (e) => {
+      const b = (e.target as HTMLElement).closest<HTMLButtonElement>('[data-remove]');
+      if (!b) return;
+      notes.splice(Number(b.dataset.remove), 1);
+      save();
+      renderComments();
+    });
+    $('#review-note').addEventListener('input', save);
+
+    /* ---------- 送る ---------- */
+
+    async function decide(action: 'approve' | 'reject' | 'revise', btn: HTMLButtonElement, extra: Omit<DecisionInput, 'action'> = {}) {
+      if (!item) return;
+      btn.disabled = true;
+      const r = await sendDecision(item, { action, ...extra });
+      btn.disabled = false;
+      if (!r.ok) {
+        toast(`送れませんでした:${r.error}`);
+        return;
+      }
+      if (action === 'revise') {
+        notes = [];
+        $<HTMLTextAreaElement>('#review-note').value = '';
+        try {
+          localStorage.removeItem(KEY);
+        } catch {}
+      }
+      if (r.cms?.editUrl) {
+        window.open(r.cms.editUrl, '_blank', 'noopener');
+        if (r.cms.dropped.length) alert(`microCMSに下書きとして入稿しました。次の項目は入らなかったので、microCMSで入れてください:\n${r.cms.dropped.join('\n')}`);
+      }
+      toast({ approve: '承認しました', reject: '差し戻しました', revise: '修正依頼を送りました' }[action] + (item.demo ? '(このブラウザに保存)' : '(Notionに記録)'));
+      setTimeout(() => (location.href = `/approvals/#${encodeURIComponent(item!.id)}`), 1200);
+    }
+
+    $('[data-send]').addEventListener('click', (e) => {
+      const note = $<HTMLTextAreaElement>('#review-note').value.trim();
+      if (!note && notes.length === 0) {
+        toast('本文を選んでコメントか修正案を付けるか、全体への指示を書いてください');
+        return;
+      }
+      const size = (document.querySelector<HTMLInputElement>('input[name="review-size"]:checked')?.value ?? '小さな修正') as '小さな修正' | '大きな修正';
+      const comments = notes.map((c) => ({
+        where: c.quote,
+        text: c.kind === 'suggest' ? `修正案:「${c.suggest}」に直す${c.text ? `(理由:${c.text})` : ''}` : `コメント:${c.text}`,
+      }));
+      decide('revise', e.currentTarget as HTMLButtonElement, { note, size, comments });
+    });
+    $('[data-approve]').addEventListener('click', (e) => {
+      if (notes.length && !confirm('付けたコメントは送らずに承認します。よいですか?')) return;
+      decide('approve', e.currentTarget as HTMLButtonElement, { toCms: !!tray.cms?.writable });
+    });
+    $('[data-reject]').addEventListener('click', (e) => {
+      const note = prompt('差し戻しの理由(この記事は出さない、という判断です。直せば出せるなら「コメントを送る」を使ってください)');
+      if (note === null) return;
+      decide('reject', e.currentTarget as HTMLButtonElement, { note });
+    });
+
+    async function main() {
+      tray = await loadTray(loadSettings());
+      item = tray.items.find((x) => x.id === id);
+      if (!item?.detail.article) {
+        $('[data-review-note]').textContent = item ? 'この依頼には記事の本文がありません。' : '依頼が見つかりません(承認トレイから開き直してください)。';
+        return;
+      }
+      $('[data-review-title]').textContent = item.title;
+      $('[data-review-note]').innerHTML =
+        tray.mode === 'notion'
+          ? '本文を選択して「コメント」か「修正案」を付け、右の「コメントを送る」でまとめて返します。Claudeは次に承認トレイを処理するとき、箇所ごとに直します。'
+          : '<span class="chip chip--demo">DEMO</span> デモの記事です。コメントはこのブラウザにだけ保存されます。';
+      $('[data-review]').hidden = false;
+      const open = item.state === '承認待ち' || item.state === '修正依頼';
+      $('[data-decide]').hidden = !open;
+      $('[data-send]').toggleAttribute('disabled', !open);
+      if (tray.cms?.writable) $('[data-approve]').textContent = '承認してmicroCMSに下書き入稿';
+      $('[data-approve-note]').textContent = tray.cms?.writable
+        ? '承認すると、この記事をmicroCMSに「下書き」として入れ、編集画面を開きます。公開はmicroCMSで押してください。'
+        : tray.mode === 'notion'
+          ? 'microCMSへの入稿はまだ設定されていません(SETUP.md 手順12)。承認すると、次にClaudeが承認トレイを処理するときに入稿します。'
+          : '';
+      load();
+      renderMeta(item);
+      renderArticle(item);
+      renderComments();
+    }
+    main();
+  </script>
+</Base>
+
+<style is:global>
+  .review {
+    display: grid;
+    gap: 1rem;
+    align-items: start;
+  }
+  @media (min-width: 64rem) {
+    .review {
+      grid-template-columns: minmax(0, 1fr) 22rem;
+    }
+    .review-side {
+      position: sticky;
+      top: 4.5rem;
+      max-height: calc(100vh - 5.5rem);
+      overflow-y: auto;
+    }
+  }
+  .review-side {
+    display: grid;
+    gap: 0.75rem;
+  }
+  .review-box {
+    display: grid;
+    gap: 0.5rem;
+  }
+  .review-box[hidden] {
+    display: none;
+  }
+  .review-box__title {
+    margin: 0;
+    font-size: 0.9375rem;
+    color: var(--ink-strong);
+    display: flex;
+    align-items: center;
+    gap: 0.4rem;
+  }
+  .review-input {
+    width: 100%;
+    min-width: 0;
+    padding: 0.5rem 0.6rem;
+    border: 1px solid var(--line);
+    border-radius: 0.4rem;
+    background: rgba(5, 8, 11, 0.7);
+    color: var(--ink-strong);
+    font: inherit;
+    font-size: 0.875rem;
+    line-height: 1.7;
+  }
+  .review-input[hidden] {
+    display: none;
+  }
+
+  /* 記事(公開サイトの記事ページに近い読み心地) */
+  .review-article {
+    max-width: 46rem;
+    width: 100%;
+    justify-self: center;
+    padding: clamp(1rem, 4vw, 2.5rem);
+    font-size: 1rem;
+    line-height: 1.95;
+    letter-spacing: 0.02em;
+  }
+  .review-article__title {
+    font-family: var(--font-serif);
+    font-size: clamp(1.4rem, 3.4vw, 1.9rem);
+    line-height: 1.5;
+    margin: 0 0 0.75rem;
+    color: var(--ink-strong);
+  }
+  .review-article__lead {
+    color: var(--ink-mute);
+    font-size: 0.9375rem;
+    border-left: 2px solid var(--line);
+    padding-left: 0.75rem;
+  }
+  .review-prose h2,
+  .review-faq h2 {
+    font-family: var(--font-serif);
+    font-size: 1.35rem;
+    line-height: 1.6;
+    margin: 2.4rem 0 0.8rem;
+    padding-bottom: 0.4rem;
+    border-bottom: 1px solid var(--line);
+    color: var(--ink-strong);
+  }
+  .review-prose h3,
+  .review-faq h3 {
+    font-size: 1.05rem;
+    margin: 1.6rem 0 0.5rem;
+    color: var(--ink-strong);
+  }
+  .review-prose p {
+    margin: 0 0 1.1rem;
+  }
+  .review-prose ul,
+  .review-prose ol {
+    padding-left: 1.3rem;
+    margin: 0 0 1.1rem;
+  }
+  .review-prose table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 0.875rem;
+    margin: 0 0 1.2rem;
+    display: block;
+    overflow-x: auto;
+  }
+  .review-prose th,
+  .review-prose td {
+    border: 1px solid var(--line);
+    padding: 0.4rem 0.6rem;
+    vertical-align: top;
+  }
+  .review-prose img {
+    max-width: 100%;
+    height: auto;
+  }
+  .review-prose a {
+    color: var(--frost);
+  }
+  .review-prose .note,
+  .review-prose .memo,
+  .review-prose .caution,
+  .review-prose .pr-notice {
+    display: block;
+    padding: 0.75rem 1rem;
+    border: 1px solid var(--line);
+    border-radius: 0.5rem;
+    background: rgba(255, 255, 255, 0.03);
+    margin: 0 0 1.1rem;
+    color: var(--ink);
+    font-size: 0.9375rem;
+  }
+  .review-todo {
+    background: rgba(224, 176, 90, 0.22);
+    color: var(--ink-strong);
+    border-radius: 0.2rem;
+    padding: 0 0.15rem;
+    scroll-margin-top: 6rem;
+  }
+  .review-mark {
+    background: rgba(232, 149, 90, 0.25);
+    color: inherit;
+    border-bottom: 2px solid #e8955a;
+  }
+  .review-mark--suggest {
+    background: rgba(76, 175, 110, 0.2);
+    border-bottom-color: var(--ember-soft);
+  }
+  .review-todo-list,
+  .review-comments {
+    margin: 0;
+    padding-left: 1.1rem;
+    display: grid;
+    gap: 0.5rem;
+    font-size: 0.8125rem;
+  }
+  .review-todo-list a {
+    color: var(--amber);
+  }
+  .review-comments {
+    list-style: none;
+    padding: 0;
+  }
+  .review-comment {
+    border: 1px solid var(--line-soft);
+    border-radius: 0.5rem;
+    padding: 0.5rem 0.6rem;
+    display: grid;
+    gap: 0.3rem;
+    overflow-wrap: anywhere;
+  }
+  .review-comment p {
+    margin: 0;
+  }
+  .review-comment__kind {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    color: #f0b48a;
+    font-size: 0.75rem;
+  }
+  .review-comment--suggest .review-comment__kind {
+    color: var(--ember-soft);
+  }
+  .review-comment__suggest {
+    color: var(--ember-soft);
+  }
+  .review-quote {
+    margin: 0;
+    padding: 0.25rem 0.5rem;
+    border-left: 2px solid var(--line);
+    color: var(--ink-mute);
+    font-size: 0.8125rem;
+    overflow-wrap: anywhere;
+  }
+  .review-basis {
+    margin: 0;
+    padding-left: 1.1rem;
+    font-size: 0.8125rem;
+  }
+  .review-pop {
+    position: absolute;
+    z-index: 30;
+    display: flex;
+    gap: 0.35rem;
+    padding: 0.35rem;
+    border: 1px solid var(--line);
+    border-radius: 999px;
+    background: var(--panel-solid);
+    box-shadow: 0 6px 18px rgba(0, 0, 0, 0.45);
+  }
+  .review-pop[hidden] {
+    display: none;
+  }
+  .review-dialog {
+    width: min(32rem, calc(100vw - 2rem));
+    border: 1px solid var(--line);
+    border-radius: var(--radius);
+    background: var(--panel-solid);
+    color: var(--ink);
+    padding: 1rem;
+  }
+  .review-dialog::backdrop {
+    background: rgba(0, 0, 0, 0.55);
+  }
+  .review-dialog form {
+    display: grid;
+    gap: 0.5rem;
+  }
+  .review-dialog__title {
+    margin: 0;
+    font-weight: 700;
+    color: var(--ink-strong);
+  }
+  .review-dialog [hidden] {
+    display: none;
+  }
+</style>

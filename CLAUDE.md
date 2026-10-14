@@ -58,6 +58,7 @@ Astro(SSG) + microCMS + Cloudflare Pages のアウトドアメディア。
 | トップの背景グレイン(スモッグ)演出 | `src/layouts/BaseLayout.astro` の`grainDrift`props + `.scenery__grain-drift` |
 | Aboutの5カラムグリッド・点の背景・登場アニメ | `src/pages/about.astro` + `src/styles/global.css` の`.about-page` / `.about-grid` / `.dots-layer` / `[data-anim]` |
 | トップのカバー動画(雲が動くシネマグラフ) | `src/pages/index.astro` の`<section class="cover cover--video">` + `public/media/hero/01-mist.mp4` |
+| 記事を書いて承認トレイに積む手順(AI) | `.claude/skills/write-article/SKILL.md` |
 | AIエージェントの組織・部の定義 / 管理コンソール「BASE CAMP」 | `console/ORG.md` / `console/agents/<部>.md` / `console/README.md`(別アプリ。公開サイトのビルドには含まれない) |
 
 ## 過去デザインのアーカイブ
@@ -168,6 +169,9 @@ A/Bテストや見比べ用に、過去のトップページ構成をブラン�
   依頼を積むときは本文の `json` に変更前/変更後(`diffs`)・納品物の画像URL(`images`)を入れる。
   `preview` は microCMS に実際の下書きがあるときだけ書く(無い下書きのプレビューに飛ばさない)。
 - 校閲の自動チェックは `console/server/proofread.js`(画面は `/checks/`)。ルールは `docs/tone-and-manner.md` から機械で判定できるものだけ。
+- **新しい記事はAIが書いて承認トレイに積む**(スキル `write-article`。週2〜4本)。CEOは `/review/` で全文に箇所コメント・修正案を付け、
+  承認すると `MICROCMS_WRITE_KEY` でmicroCMSに**下書き**として入稿される(公開はmicroCMSでCEOが押す)。
+  実測・体験はでっち上げず、`【要実測:…】` などで空けておく。文体のお手本はサロモンの記事(ナイトハイクは除外)。
 - API連携は `console/server/connectors.js`(本体)・`console/src/lib/connectors.ts`(一覧と候補)・
   `console/src/scripts/real.ts`(画面の数字への割り当て)。足したら `cd console && npm test`。
   公開・環境変数の手順は `console/SETUP.md`(CEOが読む前提で、リンク付き・上から順に書く)。

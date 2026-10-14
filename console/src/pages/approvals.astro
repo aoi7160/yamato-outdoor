@@ -26,7 +26,7 @@ import { agentsForClient } from '../lib/org';
   <script type="application/json" id="org-data" set:html={JSON.stringify(agentsForClient())} />
   <script>
     import type { ClientAgent } from '../lib/org';
-    import { instructionText, loadTray, previewUrl, sendDecision, type DecisionInput, type Tray, type TrayItem } from '../scripts/approvals';
+    import { cmsEditUrl, instructionText, loadTray, previewUrl, sendDecision, type DecisionInput, type Tray, type TrayItem } from '../scripts/approvals';
     import { esc, loadSettings } from '../scripts/store';
 
     const agents: ClientAgent[] = JSON.parse(document.getElementById('org-data')!.textContent || '[]');
@@ -96,6 +96,7 @@ import { agentsForClient } from '../lib/org';
               <button type="button" class="btn btn--tiny" data-comment-on="${i}">この箇所に指示</button></figcaption>
             <div class="diff__row diff__row--before"><span class="diff__tag">変更前</span><p>${esc(x.before)}</p></div>
             <div class="diff__row diff__row--after"><span class="diff__tag">変更後</span><p>${esc(x.after)}</p></div>
+            ${x.why ? `<div class="diff__why"><span class="diff__tag">なぜ</span><p>${esc(x.why)}</p></div>` : ''}
           </figure>`,
         )
         .join('');
@@ -141,7 +142,7 @@ import { agentsForClient } from '../lib/org';
         <p class="revise__title">修正を依頼する</p>
         <fieldset class="revise__size">
           <label><input type="radio" name="size" value="小さな修正" checked /> <strong>小さな修正</strong><small>この部分をこう直して(言い回し・数字・一部の段落)</small></label>
-          <label><input type="radio" name="size" value="大きな修正" /> <strong>大きな修正</strong><small>方向から書き直して(構成・文体・トンマナ全体)</small></label>
+          <label><input type="radio" name="size" value="大きな修正" /> <strong>大きな修正</strong><small>方向から書き直して(構成・文体・トンマナ全体)。コンテンツ制作部・SEO部が書き直す</small></label>
         </fieldset>
         <label class="revise__label" for="note-${it.id}">全体への指示</label>
         <div class="revise__chips">${TEMPLATES.map((t) => `<button type="button" class="chip-btn" data-template="${esc(t)}">${esc(t)}</button>`).join('')}</div>
@@ -184,9 +185,30 @@ import { agentsForClient } from '../lib/org';
 
     /* ---------- 一覧 ---------- */
 
+    /** 記事の全文を読む・microCMSで直接直す(ガッツリ直したいとき) */
+    function articleButtonsHtml(it: TrayItem) {
+      const edit = cmsEditUrl(tray, it);
+      const a = it.detail.article;
+      if (!a && !edit) return '';
+      return `<div class="approval__article">
+        ${a ? `<a class="btn btn--primary" href="/review/?id=${encodeURIComponent(it.id)}">記事を読んでコメントする →</a>` : ''}
+        ${edit ? `<a class="btn" href="${esc(edit)}" target="_blank" rel="noopener">microCMSで直接直す ↗</a>` : ''}
+        ${
+          a
+            ? `<dl class="approval__facts">
+                ${a.keyword ? `<div><dt>狙うキーワード</dt><dd>${esc(a.keyword)}</dd></div>` : ''}
+                ${a.reader ? `<div><dt>想定読者</dt><dd>${esc(a.reader)}</dd></div>` : ''}
+                ${a.why ? `<div><dt>このテーマにした理由</dt><dd>${esc(a.why)}</dd></div>` : ''}
+              </dl>`
+            : ''
+        }
+      </div>`;
+    }
+
     function actionsHtml(it: TrayItem) {
+      const toCms = !!it.detail.article && !!tray.cms?.writable;
       if (it.state === '承認待ち')
-        return `<button class="btn btn--primary" data-approve="${it.id}">承認</button>
+        return `<button class="btn btn--primary" data-approve="${it.id}" ${toCms ? 'data-to-cms' : ''}>${toCms ? '承認してmicroCMSに下書き入稿' : '承認'}</button>
           <button class="btn btn--revise" data-open-revise="${it.id}">修正を依頼</button>
           <button class="btn" data-reject="${it.id}">差し戻し</button>`;
       if (it.state === '対応済み') return '';
@@ -225,6 +247,7 @@ import { agentsForClient } from '../lib/org';
             ${it.basis.length ? `<ul>${it.basis.map((b) => `<li>${esc(b)}</li>`).join('')}</ul>` : ''}
             ${it.effect ? `<p class="note">承認すると:${esc(it.effect)}</p>` : ''}
             ${instruction}
+            ${articleButtonsHtml(it)}
             ${detailHtml(it, openIds.has(it.id))}
             ${historyHtml(it)}
             <div class="approval__actions">${actionsHtml(it)}</div>
@@ -260,6 +283,11 @@ import { agentsForClient } from '../lib/org';
         toast(`送れませんでした:${r.error}`);
         return;
       }
+      if (r.cms?.editUrl) {
+        // 入稿した記事をmicroCMSで開いて、最後の確認と公開をしてもらう
+        window.open(r.cms.editUrl, '_blank', 'noopener');
+        if (r.cms.dropped.length) alert(`microCMSに下書きとして入稿しました。次の項目は入らなかったので、microCMSで入れてください:\n${r.cms.dropped.join('\n')}`);
+      }
       const open = new Set([...root.querySelectorAll<HTMLDetailsElement>('details[open]')].map((x) => x.dataset.detail ?? ''));
       toast(
         { approve: '承認しました', reject: '差し戻しました', revise: '修正依頼を送りました', reopen: '判断を取り消しました' }[input.action] +
@@ -279,7 +307,7 @@ import { agentsForClient } from '../lib/org';
       if (!it) return;
       const form = section!.querySelector<HTMLFormElement>('form.revise');
 
-      if (btn.dataset.approve) return submit(it, { action: 'approve' }, btn);
+      if (btn.dataset.approve) return submit(it, { action: 'approve', toCms: btn.dataset.toCms !== undefined }, btn);
       if (btn.dataset.reject) {
         const note = prompt('差し戻しの理由(依頼元の部に返します。修正すれば通る見込みがあるなら「修正を依頼」を使ってください)');
         if (note === null) return;

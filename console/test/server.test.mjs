@@ -8,6 +8,7 @@ import { CONNECTORS } from '../server/connectors.js';
 import { handleApi } from '../server/api.js';
 import { checkArticle } from '../server/proofread.js';
 import { decide, listApprovals } from '../server/notion.js';
+import { putDraft } from '../server/cms.js';
 import assert from 'node:assert/strict';
 
 const { publicKey, privateKey } = await crypto.subtle.generateKey({ name: 'RSASSA-PKCS1-v1_5', modulusLength: 2048, publicExponent: new Uint8Array([1, 0, 1]), hash: 'SHA-256' }, true, ['sign', 'verify']);
@@ -223,4 +224,24 @@ assert.deepEqual([none.configured, none.missing], [false, ['NOTION_TOKEN', 'NOTI
 // Accessを通っていなければ、読み書きとも閉じる
 assert.equal((await handleApi(new Request('https://basecamp.example/api/approvals'), nenv, () => {})).status, 503);
 console.log('approvals: OK');
+// --- microCMSへの入稿(承認と同時に下書きとして)---
+const cenv = { MICROCMS_SERVICE_DOMAIN: 'yamato', MICROCMS_API_KEY: 'read', MICROCMS_WRITE_KEY: 'write' };
+const art2 = { title: 'T', slug: 'rokko-layering', description: 'D', category: 'wear', tags: ['六甲山', '冬'], html: '<p>本文</p>', faq: [{ question: 'Q', answer: 'A' }] };
+let putBodies = [];
+routes = {
+  'yamato.microcms.io/api/v1/categories': (u, init) => { assert.equal(init.headers['X-MICROCMS-API-KEY'], 'read'); assert.ok(decodeURIComponent(u).includes('slug[equals]wear')); return Response.json({ contents: [{ id: 'cat-wear' }] }); },
+  'yamato.microcms.io/api/v1/articles/rokko-layering?status=draft': (u, init) => {
+    assert.equal(init.method, 'PUT'); assert.equal(init.headers['X-MICROCMS-API-KEY'], 'write');
+    const b = JSON.parse(init.body); putBodies.push(b);
+    return b.tags ? new Response('bad tags', { status: 400 }) : Response.json({ id: 'rokko-layering' });
+  },
+};
+const pd = await putDraft(cenv, art2);
+assert.equal(pd.editUrl, 'https://yamato.microcms.io/apis/articles/rokko-layering');
+assert.deepEqual([putBodies[0].category, putBodies[0].tags, putBodies[0].contentHtml], ['cat-wear', '六甲山, 冬', '<p>本文</p>']);
+assert.equal(putBodies[1].tags, undefined);
+assert.ok(pd.dropped.some((x) => x.includes('タグ')) && pd.dropped.some((x) => x.includes('FAQ')));
+await assert.rejects(() => putDraft({ MICROCMS_SERVICE_DOMAIN: 'yamato' }, art2), /MICROCMS_WRITE_KEY/);
+await assert.rejects(() => putDraft(cenv, { ...art2, slug: '../x' }), /スラッグ/);
+console.log('cms: OK');
 console.log('ALL OK');

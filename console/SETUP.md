@@ -248,6 +248,25 @@ Claudeにつながっている Notion を、**YAMATO用に作った個人のNoti
 
 ---
 
+## 手順12 承認した記事をmicroCMSに入稿できるようにする(3分)
+
+承認トレイで記事を「承認」すると、その記事をmicroCMSに**下書き**として入れ、編集画面を開くようにする
+(公開はしない。最後の「公開」はmicroCMSの画面で自分で押す)。そのための**書き込み用のAPIキー**を作る。
+
+1. **microCMSの管理画面**(`https://<サービスID>.microcms.io/`)を開く → 左下の「**権限管理**」→「**APIキー**」→「**追加**」
+2. 名前:`BASE CAMP 書き込み` → 「**articles**」の権限で **GET・PUT** にチェック(POST・DELETEは付けない)→「保存」
+3. 作ったAPIキーの値をコピー
+4. Cloudflareのコンソールのプロジェクト(`yamato-basecamp`)→「**設定**」→「**変数とシークレット**」→「**追加**」
+   - `MICROCMS_WRITE_KEY` … 種類「**シークレット**」/ 値:3でコピーしたキー
+   - (任意)`MICROCMS_FAQ_FIELD_ID` … 種類「テキスト」/ 値:microCMSの「API設定 → スキーマ → faq」の中のカスタムフィールドのID
+     (入れないと、FAQだけは入稿されない。そのときはmicroCMSの画面で入れる)
+   →「**デプロイ**」
+5. 承認トレイの記事の依頼のボタンが「**承認してmicroCMSに下書き入稿**」に変われば完了
+
+> 読み取り用のキー(`MICROCMS_API_KEY`)とは分ける。読み取り用に書き込み権限を付けると、公開サイトのビルドにも書き込める鍵が渡ってしまうため。
+
+---
+
 ## 入れる環境変数のまとめ
 
 | 変数名 | 必須 | 種類 | 何に使うか |
@@ -266,6 +285,8 @@ Claudeにつながっている Notion を、**YAMATO用に作った個人のNoti
 | `BING_SITE_URL` | 任意 | テキスト | Bingに登録したURL。既定は `https://yamato-outdoor.com/` |
 | `NOTION_TOKEN` | 承認トレイ | シークレット | Notionのインテグレーション(手順11) |
 | `NOTION_APPROVALS_DB` | 承認トレイ | テキスト | 「承認トレイ」データベースのURLかID |
+| `MICROCMS_WRITE_KEY` | 記事の入稿 | シークレット | 承認した記事をmicroCMSに下書きとして入れる(手順12) |
+| `MICROCMS_FAQ_FIELD_ID` | 任意 | テキスト | microCMSの faq の中のカスタムフィールドのID |
 
 **`LOCAL_DEV_SKIP_ACCESS` は本番に絶対に入れない**(ローカル開発用。入れても localhost 以外では無視するが、念のため)。
 

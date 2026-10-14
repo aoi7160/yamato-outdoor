@@ -1586,6 +1586,56 @@ input[type='file'] {
   gap: 0.5rem;
 }
 
+.diff__why {
+  display: grid;
+  grid-template-columns: 3.5rem minmax(0, 1fr);
+  gap: 0.5rem;
+  padding: 0.5rem 0.6rem;
+  background: rgba(205, 216, 226, 0.05);
+  border-top: 1px dashed var(--line-soft);
+}
+.diff__why p {
+  margin: 0;
+  font-size: 0.8125rem;
+  color: var(--ink);
+  line-height: 1.7;
+  overflow-wrap: anywhere;
+}
+.diff__why .diff__tag {
+  color: var(--frost);
+  border: 1px solid rgba(205, 216, 226, 0.35);
+}
+.approval__article {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  align-items: center;
+}
+.approval__facts {
+  flex-basis: 100%;
+  margin: 0.25rem 0 0;
+  display: grid;
+  gap: 0.3rem;
+  font-size: 0.8125rem;
+}
+.approval__facts div {
+  display: grid;
+  grid-template-columns: 9rem minmax(0, 1fr);
+  gap: 0.5rem;
+}
+.approval__facts dt {
+  color: var(--ink-mute);
+}
+.approval__facts dd {
+  margin: 0;
+}
+@media (max-width: 40rem) {
+  .approval__facts div {
+    grid-template-columns: 1fr;
+    gap: 0;
+  }
+}
+
 /* 報告グループの「承認依頼」から詳細へ */
 a.msg__bubble--link {
   color: inherit;

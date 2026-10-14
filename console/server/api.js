@@ -17,6 +17,7 @@ import { verifyAccess } from './access.js';
 import { getCached, putCached } from './cache.js';
 import { CONNECTORS, missingEnv } from './connectors.js';
 import { decide, listApprovals, notionMissing } from './notion.js';
+import { cmsBase } from './cms.js';
 
 const json = (body, status = 200, headers = {}) =>
   Response.json(body, { status, headers: { 'cache-control': 'no-store', 'x-robots-tag': 'noindex', ...headers } });
@@ -71,7 +72,14 @@ async function approvals(request, env, url, parts) {
   if (parts.length === 2 && request.method === 'GET') {
     if (missing.length) return json({ ok: false, configured: false, missing });
     try {
-      return json({ ok: true, configured: true, fetchedAt: new Date().toISOString(), items: await listApprovals(env, { bodies: url.searchParams.get('bodies') !== '0' }) });
+      return json({
+        ok: true,
+        configured: true,
+        fetchedAt: new Date().toISOString(),
+        // microCMSの管理画面のURL(「microCMSで直接直す」用)と、承認時に入稿できるか
+        cms: { base: cmsBase(env), writable: !!(env.MICROCMS_SERVICE_DOMAIN && env.MICROCMS_WRITE_KEY) },
+        items: await listApprovals(env, { bodies: url.searchParams.get('bodies') !== '0' }),
+      });
     } catch (e) {
       return json({ ok: false, configured: true, error: e instanceof Error ? e.message : String(e) });
     }

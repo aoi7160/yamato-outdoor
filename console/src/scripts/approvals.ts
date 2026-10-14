@@ -25,6 +25,26 @@ export type ApprovalDiff = {
   where: string;
   before: string;
   after: string;
+  /** なぜこう直すと良いか(CEOが判断に時間をかけなくて済むように、必ず書く) */
+  why?: string;
+};
+
+/** 部が書いた記事(承認されるとmicroCMSに下書きとして入稿する。server/cms.js) */
+export type DraftArticle = {
+  title: string;
+  slug: string;
+  description: string;
+  category: string;
+  tags: string[];
+  /** 本文のHTML(microCMSの contentHtml にそのまま入る) */
+  html: string;
+  faq: { question: string; answer: string }[];
+  /** 主に狙う検索キーワード */
+  keyword?: string;
+  /** この記事の想定読者(persona.md をこの記事用に具体化したもの) */
+  reader?: string;
+  /** このテーマ・KWを選んだ理由 */
+  why?: string;
 };
 
 export type ApprovalDetail = {
@@ -41,6 +61,10 @@ export type ApprovalDetail = {
   images?: { src: string; alt?: string; caption?: string }[];
   /** microCMSの下書き。あれば下書きプレビューのURLを組み立てる */
   preview?: { contentId: string; draftKey: string };
+  /** 部が書いた記事の全文。あれば「記事を読んでコメントする」画面で読める */
+  article?: DraftArticle;
+  /** microCMSにある記事(既存記事の修正など)。あれば「microCMSで直接直す」のボタンが出る */
+  cms?: { contentId: string };
 };
 
 export type ApprovalItem = {
@@ -67,7 +91,41 @@ const STICKER_SVG = `<svg viewBox="0 0 240 150" xmlns="http://www.w3.org/2000/sv
   <text x="120" y="130" text-anchor="middle" font-family="'Schibsted Grotesk', sans-serif" font-size="17" font-weight="700" letter-spacing="3" fill="#e8eef3">YAMATO OUTDOOR</text>
 </svg>`;
 
+// デモの記事(記事レビューの画面を試すため)。【要実測】はCEOの体験が要る箇所の印
+const DEMO_ARTICLE_HTML = `<p>11月の六甲山は、街の服のまま登ると山頂で震える。【要実測:山頂(931m)の気温と風速。日付と時刻も】</p>
+<p>この記事では、初冬の六甲山を日帰りで歩くときの服を、行動中と休憩中に分けて決める。結論は「汗をかかない薄さで歩き、止まったら1枚足す」だ。</p>
+<h2>結論:行動中は薄く、止まったら足す</h2>
+<p>登りで汗をかくと、稜線の風で一気に冷える。行動中はベースレイヤーと薄いフリースで歩き、休憩のたびにダウンを羽織る。</p>
+<p>【体験を入れる:有馬側に下りたときに、どこで何を脱いだか】</p>
+<h2>初冬の六甲の気温と風</h2>
+<p>麓と山頂では、気温がおよそ5〜6℃違う(標高差による一般的な目安)。【要確認:気象庁のデータで、11月の神戸と六甲山頂の平均気温】</p>
+<h2>ベースレイヤーは汗冷えで選ぶ</h2>
+<p>綿のTシャツは汗を吸ったまま乾かないので、止まった瞬間に体温を奪う。メリノウールか化繊のものを選ぶ。</p>`;
+
 const TEMPLATES: ApprovalItem[] = [
+  {
+    id: 'ap-article-rokko-layering',
+    from: 'content',
+    type: '記事公開',
+    title: '新しい記事:初冬の六甲山を日帰りで歩く服装(公開前の確認)',
+    basis: ['企画:「雪山・冬キャンプ」(12/15)の6週間前に公開', '文体はサロモンの記事に合わせた', '【要実測】が2か所・【要確認】が1か所(CEOの山行で埋める)'],
+    effect: 'microCMSに下書きとして入稿 → microCMSの画面で公開',
+    detail: {
+      summary: 'デモの記事です。「記事を読んでコメントする」で、本文を選んでコメントや修正案を付けられます。',
+      article: {
+        title: '初冬の六甲山を日帰りで歩く服装 気温を測って試した重ね着',
+        slug: 'rokko-early-winter-layering',
+        description: '11月の六甲山を日帰りで歩くときの服を、行動中と休憩中に分けて決める。汗冷えしない重ね方と、止まったときに足す1枚を、実測した気温と一緒に書く。',
+        category: 'wear',
+        tags: ['六甲山', 'レイヤリング', '冬の低山'],
+        html: DEMO_ARTICLE_HTML,
+        faq: [{ question: '初冬の六甲山にダウンは要りますか?', answer: '行動中は要りませんが、山頂で休むなら薄手のものを1枚持っていくと安心です。' }],
+        keyword: '六甲山 服装 冬',
+        reader: '関西で働きながら月1〜2回登る人。冬も六甲・金剛には行くが、寒さで何を着るか毎回迷っている',
+        why: '「雪山・冬キャンプ」の需要の山(12/15)の前に、本格的な雪山より先に要る「寒い低山の服装」を押さえる。既存の登山靴の記事から内部リンクできる',
+      },
+    },
+  },
   {
     id: 'ap-publish-night-hike',
     from: 'editorial',
@@ -226,13 +284,22 @@ export type TrayItem = ApprovalItem & {
 };
 
 export type TrayMode = 'notion' | 'demo' | 'local' | 'error';
-export type Tray = { mode: TrayMode; items: TrayItem[]; missing?: string[]; error?: string };
+export type Tray = {
+  mode: TrayMode;
+  items: TrayItem[];
+  missing?: string[];
+  error?: string;
+  /** microCMSの管理画面のURLと、承認時に入稿できるか(Notionにつながっているときだけ) */
+  cms?: { base: string; writable: boolean };
+};
 
 export type DecisionInput = {
   action: 'approve' | 'reject' | 'revise' | 'reopen';
   note?: string;
   size?: '小さな修正' | '大きな修正';
   comments?: { where: string; text: string }[];
+  /** 承認と同時に、記事をmicroCMSに下書きとして入稿する */
+  toCms?: boolean;
 };
 
 const LOCAL_STATE: Record<Decision['state'], TrayState> = { approved: '承認', rejected: '差し戻し', revise: '修正依頼' };
@@ -287,7 +354,25 @@ function fromNotion(x: any): TrayItem {
         .map((l: any) => ({ label: str(l?.label) || 'リンク', href: safeUrl(l?.href), note: str(l?.note) || undefined }))
         .filter((l) => l.href),
       changes: arr(d.changes).map(str).filter(Boolean),
-      diffs: arr(d.diffs).map((v: any) => ({ where: str(v?.where), before: str(v?.before), after: str(v?.after) })),
+      diffs: arr(d.diffs).map((v: any) => ({ where: str(v?.where), before: str(v?.before), after: str(v?.after), why: str(v?.why) || undefined })),
+      article:
+        d.article && typeof d.article === 'object' && str(d.article.html)
+          ? {
+              title: str(d.article.title),
+              slug: str(d.article.slug),
+              description: str(d.article.description),
+              category: str(d.article.category),
+              tags: arr(d.article.tags).map(str).filter(Boolean),
+              html: str(d.article.html),
+              faq: arr(d.article.faq)
+                .map((f: any) => ({ question: str(f?.question), answer: str(f?.answer) }))
+                .filter((f) => f.question && f.answer),
+              keyword: str(d.article.keyword) || undefined,
+              reader: str(d.article.reader) || undefined,
+              why: str(d.article.why) || undefined,
+            }
+          : undefined,
+      cms: d.cms && /^[A-Za-z0-9_-]{1,80}$/.test(d.cms.contentId) ? { contentId: d.cms.contentId } : undefined,
       draft: d.draft && typeof d.draft === 'object' ? { label: str(d.draft.label) || '文面', text: str(d.draft.text) } : undefined,
       images: arr(d.images)
         .map((i: any) => ({ src: safeUrl(i?.src), alt: str(i?.alt), caption: str(i?.caption) }))
@@ -323,14 +408,18 @@ export async function loadTray(s: Settings, bodies = true): Promise<Tray> {
     const j = await res.json();
     if (j.configured === false) return { mode: 'local', items: demoTray(s), missing: j.missing };
     if (!j.ok) return { mode: 'error', items: [], error: j.error ?? '読み込めませんでした' };
-    return { mode: 'notion', items: (j.items ?? []).map(fromNotion).filter((x: TrayItem) => x.id !== 'ap-') };
+    return {
+      mode: 'notion',
+      items: (j.items ?? []).map(fromNotion).filter((x: TrayItem) => x.id !== 'ap-'),
+      cms: j.cms ? { base: safeUrl(j.cms.base).replace(/\/$/, ''), writable: !!j.cms.writable } : undefined,
+    };
   } catch {
     return { mode: 'local', items: demoTray(s), error: 'APIに届きません' };
   }
 }
 
 /** 判断を送る。Notionの依頼はNotionへ、デモの依頼はこのブラウザへ */
-export async function sendDecision(it: TrayItem, input: DecisionInput): Promise<{ ok: boolean; error?: string }> {
+export async function sendDecision(it: TrayItem, input: DecisionInput): Promise<{ ok: boolean; error?: string; cms?: { editUrl: string; dropped: string[] } }> {
   const id = notionId(it);
   if (!id) {
     const d = loadDecisions();
@@ -359,7 +448,7 @@ export async function sendDecision(it: TrayItem, input: DecisionInput): Promise<
       body: JSON.stringify(input),
     });
     const j = await res.json().catch(() => ({}));
-    return j.ok ? { ok: true } : { ok: false, error: j.error ?? `送れませんでした(${res.status})` };
+    return j.ok ? { ok: true, cms: j.cms ?? undefined } : { ok: false, error: j.error ?? `送れませんでした(${res.status})` };
   } catch {
     return { ok: false, error: 'APIに届きません' };
   }
@@ -389,4 +478,10 @@ export function instructionText(it: TrayItem, input: DecisionInput) {
   ]
     .filter(Boolean)
     .join('\n');
+}
+
+/** microCMSの管理画面で、その記事の編集画面(既存記事は cms.contentId、部が書いた記事は入稿後のスラッグ) */
+export function cmsEditUrl(tray: Tray, it: TrayItem) {
+  const id = it.detail.cms?.contentId ?? (it.state === '承認' || it.state === '対応済み' ? it.detail.article?.slug : undefined);
+  return tray.cms?.base && id ? `${tray.cms.base}/apis/articles/${encodeURIComponent(id)}` : '';
 }

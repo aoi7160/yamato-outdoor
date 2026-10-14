@@ -13,13 +13,15 @@
  *   本文       … ```json のコードブロックを1つ。中身は DETAIL の形(links・changes・diffs・draft・images・preview)
  *   判断の履歴 … 見出し3「CEOの判断(日時)…」/「対応(日時)…」+ 箇条書き。コンソールはこれを会話のように並べる
  */
+import { putDraft } from './cms.js';
+
 const API = 'https://api.notion.com/v1';
 const VERSION = '2025-09-03';
 
 /** 状態は、この5つ以外は扱わない(Notionで手で足されても、コンソールからは書かない) */
 export const STATES = ['承認待ち', '修正依頼', '承認', '差し戻し', '対応済み'];
 const SIZES = ['小さな修正', '大きな修正'];
-const LIMIT = { note: 2000, comment: 1000, comments: 30, where: 200 };
+const LIMIT = { note: 2000, comment: 1000, comments: 50, where: 300 };
 
 const cleanId = (s) => String(s ?? '').replace(/-/g, '').match(/[0-9a-f]{32}/i)?.[0]?.toLowerCase() ?? '';
 
@@ -165,7 +167,7 @@ const cap = (s, n) => String(s ?? '').trim().slice(0, n);
 const jst = (d) => new Date(d.getTime() + 9 * 3600_000).toISOString().slice(0, 16).replace('T', ' ');
 
 /**
- * @param {{ action: 'approve' | 'reject' | 'revise' | 'reopen', note?: string, size?: string, comments?: { where: string, text: string }[] }} input
+ * @param {{ action: 'approve' | 'reject' | 'revise' | 'reopen', note?: string, size?: string, comments?: { where: string, text: string }[], toCms?: boolean }} input
  */
 export async function decide(env, rawId, input, now = new Date()) {
   const id = cleanId(rawId);
@@ -189,6 +191,14 @@ export async function decide(env, rawId, input, now = new Date()) {
   if (action === 'revise' && !note && comments.length === 0)
     throw Object.assign(new Error('修正依頼には、全体への指示か箇所ごとの指示を1つ以上書いてください'), { status: 400 });
 
+  // 記事の依頼を承認するとき、希望があればmicroCMSに下書きとして入稿してから「承認」にする(失敗したら状態は変えない)
+  let cms = null;
+  if (action === 'approve' && input.toCms) {
+    const { detail } = await readBody(env, id);
+    if (!detail?.article) throw Object.assign(new Error('この依頼には記事の本文がありません'), { status: 400 });
+    cms = await putDraft(env, detail.article);
+  }
+
   const round = (prop(page.properties?.['修正回数']) ?? 0) + (action === 'revise' ? 1 : 0);
   const state = { approve: '承認', reject: '差し戻し', revise: '修正依頼', reopen: '承認待ち' }[action];
   const props = {
@@ -210,8 +220,12 @@ export async function decide(env, rawId, input, now = new Date()) {
   const children = [block('heading_3', `CEOの判断(${jst(now)})${label}`)];
   if (note) children.push(block('bulleted_list_item', action === 'revise' ? `全体:${note}` : `メモ:${note}`));
   for (const c of comments) children.push(block('bulleted_list_item', `「${c.where || '(箇所の指定なし)'}」:${c.text}`));
+  if (cms) {
+    children.push(block('bulleted_list_item', `microCMSに下書きとして入稿(コンテンツID ${cms.contentId})。公開はmicroCMSの画面で行う:${cms.editUrl}`));
+    if (cms.dropped.length) children.push(block('bulleted_list_item', `入稿できなかった項目(microCMSで手で入れる):${cms.dropped.join('、')}`));
+  }
   await call(env, `/blocks/${id}/children`, { method: 'PATCH', body: JSON.stringify({ children }) });
-  return { id, state, round };
+  return { id, state, round, cms };
 }
 
 export const notionMissing = (env) => ['NOTION_TOKEN', 'NOTION_APPROVALS_DB'].filter((k) => !env[k]);
