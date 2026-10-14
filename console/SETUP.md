@@ -224,6 +224,30 @@ Claudeにつながっている Notion を、**YAMATO用に作った個人のNoti
 
 ---
 
+## 手順11 Notionの承認トレイをコンソールにつなぐ(3分)
+
+承認トレイの依頼はNotionの「YAMATO BASE CAMP」→「承認トレイ」に積まれる。コンソールがそこを読み、
+押した「承認・修正依頼・差し戻し」を書き戻せるように、Notionの**鍵(インテグレーション)**を作って渡す。
+
+1. **https://www.notion.so/profile/integrations** を開く(YAMATO用のアカウントでログインした状態で)
+2. 「**新しいインテグレーション**(New integration)」を押す
+   - 名前:`BASE CAMP` / ワークスペース:**YAMATO OUTDOOR** / 種類:**内部**(Internal)→「保存」
+3. 「**内部インテグレーションシークレット**(Internal Integration Secret)」の「表示」→「コピー」(`ntn_` から始まる長い文字列)
+4. 同じ画面の「**機能**(Capabilities)」で、「コンテンツを読み取る」「コンテンツを更新」「コンテンツを挿入」の3つにチェックが入っていることを確認して保存
+5. Notionで「**YAMATO BASE CAMP**」のページを開く → 右上の「**…**」→「**接続**(Connections)」→「**BASE CAMP**」を選んで「確認」
+   (これで、このページの中だけをコンソールが読み書きできる。ほかのページは見えない)
+6. 同じページの中の「**承認トレイ**」を開き、ブラウザのアドレスバーのURLをコピーする
+   (`https://www.notion.so/` の後ろに32文字の英数字が付いた形。`?v=` より後ろは付いていてもよい)
+7. Cloudflareのコンソールのプロジェクト(`yamato-basecamp`)→「**設定**(Settings)」→「**変数とシークレット**(Variables and Secrets)」→「**追加**」で2つ入れる
+   - `NOTION_TOKEN` … 種類「**シークレット**(Secret)」/ 値:3でコピーした文字列
+   - `NOTION_APPROVALS_DB` … 種類「テキスト」/ 値:6でコピーしたURL
+   →「**デプロイ**(Deploy)」を押す
+8. コンソールの「**データ連携**」→「Notion(承認トレイ)」が「接続OK」になれば完了。承認トレイの上の表示が「DEMO」から「Notion」に変わる
+
+> 押した判断は、Notionの各依頼のページにも「CEOの判断(日時)…」として残る。Claudeは次に承認トレイを処理するとき、これを読んで動く。
+
+---
+
 ## 入れる環境変数のまとめ
 
 | 変数名 | 必須 | 種類 | 何に使うか |
@@ -240,6 +264,8 @@ Claudeにつながっている Notion を、**YAMATO用に作った個人のNoti
 | `CLARITY_API_TOKEN` | Clarity | シークレット | ClarityのData Export API(1日10回) |
 | `BING_API_KEY` | Bing | シークレット | Bing Webmaster ToolsのAPI |
 | `BING_SITE_URL` | 任意 | テキスト | Bingに登録したURL。既定は `https://yamato-outdoor.com/` |
+| `NOTION_TOKEN` | 承認トレイ | シークレット | Notionのインテグレーション(手順11) |
+| `NOTION_APPROVALS_DB` | 承認トレイ | テキスト | 「承認トレイ」データベースのURLかID |
 
 **`LOCAL_DEV_SKIP_ACCESS` は本番に絶対に入れない**(ローカル開発用。入れても localhost 以外では無視するが、念のため)。
 

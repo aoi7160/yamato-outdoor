@@ -61,16 +61,21 @@ const NAV = [
       <slot />
     </main>
     <script>
-      // 承認待ちの件数をナビに出す(どのページでも)
-      import { loadDecisions, loadSettings } from '../scripts/store';
-      import { approvalItems } from '../scripts/approvals';
-      const s = loadSettings();
-      const d = loadDecisions();
-      const pending = approvalItems(s).filter((a) => !d[a.id]).length;
-      const badge = document.querySelector<HTMLElement>('[data-pending-badge]');
-      if (badge && pending > 0) {
-        badge.textContent = String(pending);
-        badge.hidden = false;
+      // 承認待ちの件数をナビに出す(どのページでも)。実データモードではNotionの承認トレイの件数
+      import { loadSettings } from '../scripts/store';
+      import { loadTray } from '../scripts/approvals';
+      // 承認トレイのページは自分で数えて出す(Notionに2回問い合わせない)
+      if (!location.pathname.startsWith('/approvals')) {
+        loadTray(loadSettings(), false).then((t) => {
+          // Notion未接続のときに出るデモの依頼は数えない(実データモードで架空の件数を出さない)
+          if (t.mode !== 'notion' && t.mode !== 'demo') return;
+          const pending = t.items.filter((a) => a.state === '承認待ち').length;
+          const badge = document.querySelector<HTMLElement>('[data-pending-badge]');
+          if (badge && pending > 0) {
+            badge.textContent = String(pending);
+            badge.hidden = false;
+          }
+        });
       }
     </script>
   </body>

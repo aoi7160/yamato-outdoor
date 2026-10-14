@@ -6,6 +6,8 @@
 import { verifyAccess } from '../server/access.js';
 import { CONNECTORS } from '../server/connectors.js';
 import { handleApi } from '../server/api.js';
+import { checkArticle } from '../server/proofread.js';
+import { decide, listApprovals } from '../server/notion.js';
 import assert from 'node:assert/strict';
 
 const { publicKey, privateKey } = await crypto.subtle.generateKey({ name: 'RSASSA-PKCS1-v1_5', modulusLength: 2048, publicExponent: new Uint8Array([1, 0, 1]), hash: 'SHA-256' }, true, ['sign', 'verify']);
@@ -145,4 +147,80 @@ const st = await call('/api/connectors');
 assert.equal(st.connectors.find((c) => c.id === 'clarity').configured, true);
 assert.equal(st.connectors.find((c) => c.id === 'bing').configured, false);
 console.log('api cache: OK');
+// --- 校閲チェック ---
+const art = checkArticle({
+  id: 'a', slug: 'test', title: '最強の登山靴7選', description: '登山靴について解説します。', tags: ['登山靴'],
+  category: { slug: 'boots', genre: ['mountain-climbing'] },
+  contentHtml: '<h2>選び方!</h2><p>ここを理解して選べば、ここを理解して選べば分かる。バックパックは軽いほうが良いと思う。疲れにくいと思う。歩きやすいと思う。</p><p>今日は晴れでした。気温は低いです。風が強いです。</p><img src="x.webp"><p>「サロモンは登山靴ですか？」が表示される。<a href="https://hb.afl.rakuten.co.jp/x">楽天</a></p>',
+});
+const bad = Object.fromEntries(art.checks.map((c) => [c.key, c.ok]));
+assert.deepEqual(
+  ['title', 'description', 'banned', 'yure', 'hiraku', 'ending', 'keitai', 'repeat', 'headings', 'alt', 'pr', 'internal', 'tags'].map((k) => bad[k]),
+  Array(13).fill(false),
+);
+assert.equal(bad.marks, true, '「」の中の?は数えない(見出しの!は見出しのチェックで拾う)');
+assert.equal(art.url, 'https://yamato-outdoor.com/mountain-climbing/boots/test/');
+assert.ok(art.checks.find((c) => c.key === 'repeat').findings[0].includes('ここを理解して選べば'));
+const okArt = checkArticle({ id: 'b', title: 'あ'.repeat(32), description: 'い'.repeat(100), tags: ['a', 'b', 'c'], contentHtml: '<p class="pr-notice">広告</p>' + ['一', '二', '三', '四'].map((x) => `<h2>${x}</h2><p>短い文だ。次の文である。<a href="/a/">内部</a></p>`).join('') });
+assert.deepEqual(okArt.checks.filter((c) => !c.ok).map((c) => c.key), []);
+console.log('proofread: OK');
+
+// --- 承認トレイ(Notion)---
+const DB = '11112222333344445555666677778888';
+const DS = '9999aaaabbbbccccddddeeeeffff0000';
+const PAGE = '0123456789abcdef0123456789abcdef';
+const nenv = { NOTION_TOKEN: 'secret_x', NOTION_APPROVALS_DB: `https://www.notion.so/${DB}?v=1` };
+const sent = [];
+const rt = (t) => [{ plain_text: t }];
+routes = {
+  [`api.notion.com/v1/databases/${DB}`]: (u, init) => { assert.equal(init.headers.authorization, 'Bearer secret_x'); return Response.json({ data_sources: [{ id: '9999aaaa-bbbb-cccc-dddd-eeeeffff0000' }] }); },
+  [`/data_sources/${DS}/query`]: { results: [
+    { id: '01234567-89ab-cdef-0123-456789abcdef', url: 'https://www.notion.so/p', created_time: now, properties: {
+      件名: { type: 'title', title: rt('サロモンのリライト') }, 状態: { type: 'select', select: { name: '承認待ち' } }, 依頼元: { type: 'select', select: { name: 'editorial' } },
+      種類: { type: 'select', select: { name: 'リライト' } }, 根拠: { type: 'rich_text', rich_text: rt('重複を検出\n語尾') }, 修正回数: { type: 'number', number: null } } },
+  ] },
+  [`/blocks/${PAGE}/children`]: (u, init) => {
+    if (init?.method === 'PATCH') { sent.push(['append', JSON.parse(init.body)]); return Response.json({}); }
+    return Response.json({ has_more: false, results: [
+      { type: 'code', code: { rich_text: rt('{"diffs":[{"where":"見出し","before":"前","after":"後"}],"preview":{"contentId":"salomon","draftKey":"k1"}}') } },
+      { type: 'heading_3', heading_3: { rich_text: rt('対応(2026-10-13 10:00)初回') } },
+      { type: 'bulleted_list_item', bulleted_list_item: { rich_text: rt('自動チェックから作成') } },
+    ] });
+  },
+  [`/pages/${PAGE}`]: (u, init) => {
+    if (init?.method === 'PATCH') { sent.push(['props', JSON.parse(init.body)]); return Response.json({}); }
+    return Response.json({ parent: { type: 'data_source_id', data_source_id: '9999aaaa-bbbb-cccc-dddd-eeeeffff0000' }, properties: { 修正回数: { type: 'number', number: 1 } } });
+  },
+  ['/pages/ffffffffffffffffffffffffffffffff']: { parent: { type: 'page_id', page_id: 'aaaa' }, properties: {} },
+};
+const items = await listApprovals(nenv);
+assert.equal(items.length, 1);
+assert.deepEqual([items[0].id, items[0].title, items[0].state, items[0].from, items[0].basis.length, items[0].round], [PAGE, 'サロモンのリライト', '承認待ち', 'editorial', 2, 0]);
+assert.equal(items[0].detail.diffs[0].after, '後');
+assert.equal(items[0].history[0].lines[0], '自動チェックから作成');
+const dr = await decide(nenv, PAGE, { action: 'revise', size: '大きな修正', note: '常体に', comments: [{ where: '見出し', text: '短く' }] }, new Date('2026-10-13T12:00:00Z'));
+assert.deepEqual([dr.state, dr.round], ['修正依頼', 2]);
+const props = sent.find((x) => x[0] === 'props')[1].properties;
+assert.equal(props.状態.select.name, '修正依頼');
+assert.equal(props.修正の大きさ.select.name, '大きな修正');
+assert.equal(props.修正の指示.rich_text[0].text.content, '常体に\n「見出し」短く');
+const blocks = sent.find((x) => x[0] === 'append')[1].children;
+assert.equal(blocks[0].heading_3.rich_text[0].text.content, 'CEOの判断(2026-10-13 21:00)修正依頼(大きな修正・2回目)');
+assert.equal(blocks[2].bulleted_list_item.rich_text[0].text.content, '「見出し」:短く');
+await assert.rejects(() => decide(nenv, PAGE, { action: 'revise' }), /指示/);
+await assert.rejects(() => decide(nenv, PAGE, { action: 'delete' }), /種類/);
+await assert.rejects(() => decide(nenv, 'ffffffffffffffffffffffffffffffff', { action: 'approve' }), /承認トレイの依頼ではありません/);
+// API:書き込みは X-BaseCamp ヘッダーと同じオリジンのときだけ
+const napi = { ...nenv, LOCAL_DEV_SKIP_ACCESS: '1' };
+const post = (h) => handleApi(new Request(`http://localhost/api/approvals/${PAGE}`, { method: 'POST', headers: { 'content-type': 'application/json', ...h }, body: JSON.stringify({ action: 'approve' }) }), napi, () => {});
+assert.equal((await post({})).status, 403);
+assert.equal((await post({ 'X-BaseCamp': '1', Origin: 'https://evil.example' })).status, 403);
+assert.equal((await post({ 'X-BaseCamp': '1', Origin: 'http://localhost' })).status, 200);
+const lst = await (await handleApi(new Request('http://localhost/api/approvals?bodies=0'), napi, () => {})).json();
+assert.equal(lst.items[0].detail, undefined);
+const none = await (await handleApi(new Request('http://localhost/api/approvals'), { LOCAL_DEV_SKIP_ACCESS: '1' }, () => {})).json();
+assert.deepEqual([none.configured, none.missing], [false, ['NOTION_TOKEN', 'NOTION_APPROVALS_DB']]);
+// Accessを通っていなければ、読み書きとも閉じる
+assert.equal((await handleApi(new Request('https://basecamp.example/api/approvals'), nenv, () => {})).status, 503);
+console.log('approvals: OK');
 console.log('ALL OK');

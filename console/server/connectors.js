@@ -7,6 +7,7 @@
  */
 import { hasPersistentCache } from './cache.js';
 import { googleError, googleToken, readServiceAccount } from './google.js';
+import { proofread } from './proofread.js';
 
 const TZ = 'Asia/Tokyo';
 export const ymd = (d = new Date()) => new Intl.DateTimeFormat('sv-SE', { timeZone: TZ }).format(d); // YYYY-MM-DD
@@ -165,6 +166,41 @@ async function microcms(env) {
   };
 }
 
+/* ---------- 企画(今月 docs/articles に入った記事の設計書) ---------- */
+
+/**
+ * 企画・編集会議部の「今月の企画本数」。企画が通ると、SEO部が docs/articles/<slug>.md(設計書)を作る(console/ORG.md 5章)。
+ * mainに今月追加された設計書を数える(未マージのブランチの設計書は数えない)。
+ */
+async function plans(env, now = new Date()) {
+  const headers = { accept: 'application/vnd.github+json', 'user-agent': 'yamato-basecamp' };
+  if (env.GITHUB_TOKEN) headers.authorization = `Bearer ${env.GITHUB_TOKEN}`;
+  // 日本時間の今月1日 0:00
+  const jstNow = new Date(now.getTime() + 9 * 3600_000);
+  const since = new Date(Date.UTC(jstNow.getUTCFullYear(), jstNow.getUTCMonth(), 1) - 9 * 3600_000).toISOString();
+  const gh = async (path) => {
+    const res = await fetch(`https://api.github.com/repos/${REPO}${path}`, { headers });
+    if (!res.ok) throw Object.assign(new Error(`GitHub:${res.status}`), { status: res.status });
+    return res.json();
+  };
+  const commits = await gh(`/commits?path=docs/articles&since=${encodeURIComponent(since)}&per_page=20`);
+  const added = new Map();
+  for (const c of commits.slice(0, 20)) {
+    const detail = await gh(`/commits/${c.sha}`);
+    for (const f of detail.files ?? []) {
+      const m = /^docs\/articles\/([^/]+)\.md$/.exec(f.filename);
+      if (f.status === 'added' && m && m[1] !== 'README' && !added.has(m[1]))
+        added.set(m[1], { slug: m[1], date: detail.commit?.committer?.date ?? c.commit?.committer?.date, url: `https://github.com/${REPO}/blob/main/${f.filename}` });
+    }
+  }
+  const all = await gh('/contents/docs/articles');
+  return {
+    month: `${jstNow.getUTCFullYear()}-${String(jstNow.getUTCMonth() + 1).padStart(2, '0')}`,
+    added: [...added.values()],
+    total: (Array.isArray(all) ? all : []).filter((f) => f.name.endsWith('.md') && f.name !== 'README.md').length,
+  };
+}
+
 /* ---------- GitHub(mainのビルド結果。Cloudflare Pagesが付けるチェック) ---------- */
 
 async function github(env) {
@@ -277,8 +313,11 @@ export const CONNECTORS = {
   ga4: { needs: ['GOOGLE_SERVICE_ACCOUNT_JSON', 'GA4_PROPERTY_ID'], ttl: 600, run: ga4 },
   gsc: { needs: ['GOOGLE_SERVICE_ACCOUNT_JSON'], ttl: 6 * 3600, run: gsc },
   psi: { needs: [], ttl: 6 * 3600, run: psi },
+  // 校閲の自動チェック(server/proofread.js)。記事を全文読むので1時間に1回
+  proofread: { needs: ['MICROCMS_SERVICE_DOMAIN', 'MICROCMS_API_KEY'], ttl: 3600, run: proofread },
   microcms: { needs: ['MICROCMS_SERVICE_DOMAIN', 'MICROCMS_API_KEY'], ttl: 600, run: microcms },
   github: { needs: [], ttl: 300, run: github },
+  plans: { needs: [], ttl: 3600, run: plans },
   // Clarityは1日10回まで。3時間ごと(1日8回)にしか取りにいかず、「取り直す」でも取りにいかない
   clarity: { needs: ['CLARITY_API_TOKEN'], ttl: 3 * 3600, noFresh: true, run: clarity },
   bing: { needs: ['BING_API_KEY'], ttl: 6 * 3600, run: bing },

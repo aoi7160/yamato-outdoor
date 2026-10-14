@@ -57,7 +57,15 @@ export const resetSettings = () => {
 
 /* ---------- 承認トレイ ---------- */
 
-export type Decision = { state: 'approved' | 'rejected'; at: string; note?: string };
+/** このブラウザに保存する判断(デモの依頼と、Notionが未接続のとき)。Notionにつながっていれば、判断はNotionに書く */
+export type Decision = {
+  state: 'approved' | 'rejected' | 'revise';
+  at: string;
+  note?: string;
+  size?: string;
+  comments?: { where: string; text: string }[];
+  round?: number;
+};
 export const loadDecisions = () => read<Record<string, Decision>>(KEY.approvals, {});
 export const saveDecisions = (d: Record<string, Decision>) => write(KEY.approvals, d);
 

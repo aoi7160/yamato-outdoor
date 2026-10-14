@@ -1,0 +1,124 @@
+---
+/**
+ * 校閲チェック。編集長・校閲部の自動チェック(server/proofread.js)の結果を、記事ごと・項目ごとに見せる。
+ * 「何を見たか(ルール)」「通ったか」「どこが引っかかったか(抜き出し)」まで出す。
+ */
+import Base from '../layouts/Base.astro';
+---
+<Base title="校閲チェック" active="dashboard">
+  <div class="page-head">
+    <h1>校閲チェック</h1>
+    <p>
+      編集長・校閲部が、公開中の記事を <code>docs/tone-and-manner.md</code> のルールで自動チェックした結果です(直近に更新した10本・1時間ごと)。
+      機械で判定できる項目だけを見ています。h2だけで筋が通るか・実測値か・合わなかった点の分量は、校閲部が読んで判断し、直すものは承認トレイに修正案として積みます。
+    </p>
+    <p class="note" data-check-note>読み込んでいます…</p>
+  </div>
+  <div data-checks></div>
+  <details class="panel checks-rules" data-rules hidden>
+    <summary>チェックしている項目(ルール)</summary>
+    <div class="table-wrap"><table><thead><tr><th>項目</th><th>ルール</th><th>出どころ</th></tr></thead><tbody data-rules-body></tbody></table></div>
+  </details>
+
+  <script>
+    import { fetchConnector, type Proofread } from '../scripts/real';
+    import { esc, loadSettings } from '../scripts/store';
+
+    const note = document.querySelector<HTMLElement>('[data-check-note]')!;
+    const root = document.querySelector<HTMLElement>('[data-checks]')!;
+    const fmt = (iso?: string) => (iso ? new Date(iso).toLocaleString('ja-JP', { dateStyle: 'short', timeStyle: 'short' }) : '');
+
+    async function main() {
+      if (!loadSettings().useReal) {
+        note.textContent = 'デモモードでは使えません(「設定 → 実データモード」をONにすると、公開中の記事を実際にチェックします)。';
+        return;
+      }
+      const r = await fetchConnector('proofread');
+      if (!r.ok) {
+        note.textContent =
+          r.configured === false
+            ? `microCMSが未接続のため、チェックできません(足りない環境変数:${(r.missing ?? []).join('・')})。`
+            : `チェックできませんでした:${r.error ?? ''}`;
+        return;
+      }
+      const d = r.data as Proofread;
+      const label = (key: string) => d.rules.find((x) => x.key === key)?.label ?? key;
+      note.textContent = `${fmt(d.checkedAt)} にチェック。${d.articles.length}本・${d.rules.length}項目を見て、引っかかったのは${d.findings}項目です。`;
+      root.innerHTML = d.articles
+        .map((a) => {
+          const bad = a.checks.filter((c) => !c.ok);
+          const good = a.checks.filter((c) => c.ok);
+          return `<section class="panel check-article">
+            <div class="check-article__head">
+              <p class="approval__title">${a.url ? `<a href="${esc(a.url)}" target="_blank" rel="noopener">${esc(a.title)} ↗</a>` : esc(a.title)}</p>
+              <span class="chip ${bad.length ? 'chip--status-standby' : 'chip--status-active'}">${bad.length ? `${bad.length}項目に指摘` : '指摘なし'}</span>
+            </div>
+            <p class="note">更新 ${esc(fmt(a.revisedAt))}・${a.sentences}文・${a.chars.toLocaleString('ja-JP')}字</p>
+            ${bad
+              .map(
+                (c) => `<div class="check-item check-item--bad">
+                  <p class="check-item__label">✕ ${esc(label(c.key))}<span class="note">${esc(d.rules.find((x) => x.key === c.key)?.rule ?? '')}</span></p>
+                  <ul>${c.findings.map((f) => `<li>${esc(f)}</li>`).join('')}</ul>
+                </div>`,
+              )
+              .join('')}
+            ${good.length ? `<p class="check-ok">✓ 問題なし:${good.map((c) => esc(label(c.key))).join('・')}</p>` : ''}
+          </section>`;
+        })
+        .join('');
+      const rules = document.querySelector<HTMLElement>('[data-rules]')!;
+      rules.hidden = false;
+      document.querySelector('[data-rules-body]')!.innerHTML = d.rules
+        .map((x) => `<tr><td>${esc(x.label)}</td><td>${esc(x.rule)}</td><td class="note">${esc(x.doc)}</td></tr>`)
+        .join('');
+    }
+    main();
+  </script>
+</Base>
+
+<style is:global>
+  .check-article {
+    display: grid;
+    gap: 0.5rem;
+  }
+  .check-article__head {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: space-between;
+    gap: 0.5rem;
+  }
+  .check-article__head a {
+    color: inherit;
+  }
+  .check-item {
+    border-radius: 0.5rem;
+    padding: 0.5rem 0.75rem;
+    font-size: 0.875rem;
+  }
+  .check-item--bad {
+    background: rgba(224, 122, 106, 0.07);
+    border: 1px solid rgba(224, 122, 106, 0.25);
+  }
+  .check-item__label {
+    margin: 0 0 0.25rem;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.25rem 0.75rem;
+    align-items: baseline;
+    color: var(--ink-strong);
+  }
+  .check-item ul {
+    margin: 0;
+    padding-left: 1.1rem;
+    overflow-wrap: anywhere;
+  }
+  .check-ok {
+    margin: 0;
+    font-size: 0.8125rem;
+    color: var(--ember-soft);
+  }
+  .checks-rules > summary {
+    cursor: pointer;
+  }
+</style>

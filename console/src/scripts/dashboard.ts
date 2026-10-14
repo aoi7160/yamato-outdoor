@@ -32,10 +32,10 @@ export async function startDashboard() {
   if (initial) initial.textContent = s.ceoName.slice(0, 3).toUpperCase();
   setText('[data-member-count]', String(visible.length + 1));
 
-  // 承認待ち(承認トレイと同じ数え方)
+  // 承認待ち(承認トレイと同じ数え方)。実データモードではNotionの承認トレイの件数(実データが届いてから数える)
   const decisions = loadDecisions();
-  const pending = approvalItems(s).filter((a) => !decisions[a.id]).length;
-  setText('[data-pending]', String(pending));
+  let pending = s.useReal ? 0 : approvalItems(s).filter((a) => !decisions[a.id]).length;
+  setText('[data-pending]', s.useReal ? '—' : String(pending));
 
   // 取り込んだ実データ(CSV・手入力)。ASPとSUZURIで最新日が違うことがある
   const real = s.useReal ? latestImported((id) => sourceById(id)?.kind) : null;
@@ -72,12 +72,18 @@ export async function startDashboard() {
     chip.classList.toggle('chip--demo', !s.useReal);
   };
   if (s.useReal) {
-    const first = loadReal((st) => {
+    const onLive = (st: RealState) => {
       live = st;
       updateModeChip();
-    });
+      // 承認トレイ(Notion)の件数。未接続なら「—」
+      if (st.extra.tray) {
+        pending = st.extra.tray.items.filter((x) => x.state === '承認待ち').length;
+        setText('[data-pending]', st.extra.tray.configured && !st.extra.tray.error ? String(pending) : '—');
+      }
+    };
+    const first = loadReal(onLive);
     await Promise.race([first, new Promise((r) => setTimeout(r, FIRST_WAIT_MS))]);
-    setInterval(() => loadReal((st) => (live = st)).then(updateModeChip), REFRESH_MS);
+    setInterval(() => loadReal(onLive), REFRESH_MS);
   }
   updateModeChip();
 
@@ -321,7 +327,9 @@ function addMessage(from: string, text: string, type: string, href?: string) {
       <span class="msg__avatar" aria-hidden="true">${esc(avatar)}</span>
       <div><span class="msg__name">${esc(name)}</span><span class="msg__type">${esc(type)}</span><br />${
         href
-          ? `<a class="msg__bubble msg__bubble--link" href="${esc(href)}">${esc(text)}<span class="msg__more">詳細を見る →</span></a>`
+          ? `<a class="msg__bubble msg__bubble--link" href="${esc(href)}"${
+              /^https?:/.test(href) ? ' target="_blank" rel="noopener"' : ''
+            }>${esc(text)}<span class="msg__more">${/^https?:/.test(href) ? '開いて確かめる ↗' : '詳細を見る →'}</span></a>`
           : `<span class="msg__bubble">${esc(text)}</span>`
       }</div>
     </li>`,

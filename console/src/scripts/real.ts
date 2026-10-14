@@ -20,16 +20,31 @@ export type RealState = {
     topQueries?: { query: string; position: number; clicks: number }[];
     recent?: { title: string; revisedAt: string }[];
     gscClicks?: number;
+    gscImpressions?: number;
     gscRange?: string;
     cls?: number | null;
     psiSource?: string;
     cvNote?: string;
     clarity?: { sessions: number | null; deadClickRate: number | null; rageClickRate: number | null; scrollDepth: number | null };
     bing?: { clicks: number; impressions: number; topQueries: { query: string; position: number; clicks: number }[] };
+    /** 校閲の自動チェック(server/proofread.js) */
+    proofread?: Proofread;
+    /** 今月 docs/articles に入った設計書(企画の本数) */
+    plans?: { month: string; added: { slug: string; date: string; url: string }[]; total: number };
+    /** 承認トレイ(Notion)。件数と件名だけ */
+    tray?: { configured: boolean; items: { title: string; from: string; type: string; state: string; id: string }[]; error?: string };
   };
 };
 
-export const LIVE_IDS = ['ga4', 'gsc', 'psi', 'microcms', 'github', 'clarity', 'bing'] as const;
+export type ProofreadCheck = { key: string; ok: boolean; findings: string[] };
+export type Proofread = {
+  checkedAt: string;
+  rules: { key: string; label: string; doc: string; rule: string }[];
+  articles: { id: string; title: string; url: string; revisedAt?: string; sentences: number; chars: number; failed: number; checks: ProofreadCheck[] }[];
+  findings: number;
+};
+
+export const LIVE_IDS = ['ga4', 'gsc', 'psi', 'microcms', 'github', 'clarity', 'bing', 'proofread', 'plans'] as const;
 
 async function getJson(url: string, timeoutMs: number): Promise<any> {
   const ctl = new AbortController();
@@ -78,6 +93,7 @@ export function applyResult(state: RealState, id: string, r: ConnectorResult) {
     set('top10', d.top10, 'Search Console');
     state.extra.topQueries = d.topQueries;
     state.extra.gscClicks = d.clicks;
+    state.extra.gscImpressions = d.impressions;
     state.extra.gscRange = d.range;
   }
   if (id === 'psi') {
@@ -93,19 +109,34 @@ export function applyResult(state: RealState, id: string, r: ConnectorResult) {
   if (id === 'github') state.extra.build = { state: d.state, sha: d.sha, message: d.message };
   if (id === 'clarity') state.extra.clarity = d;
   if (id === 'bing') state.extra.bing = d;
+  if (id === 'proofread') state.extra.proofread = d;
+  if (id === 'plans') state.extra.plans = d;
+}
+
+/** 承認トレイ(Notion)の件数と件名。未接続なら configured:false */
+async function fetchTray(state: RealState) {
+  const r = await getJson('/api/approvals?bodies=0', 15_000);
+  state.results.tray = { ok: !!r.ok, configured: r.configured, missing: r.missing, error: r.error };
+  if (r.ok)
+    state.extra.tray = {
+      configured: true,
+      items: (r.items ?? []).map((x: any) => ({ id: String(x.id ?? ''), title: String(x.title ?? ''), from: String(x.from ?? ''), type: String(x.type ?? ''), state: String(x.state ?? '') })),
+    };
+  else state.extra.tray = { configured: r.configured === true, items: [], error: r.error };
 }
 
 /** すべての連携を並行して取りにいき、届いた順に onUpdate を呼ぶ。全部そろうと resolve する */
 export function loadReal(onUpdate: (s: RealState) => void, fresh = false) {
   const state = emptyReal();
-  return Promise.all(
-    LIVE_IDS.map((id) =>
+  return Promise.all([
+    ...LIVE_IDS.map((id) =>
       fetchConnector(id, fresh).then((r) => {
         applyResult(state, id, r);
         onUpdate(state);
       }),
     ),
-  ).then(() => state);
+    fetchTray(state).then(() => onUpdate(state)),
+  ]).then(() => state);
 }
 
 /** 実データになった項目の出どころ(重複なし) */
@@ -114,5 +145,7 @@ export const realSourceNames = (s: RealState | null) => [
     ...Object.values(s?.sources ?? {}),
     ...(s?.extra.clarity ? ['Clarity'] : []),
     ...(s?.extra.bing ? ['Bing'] : []),
+    ...(s?.extra.proofread ? ['校閲チェック'] : []),
+    ...(s?.extra.tray?.configured && !s.extra.tray.error ? ['Notion'] : []),
   ]),
 ];

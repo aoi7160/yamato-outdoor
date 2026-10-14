@@ -225,9 +225,38 @@ export function alertsFor(c: DemoContext): string[] {
     const t = c.imported?.[k];
     if (t && daysSince(t.date, c.today) > STALE_DAYS) out.push(`${name}のデータが${daysSince(t.date, c.today)}日前で止まっている`);
   }
+  const behind = plansBehind(c);
+  if (behind) out.push(`今月の企画が${behind.n}本(目標${PLAN_TARGET}本)`);
+  const severe = proofreadSevere(c);
+  if (severe.length) out.push(`校閲:すぐ直すべき指摘が${severe.length}本`);
   const close = closingPhase(c.today);
   if (close) out.push(close.text);
   return out;
+}
+
+/** 承認トレイ(Notion)に、その部が積んでいて判断待ちの依頼 */
+const trayOf = (c: DemoContext, id: string) =>
+  (c.extra.tray?.items ?? []).filter((x) => x.from === id && (x.state === '承認待ち' || x.state === '修正依頼'));
+
+/** 企画の目標(月2本以上。agents/planning.md) */
+const PLAN_TARGET = 2;
+/** 月の後半に入っても目標に届いていないか */
+function plansBehind(c: DemoContext) {
+  const p = c.extra.plans;
+  if (!p) return null;
+  const n = p.added.length;
+  const last = new Date(c.today.getFullYear(), c.today.getMonth() + 1, 0).getDate();
+  if (n >= PLAN_TARGET || c.today.getDate() < 15) return null;
+  return { n, left: PLAN_TARGET - n, daysLeft: last - c.today.getDate() };
+}
+
+/** 校閲チェックで、すぐ直すべき指摘(言葉の重複・広告表記の漏れ)がある記事 */
+function proofreadSevere(c: DemoContext) {
+  const pr = c.extra.proofread;
+  if (!pr) return [];
+  return pr.articles
+    .map((a) => ({ a, bad: a.checks.filter((x) => !x.ok && (x.key === 'repeat' || x.key === 'pr')) }))
+    .filter((x) => x.bad.length > 0);
 }
 
 /** 昼を過ぎてもPVが0なら、記事が読まれていないより計測タグが止まっている方を疑う */
@@ -240,7 +269,10 @@ export type Tile = { label: string; value: string; sub?: string; real?: boolean 
 const NA = '—';
 
 const TILES: Record<string, (c: DemoContext) => Tile> = {
-  planning: (c) => ({ label: '次の需要の山まで', value: `${c.peaks[0]?.days ?? NA}日`, sub: c.peaks[0]?.name, real: c.grounded }),
+  planning: (c) =>
+    c.grounded && c.extra.plans
+      ? { label: '今月の企画', value: `${c.extra.plans.added.length}本`, sub: `目標${PLAN_TARGET}本・次の山まで${c.peaks[0]?.days ?? NA}日`, real: true }
+      : { label: '次の需要の山まで', value: `${c.peaks[0]?.days ?? NA}日`, sub: c.peaks[0]?.name, real: c.grounded },
   seo: (c) =>
     c.realKeys.has('top10')
       ? { label: '10位以内のクエリ(7日)', value: `${num(c.s.values.top10)}件`, sub: `クリック ${num(c.extra.gscClicks ?? 0)}`, real: true }
@@ -258,10 +290,20 @@ const TILES: Record<string, (c: DemoContext) => Tile> = {
       : { label: '公開・更新(本日)', value: `${c.s.values.publishedUpdated}本`, sub: `下書き ${c.s.values.draftsReady}本` },
   editorial: (c) =>
     c.grounded
-      ? { label: '審査(本日)', value: NA, sub: '審査の記録 未接続' }
+      ? c.extra.proofread
+        ? {
+            label: '指摘のある記事',
+            value: `${c.extra.proofread.articles.filter((a) => a.failed > 0).length}本`,
+            sub: `${c.extra.proofread.articles.length}本を自動チェック`,
+            real: true,
+          }
+        : { label: '指摘のある記事', value: NA, sub: `校閲チェック ${STATE_TEXT[conn(c, 'proofread')]}` }
       : { label: '審査(本日)', value: `${c.s.values.reviewed}本`, sub: `差し戻し ${c.s.values.rejects}件` },
   creative: (c) =>
-    c.grounded ? { label: '納品(本日)', value: NA, sub: '納品の記録 未接続' } : { label: '納品(本日)', value: `${c.s.values.assets}点`, sub: 'alt設定 100%' },
+    c.grounded
+      ? c.extra.tray?.configured
+        ? { label: '確認待ちの納品物', value: `${trayOf(c, 'creative').length}件`, sub: '承認トレイ', real: true }
+        : { label: '確認待ちの納品物', value: NA, sub: '承認トレイ(Notion) 未接続' } : { label: '納品(本日)', value: `${c.s.values.assets}点`, sub: 'alt設定 100%' },
   dev: (c) => {
     const vitals = c.realKeys.has('lcp')
       ? `LCP ${c.s.values.lcp}s${c.realKeys.has('inp') ? `・INP ${c.s.values.inp}ms` : ''}`
@@ -314,7 +356,18 @@ export type Screen = { title: string; rows: Row[] };
 const SCREENS: Record<string, (c: DemoContext) => Screen> = {
   'demand-calendar': (c) => ({
     title: '需要カレンダー',
-    rows: c.peaks.map((p, i) => ({ label: p.name, value: `あと${p.days}日`, tone: i === 0 ? 'warn' : undefined })),
+    rows: [
+      ...c.peaks.slice(0, c.grounded && c.extra.plans ? 3 : 4).map((p, i) => ({ label: p.name, value: `あと${p.days}日`, tone: i === 0 ? ('warn' as const) : undefined })),
+      ...(c.grounded && c.extra.plans
+        ? [
+            {
+              label: '今月の企画(設計書)',
+              value: `${c.extra.plans.added.length} / ${PLAN_TARGET}本`,
+              tone: c.extra.plans.added.length >= PLAN_TARGET ? ('good' as const) : ('warn' as const),
+            },
+          ]
+        : []),
+    ],
   }),
   'rank-tracker': (c) =>
     c.extra.topQueries?.length
@@ -331,7 +384,18 @@ const SCREENS: Record<string, (c: DemoContext) => Screen> = {
           ],
         }
       : c.grounded
-        ? { title: 'Search Console — 直近7日', rows: [{ label: 'Search Console', value: STATE_TEXT[conn(c, 'gsc')] }] }
+        ? c.realKeys.has('top10')
+          ? {
+              // クエリが1件も無い(まだ検索に出ていない)ときも、実際の数字だけを出す
+              title: 'Search Console — 直近7日',
+              rows: [
+                { label: 'クリック', value: `${num(c.extra.gscClicks ?? 0)}回` },
+                { label: '表示回数', value: `${num(c.extra.gscImpressions ?? 0)}回` },
+                ...(c.extra.bing ? [{ label: 'Bing(7日)', value: `${num(c.extra.bing.clicks)}クリック・${num(c.extra.bing.impressions)}表示` }] : []),
+                { label: '10位以内のクエリ', value: `${num(c.s.values.top10)}件`, tone: 'total' as const },
+              ],
+            }
+          : { title: 'Search Console — 直近7日', rows: [{ label: 'Search Console', value: STATE_TEXT[conn(c, 'gsc')] }] }
         : {
     title: 'Rank Tracker — 今日の変動(DEMO)',
     rows: [
@@ -360,8 +424,20 @@ const SCREENS: Record<string, (c: DemoContext) => Screen> = {
   },
   checklist: (c) => {
     const items = ['表記ゆれ・数字と単位', 'タイトル30〜35字・概要80〜120字', '価格・スペックの出典と確認日', 'pr-notice(広告の明示)', 'persona.md との整合'];
-    // 実データモードでは、項目だけ出して結果は出さない(審査の記録がまだつながっていない)
-    if (c.grounded) return { title: '公開前チェックリスト(審査の記録 未接続)', rows: items.map((label) => ({ label, value: NA })) };
+    if (c.grounded) {
+      const pr = c.extra.proofread;
+      // 自動チェックの結果を記事ごとに出す(何を見たかは /checks/ に全部出る)
+      if (pr)
+        return {
+          title: `校閲チェック(自動・${pr.rules.length}項目)`,
+          rows: pr.articles.slice(0, 5).map((a) => ({
+            label: cut(a.title, 20),
+            value: a.failed ? `指摘${a.failed}項目` : '指摘なし',
+            tone: a.failed ? ('bad' as const) : ('good' as const),
+          })),
+        };
+      return { title: '校閲チェック', rows: [{ label: '校閲チェック(自動)', value: STATE_TEXT[conn(c, 'proofread')] }] };
+    }
     const bad = (i: number) => i === 2 && c.s.values.rejects > 0;
     return {
       title: '公開前チェックリスト(DEMO)',
@@ -369,7 +445,16 @@ const SCREENS: Record<string, (c: DemoContext) => Screen> = {
     };
   },
   'production-queue': (c) => {
-    if (c.grounded) return { title: '制作キュー', rows: [{ label: '納品の記録', value: '未接続' }] };
+    if (c.grounded) {
+      if (!c.extra.tray?.configured) return { title: '納品物', rows: [{ label: '承認トレイ(Notion)', value: '未接続' }] };
+      const mine = (c.extra.tray.items ?? []).filter((x) => x.from === 'creative').slice(0, 4);
+      return {
+        title: '納品物(承認トレイ)',
+        rows: mine.length
+          ? mine.map((x) => ({ label: cut(x.title, 20), value: x.state, tone: x.state === '承認' ? ('good' as const) : ('warn' as const) }))
+          : [{ label: '確認待ちの納品物', value: 'なし' }],
+      };
+    }
     const items = ['サムネ:冬キャンプの暖房', '図解:秋のレイヤリング', 'サムネ:紅葉の六甲山', '図解:渓流の装備リスト', 'グッズ清書:冬ステッカー', 'シネマグラフ候補'];
     return {
       title: '制作キュー(DEMO)',
@@ -577,16 +662,29 @@ function salesAnswer(c: DemoContext, kind: 'affiliate' | 'goods') {
 const GROUNDED: Record<string, (c: DemoContext) => string> = {
   planning: (c) => {
     const [p0, p1] = c.peaks;
-    const base = `次の需要の山は「${p0?.name}」まで${p0?.days}日、その次は「${p1?.name}」まで${p1?.days}日です`;
+    const pl = c.extra.plans;
+    const plansText = pl
+      ? `、今月の企画(設計書)は${pl.added.length}本で目標の${PLAN_TARGET}本${pl.added.length >= PLAN_TARGET ? 'に届いています' : `まであと${PLAN_TARGET - pl.added.length}本です`}`
+      : '';
+    const base = `次の需要の山は「${p0?.name}」まで${p0?.days}日${plansText || `、その次は「${p1?.name}」まで${p1?.days}日です`}`;
     const due = publishDue(c);
-    if (!due) return base;
+    const behind = plansBehind(c);
+    if (!due && !behind) return base;
     return [
       `${base}。`,
+      ...(behind
+        ? [
+            `月末まであと${behind.daysLeft}日なので、このままだと目標に届きません。`,
+            `6週間先の山に間に合う企画を、あと${behind.left}本決める必要があります。`,
+            'Claudeに「今月の企画を出して」と頼むと、企画部として案を承認トレイに「企画」で積みます。',
+          ]
+        : []),
+      ...(!due ? [] : [
       due.target === 0
         ? `今日が「${due.name}」の公開目標日(山の6週間前)です。`
         : `「${due.name}」の公開目標日(山の6週間前)まで、あと${due.target}日です。`,
       '目標どおりに出すなら、今週中に記事のテーマと担当を決める必要があります。',
-      '発注の記録はまだコンソールにつながっていないので、決まったらカレンダーの編集会議の予定に書き込んでください。',
+      ]),
     ].join('');
   },
   seo: (c) => {
@@ -604,8 +702,30 @@ const GROUNDED: Record<string, (c: DemoContext) => string> = {
     const r = c.extra.recent?.[0];
     return `本日の公開・更新は${c.s.values.publishedUpdated}本です` + (r ? `(最近の更新は「${cut(r.title, 20)}」${md(r.revisedAt)})` : '');
   },
-  editorial: () => '審査・差し戻しの記録はまだコンソールにつながっていないため、今日の件数は報告できません',
-  creative: () => '制作・納品の記録はまだコンソールにつながっていないため、今日の点数は報告できません',
+  editorial: (c) => {
+    const pr = c.extra.proofread;
+    if (!pr) return `${why(c, 'proofread', '校閲チェック')}、今日のチェック結果は報告できません`;
+    const bad = pr.articles.filter((a) => a.failed > 0).sort((x, y) => y.failed - x.failed);
+    const label = (k: string) => pr.rules.find((r) => r.key === k)?.label ?? k;
+    const base =
+      `公開中の記事${pr.articles.length}本を${pr.rules.length}項目で自動チェックし、${bad.length}本に指摘があります` +
+      (bad[0] ? `(いちばん多いのは「${cut(bad[0].title, 16)}」の${bad[0].checks.filter((x) => !x.ok).map((x) => label(x.key)).slice(0, 3).join('・')}など)` : '');
+    const severe = proofreadSevere(c);
+    if (severe.length === 0) return base;
+    const s0 = severe[0];
+    const f0 = s0.bad[0];
+    return [
+      `${base}。`,
+      `うち「${cut(s0.a.title, 20)}」は${label(f0.key)}の指摘で、読者にそのまま見えている誤りです(${cut(f0.findings[0] ?? '', 40)})。`,
+      'Claudeに「校閲チェックの指摘を直して」と頼むと、変更前/変更後の案を承認トレイに積みます。',
+      '何をチェックしたかは「校閲チェック」の画面に、記事ごと・項目ごとに出ています。',
+    ].join('');
+  },
+  creative: (c) => {
+    if (!c.extra.tray?.configured) return '承認トレイ(Notion)がまだつながっていないため、納品物を見せられる場所がありません(納品物は画像つきで承認トレイに積みます)';
+    const mine = trayOf(c, 'creative');
+    return mine.length ? `確認待ちの納品物が${mine.length}件あります(「${cut(mine[0].title, 20)}」など)` : '確認待ちの納品物はありません';
+  },
   dev: (c) => {
     const b = c.extra.build;
     const v = c.s.values;
@@ -694,6 +814,12 @@ const answerFor = (a: ClientAgent, c: DemoContext) =>
     ? (GROUNDED[a.id]?.(c) ?? 'この部のデータはまだコンソールにつながっていないため、本日の報告はありません')
     : (ANSWERS[a.id]?.(c) ?? '本日の作業は予定どおりです');
 
+/** 台詞から開ける画面(何を見て言っているかを確かめられるように) */
+const HREF: Record<string, (c: DemoContext) => string | undefined> = {
+  editorial: (c) => (c.grounded && c.extra.proofread ? '/checks/' : undefined),
+  dev: (c) => (c.grounded && c.realKeys.has('lcp') ? 'https://pagespeed.web.dev/analysis?url=https%3A%2F%2Fyamato-outdoor.com%2F' : undefined),
+};
+
 const workFor = (a: ClientAgent, c: DemoContext) =>
   c.grounded ? (WORK_GROUNDED[a.id] ?? 'データの接続待ち') : (WORK[a.id] ?? '本日の作業を確認中');
 
@@ -745,13 +871,29 @@ export function buildScript(agents: ClientAgent[], c: DemoContext): Step[] {
       for (let k = 0; k < c.s.values.softCv; k++) steps.push({ t: spread(c.s.values.softCv, k), kind: 'cv', label: 'soft CV(記事末から)' });
 
     steps.push({ t: s + slot * 0.3, kind: 'typing', from: a.id });
-    steps.push({ t: s + slot * 0.5, kind: 'say', from: a.id, type: '定例', text: answerFor(a, c) });
+    steps.push({ t: s + slot * 0.5, kind: 'say', from: a.id, type: '定例', text: answerFor(a, c), href: HREF[a.id]?.(c) });
     steps.push({ t: s + slot * 0.5, kind: 'tile', agent: a.id });
     steps.push({ t: s + slot * 0.55, kind: 'work', agent: a.id, member, on: false });
     if (a.id === 'content' && known(c, 'publishedUpdated') && c.s.values.publishedUpdated > 0) steps.push({ t: s + slot * 0.5, kind: 'published' });
 
+    // 実データモード:承認トレイ(Notion)にその部が積んでいる判断待ちの依頼だけを知らせる
+    if (c.grounded) {
+      trayOf(c, a.id)
+        .slice(0, 2)
+        .forEach((x, k) =>
+          steps.push({
+            t: s + slot * (0.85 + k * 0.05),
+            kind: 'say',
+            from: a.id,
+            type: '承認依頼',
+            text: x.state === '修正依頼' ? `修正依頼をいただいた「${x.title}」を直しています(承認トレイ)` : `承認トレイで判断待ちです:${x.title}`,
+            href: `/approvals/#ap-${x.id}`,
+          }),
+        );
+      return;
+    }
+
     // ここから下は、実際には起きていない出来事(差し戻し・承認依頼)。デモモードでだけ流す
-    if (c.grounded) return;
 
     if (a.id === 'editorial' && c.s.values.rejects > 0)
       steps.push({
@@ -801,6 +943,12 @@ function dailyReport(c: DemoContext) {
   };
   sale('affiliate', 'ASP');
   sale('goods', 'SUZURI');
+  const tray = c.extra.tray;
+  if (tray?.configured) {
+    const wait = tray.items.filter((x) => x.state === '承認待ち').length;
+    const rev = tray.items.filter((x) => x.state === '修正依頼').length;
+    facts.push(`承認待ち${wait}件${rev ? `・修正対応中${rev}件` : ''}`);
+  }
   const alerts = alertsFor(c);
   if (alerts.length === 0) return `${ceo}さん、本日は${facts.join('、')}で、急ぎで確認してほしいことはありません`;
   return [

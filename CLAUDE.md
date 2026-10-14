@@ -160,6 +160,14 @@ A/Bテストや見比べ用に、過去のトップページ構成をブラン�
 - **コンソールのAPI(`/api/*`。本体は `console/server/api.js`)は、Cloudflare AccessのJWTを検証してからしか返さない**
   (`console/server/access.js`。`CF_ACCESS_TEAM_DOMAIN` と `ALLOWED_EMAILS` が無ければ閉じる)。この検証を外さない。
   Googleの鍵などは環境変数(シークレット)にだけ置き、ブラウザに渡さない。
+- **ダッシュボードの自動チャットは「実データモード」(既定)では、つないだデータで分かることしか言わない。**
+  分からないことは「未接続・取得中・取得失敗」と理由を言い、やっていない作業(発注・差し戻し・納品)を報告させない。
+  台詞は1文が基本で、CEOが動く必要があるときだけ3〜5文(`console/src/scripts/demo.ts` の `alertsFor` と `GROUNDED`)。
+- **承認トレイの実体はNotionの「承認トレイ」データベース**(`console/server/notion.js`。手順は `console/README.md` 11章)。
+  CEOの判断(承認・修正依頼・差し戻し)はNotionに書き戻され、Claudeは「承認トレイを処理して」と頼まれたときにそれを読んで動く。
+  依頼を積むときは本文の `json` に変更前/変更後(`diffs`)・納品物の画像URL(`images`)を入れる。
+  `preview` は microCMS に実際の下書きがあるときだけ書く(無い下書きのプレビューに飛ばさない)。
+- 校閲の自動チェックは `console/server/proofread.js`(画面は `/checks/`)。ルールは `docs/tone-and-manner.md` から機械で判定できるものだけ。
 - API連携は `console/server/connectors.js`(本体)・`console/src/lib/connectors.ts`(一覧と候補)・
   `console/src/scripts/real.ts`(画面の数字への割り当て)。足したら `cd console && npm test`。
   公開・環境変数の手順は `console/SETUP.md`(CEOが読む前提で、リンク付き・上から順に書く)。

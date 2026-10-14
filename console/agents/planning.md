@@ -12,6 +12,7 @@ members:
   - 需要カレンダーAI
   - 発注AI
 kpi:
+  - { key: plans_this_month, label: 今月の企画(目標は月2本以上), unit: 本, source: "GitHub(mainの docs/articles に入った設計書)" }
   - { key: orders_on_time, label: 公開予定日に間に合った発注, unit: "%", source: 発注台帳 }
   - { key: lead_time_days, label: 需要の山までの残り日数(次の山), unit: 日, source: 需要カレンダー }
 screen: demand-calendar
@@ -19,6 +20,7 @@ sources: [需要カレンダー, 経営企画の優先順位, SEO部の検索需
 cadence:
   - { when: "daily 09:00", what: 本日の発注 }
   - { when: "weekly mon 10:00", what: 編集会議(今週と6週間先までの発注表) }
+  - { when: "monthly 1日", what: "今月の企画を2本以上決める(需要の山の6週間前に公開できるもの)。企画は承認トレイに「企画」として積む" }
 reports_to: executive
 ---
 
@@ -62,6 +64,12 @@ reports_to: executive
 | 検索需要の予測(SEO部) | 制作物の発注(クリエイティブ部) |
 | セール・キャンペーン情報(アフィリエイト部) | 企画投稿の発注(SNS部) |
 | 伸びている記事(データ分析部) | 季節商品の企画依頼(グッズ部) |
+
+## 企画の本数
+
+**最低でも月2本は企画する。** 企画がCEOに承認されると、SEO部が `docs/articles/<slug>.md`(設計書)を作る。
+コンソールは、mainに今月入った設計書の数を「今月の企画」として数える(未マージのブランチは数えない)。
+月の後半に入っても2本に届いていなければ、定例報告で残りの本数と、間に合わせるための候補を出す。
 
 ## 定例報告
 

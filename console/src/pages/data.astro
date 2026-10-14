@@ -15,7 +15,7 @@ const KIND_CHIP = { live: '', csv: 'chip--status-standby', mcp: 'chip--status-ac
     <h1>データ連携</h1>
     <p>
       GA4・Search ConsoleなどはAPIで自動連携し、ASPとSUZURIの売上はCSVか手入力で入れます。
-      実データがある数字は、ダッシュボードでデモの代わりに使われます(「設定 → 実データを使う」、既定ON)。
+      ダッシュボードは、ここでつながっているデータで分かることだけを報告します(「設定 → 実データモード」、既定ON)。
     </p>
   </div>
 
@@ -162,8 +162,28 @@ const KIND_CHIP = { live: '', csv: 'chip--status-standby', mcp: 'chip--status-ac
       }
     }
     const escapeHtml = (s: string) => s.replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' })[c]!);
+    /** 承認トレイ(Notion)は連携の一覧とは別の口(/api/approvals)なので、ここで確かめる */
+    async function checkTray() {
+      const cell = document.querySelector('[data-connector="approvals"] [data-connector-state]');
+      if (!cell) return;
+      try {
+        const res = await fetch('/api/approvals?bodies=0', { credentials: 'same-origin' });
+        if (!(res.headers.get('content-type') ?? '').includes('json')) return;
+        const j = await res.json();
+        cell.innerHTML =
+          j.configured === false
+            ? `<span class="chip chip--status-standby">未設定</span><br /><span class="note">${(j.missing ?? []).map(escapeHtml).join('、')}</span>`
+            : j.ok
+              ? `<span class="chip chip--status-active">接続OK</span><br /><span class="note">依頼${(j.items ?? []).length}件</span>`
+              : `<span class="chip chip--status-standby">エラー</span><br /><span class="note">${escapeHtml(j.error ?? '')}</span>`;
+      } catch {}
+    }
     checkConnectors();
-    document.querySelector('[data-recheck]')!.addEventListener('click', () => checkConnectors(true));
+    checkTray();
+    document.querySelector('[data-recheck]')!.addEventListener('click', () => {
+      checkConnectors(true);
+      checkTray();
+    });
   </script>
 
   <script>
