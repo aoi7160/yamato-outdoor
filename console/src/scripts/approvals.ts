@@ -79,7 +79,6 @@ export type ApprovalItem = {
   detail: ApprovalDetail;
 };
 
-const NIGHT_HIKE = `${SITE_URL}/mountain-climbing/how-to/night-hike-basics/`;
 const SALOMON = `${SITE_URL}/mountain-climbing/boots/salomon-hiking-shoes/`;
 
 // グッズ案の見本(冬のステッカー)。本番ではクリエイティブ部の清書データに置き換える
@@ -127,40 +126,6 @@ const TEMPLATES: ApprovalItem[] = [
     },
   },
   {
-    id: 'ap-publish-night-hike',
-    from: 'editorial',
-    type: '記事公開',
-    title: '「ナイトハイクの始め方」のリライトを公開',
-    basis: ['公開前チェックリスト 全項目OK', 'ヘッドランプの明るさの記述を本文とFAQでそろえた(出典・確認日あり)', 'アフィリエイトなし(pr-notice不要)'],
-    effect: 'microCMSで公開 → サイトが再ビルドされる',
-    detail: {
-      summary:
-        'ヘッドランプの明るさが、本文(「四百ルーメンあれば充分すぎる」)とFAQ(「200〜400ルーメン」)で食い違っていたのを、FAQ側の幅にそろえる。あわせて確認日を入れる。',
-      // デモには実際の下書きが無いので、下書きプレビューのリンクは出さない
-      // (Notionの依頼で preview に contentId と draftKey が入っていれば、プレビューのリンクが出る)
-      links: [{ label: '公開中の記事を開く', href: NIGHT_HIKE }],
-      changes: [
-        '「灯りの話」→「ルーメンより、配光と電池の持ち」の明るさの記述を、FAQと同じ「二百〜四百ルーメン」にそろえる',
-        'FAQ「ヘッドランプはどれくらいの明るさが必要ですか?」に確認日を入れる',
-        '更新日を今日にする(タイトル・URLは変えない)',
-      ],
-      diffs: [
-        {
-          where: '灯りの話 → ルーメンより、配光と電池の持ち',
-          before:
-            '四百ルーメンあれば充分すぎる。むしろ強い光をずっと点けていると、光の外が真っ暗に見えて、かえって地形が読めなくなる。',
-          after:
-            '登山道を歩くだけなら、二百〜四百ルーメンあれば充分だ。むしろ強い光をずっと点けていると、光の外が真っ暗に見えて、かえって地形が読めなくなる。',
-        },
-        {
-          where: 'よくある質問 → ヘッドランプはどれくらいの明るさが必要ですか?',
-          before: '登山道を歩くだけなら200〜400ルーメンで十分です。',
-          after: '登山道を歩くだけなら200〜400ルーメンで十分です(2026年10月に主要メーカーの公式仕様で確認)。',
-        },
-      ],
-    },
-  },
-  {
     id: 'ap-merge-toc',
     from: 'dev',
     type: 'mainへのマージ',
@@ -170,7 +135,7 @@ const TEMPLATES: ApprovalItem[] = [
     detail: {
       summary: 'スマホで目次の項目どうしが詰まって押し間違えやすいので、項目の上下の余白を広げる。デザインの約束(目次はh2のみ)は変えない。',
       links: [
-        { label: 'いまの表示(本番)', href: NIGHT_HIKE },
+        { label: 'いまの表示(本番)', href: SALOMON },
         { label: 'GitHubのプルリクエスト', href: 'https://github.com/aoi7160/yamato-outdoor/pulls', note: 'デモのため該当のPRはありません。本番では変更のPRとプレビューURLが入ります' },
       ],
       changes: ['src/styles/article.css:目次の項目の上下の余白 0.35rem → 0.6rem', '押せる範囲(タップ領域)が縦44px以上になる', '見た目の変更はスマホ幅のみ(48rem以下)'],
@@ -232,8 +197,7 @@ const TEMPLATES: ApprovalItem[] = [
     basis: ['媒体資料を添付', '広告表記の扱いは法務で確認済み'],
     effect: 'CEOの名前でメールを送信',
     detail: {
-      summary: 'ナイトハイクの記事の次の更新で、実測(配光・電池の持ち)を載せるためのサンプル依頼。提供品で書く場合は記事に明記する。',
-      links: [{ label: '記事(ナイトハイクの始め方)', href: NIGHT_HIKE }],
+      summary: 'ヘッドランプの記事で、実測(配光・電池の持ち)を載せるためのサンプル依頼。提供品で書く場合は記事に明記する。',
       draft: {
         label: '送るメールの文面',
         text: `件名:ヘッドランプのサンプルご提供のお願い(YAMATO OUTDOOR)
@@ -243,7 +207,7 @@ const TEMPLATES: ApprovalItem[] = [
 アウトドアメディア「YAMATO OUTDOOR」を運営しております、AOIと申します。
 当サイトでは、登山の装備を実際に使い、数字で比べる記事を掲載しています。
 
-このたび、ナイトハイクの記事(${NIGHT_HIKE})の更新にあたり、
+このたび、ヘッドランプの記事の執筆にあたり、
 貴社のヘッドランプを実際の山で使い、配光と電池の持ちを計測したいと考えております。
 つきましては、評価用のサンプルを1点ご提供いただけないでしょうか。
 

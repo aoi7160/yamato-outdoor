@@ -17,7 +17,7 @@ CEOの理想の流れ:**AIがテーマを選んで公開直前まで書く → �
 3. `docs/tone-and-manner.md`(文体・表記・見出し・公開前チェックリスト)。冒頭の「お手本にする記事」を必ず読む
 4. **お手本の記事**:https://yamato-outdoor.com/mountain-climbing/boots/salomon-hiking-shoes/ を取得して本文を読む
    (語り口・段落の長さ・言い切りの強さ・一般論と体験の混ぜ方を、ここに寄せる)。
-   **ナイトハイクの記事はお手本にしない**(書き方がCEOの想定と違う)
+   **削除済みの見本記事「ナイトハイクの始め方」の書き方はお手本にしない**(CEOの想定と違っていた)
 5. `docs/microcms-schema.md` の「カテゴリ設計」(ピラー P01〜P08 とカテゴリの対応)
 6. `docs/articles/README.md` と、既存の設計書 `docs/articles/*.md`
 

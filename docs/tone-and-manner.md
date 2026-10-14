@@ -18,8 +18,8 @@
 (`/mountain-climbing/boots/salomon-hiking-shoes/`。設計は `docs/articles/salomon-hiking-shoes.md`)。
 新しい記事は、このルール表とあわせて、この記事の語り口(言い切りの強さ・段落の長さ・一般論と体験の混ぜ方)に寄せる。
 
-「ナイトハイクの始め方」(`src/pages/articles/night-hike-basics.astro`)は**お手本にしない。**
-デザイン確認用の見本記事で、書き方・トンマナがCEOの想定と大きく違う。
+以前あった見本記事「ナイトハイクの始め方」(night-hike-basics。削除済み)は**お手本にしない。**
+デザイン確認用の見本で、書き方・トンマナがCEOの想定と大きく違っていた。
 
 ---
 

@@ -400,7 +400,7 @@ const SCREENS: Record<string, (c: DemoContext) => Screen> = {
     title: 'Rank Tracker — 今日の変動(DEMO)',
     rows: [
       { label: 'サロモン 登山靴', value: '5位 →' },
-      { label: 'ナイトハイク 装備', value: '9位 ↑3', tone: 'good' },
+      { label: 'レインウェア 選び方', value: '9位 ↑3', tone: 'good' },
       { label: '登山靴 防水 比較', value: '14位 ↑2', tone: 'good' },
       { label: '渓流 入門 装備', value: '圏外' },
       { label: '10位以内', value: `${num(c.s.values.top10)}件`, tone: 'total' },
@@ -419,7 +419,6 @@ const SCREENS: Record<string, (c: DemoContext) => Screen> = {
       value: i === 0 && c.s.values.rejects > 0 ? '差し戻し' : '校閲待ち',
       tone: i === 0 && c.s.values.rejects > 0 ? 'bad' : 'warn',
     }));
-    rows.push({ label: 'ナイトハイクの始め方(リライト)', value: '承認待ち', tone: 'good' });
     return { title: 'microCMS — 下書き(DEMO)', rows };
   },
   checklist: (c) => {
@@ -611,7 +610,7 @@ const ANSWERS: Record<string, (c: DemoContext) => string> = {
     const [p0, p1] = c.peaks;
     return `次の需要の山「${p0?.name}」まで${p0?.days}日。その次の「${p1?.name}」(${p1?.days}日後)に向けた比較記事を発注しました`;
   },
-  seo: (c) => `10位以内は${num(c.s.values.top10)}件。「ナイトハイク 装備」が9位に上がりました。AI回答での引用は${c.s.values.aiCitations}件です`,
+  seo: (c) => `10位以内は${num(c.s.values.top10)}件。「レインウェア 選び方」が9位に上がりました。AI回答での引用は${c.s.values.aiCitations}件です`,
   content: (c) => `下書き${c.s.values.draftsReady}本を校閲に出しました。本日の公開・更新は${c.s.values.publishedUpdated}本です`,
   editorial: (c) => `${c.s.values.reviewed}本審査、${c.s.values.rejects}本差し戻し。公開済み記事の価格・廃番チェックは異常なしです`,
   creative: (c) => `サムネ・図解を${c.s.values.assets}点納品。altも設定済みです`,

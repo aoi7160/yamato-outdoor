@@ -57,7 +57,7 @@ microCMSの**下書き**として入れる。リライトもここ。公開は�
 ## 記事を書いて承認トレイに積む
 
 テーマ選びから公開直前の原稿までを書き、Notionの承認トレイに「記事公開」として積む(週2〜4本)。
-手順はスキル `write-article`(`.claude/skills/write-article/SKILL.md`)。お手本の文体はサロモンの記事、ナイトハイクは除外。
+手順はスキル `write-article`(`.claude/skills/write-article/SKILL.md`)。お手本の文体はサロモンの記事(削除済みの見本記事ナイトハイクの書き方は使わない)。
 体験・実測が要る箇所は【要実測:…】などで空けておき、でっち上げない。
 CEOがレビュー画面で付けたコメント・修正案(大きな修正を含む)の反映も、この部が行う。
 
@@ -75,7 +75,7 @@ CEOがレビュー画面で付けたコメント・修正案(大きな修正を�
 - `docs/persona.md`(矛盾したらこちらが正)
 - `docs/workflow.md`(入稿手順・`content` と `contentHtml`)
 - `docs/microcms-schema.md`
-- 見本記事 `src/pages/articles/night-hike-basics.astro`(**新しい記事をコードで足さない**)
+- **新しい記事をコードで足さない**(記事はmicroCMSにだけ入れる)
 
 ## コンソールでの見え方
 

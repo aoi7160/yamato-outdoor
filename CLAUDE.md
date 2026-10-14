@@ -29,8 +29,7 @@ Astro(SSG) + microCMS + Cloudflare Pages のアウトドアメディア。
 
 - **記事本文はmicroCMSに入れる。** リポジトリ側にはページを作らない。
   microCMSで公開 → 再ビルドで反映される(`docs/workflow.md` 参照)。
-- 例外は `src/pages/articles/night-hike-basics.astro`(デザイン確認用の見本記事)のみ。
-  新しい記事をコードとして追加しないこと。
+- 例外なし。新しい記事をコードとして追加しないこと(見本記事 night-hike-basics は削除済み)。
 
 ## 主要ファイル
 
@@ -171,7 +170,7 @@ A/Bテストや見比べ用に、過去のトップページ構成をブラン�
 - 校閲の自動チェックは `console/server/proofread.js`(画面は `/checks/`)。ルールは `docs/tone-and-manner.md` から機械で判定できるものだけ。
 - **新しい記事はAIが書いて承認トレイに積む**(スキル `write-article`。週2〜4本)。CEOは `/review/` で全文に箇所コメント・修正案を付け、
   承認すると `MICROCMS_WRITE_KEY` でmicroCMSに**下書き**として入稿される(公開はmicroCMSでCEOが押す)。
-  実測・体験はでっち上げず、`【要実測:…】` などで空けておく。文体のお手本はサロモンの記事(ナイトハイクは除外)。
+  実測・体験はでっち上げず、`【要実測:…】` などで空けておく。文体のお手本はサロモンの記事(削除済みの見本記事ナイトハイクの書き方は使わない)。
 - API連携は `console/server/connectors.js`(本体)・`console/src/lib/connectors.ts`(一覧と候補)・
   `console/src/scripts/real.ts`(画面の数字への割り当て)。足したら `cd console && npm test`。
   公開・環境変数の手順は `console/SETUP.md`(CEOが読む前提で、リンク付き・上から順に書く)。

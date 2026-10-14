@@ -41,9 +41,6 @@ export const GET: APIRoute = async ({ site }) => {
     { path: '/', lastmod: latest, changefreq: 'daily', priority: '1.0' },
     { path: '/about/', changefreq: 'monthly', priority: '0.6' },
     { path: '/privacy/', changefreq: 'monthly', priority: '0.2' },
-    // リポジトリ側に直接置いてある記事(microCMS由来ではないので手で足す)。
-    // このファイルを消すときは、この1行も一緒に消す。
-    { path: '/mountain-climbing/how-to/night-hike-basics/', changefreq: 'monthly', priority: '0.9' },
   ];
 
   for (const genre of GENRES) {

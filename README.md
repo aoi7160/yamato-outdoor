@@ -163,5 +163,3 @@ Instagram と TikTok にはWebからの投稿共有の導線が無いため、�
 - 記事内で使える装飾クラス(microCMSのリッチエディタでHTMLとして貼れる):
   `div.note`(補足) / `div.note.warn`(注意) / `div.checklist`(持ち物リスト) /
   `p.source`(出典)。表は自動で横スクロール対応の箱に入る。
-- `src/pages/articles/night-hike-basics.astro` は、microCMSに記事が入る前でも
-  デザインと記事の分量を確認するための見本ページ。不要になったら削除してよい。
