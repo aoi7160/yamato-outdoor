@@ -419,7 +419,6 @@ const SCREENS: Record<string, (c: DemoContext) => Screen> = {
       value: i === 0 && c.s.values.rejects > 0 ? '差し戻し' : '校閲待ち',
       tone: i === 0 && c.s.values.rejects > 0 ? 'bad' : 'warn',
     }));
-    rows.push({ label: 'ナイトハイクの始め方(リライト)', value: '承認待ち', tone: 'good' });
     return { title: 'microCMS — 下書き(DEMO)', rows };
   },
   checklist: (c) => {
