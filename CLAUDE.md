@@ -29,8 +29,7 @@ Astro(SSG) + microCMS + Cloudflare Pages のアウトドアメディア。
 
 - **記事本文はmicroCMSに入れる。** リポジトリ側にはページを作らない。
   microCMSで公開 → 再ビルドで反映される(`docs/workflow.md` 参照)。
-- 例外は `src/pages/articles/night-hike-basics.astro`(デザイン確認用の見本記事)のみ。
-  新しい記事をコードとして追加しないこと。
+- 例外なし。新しい記事をコードとして追加しないこと(見本記事 night-hike-basics は削除済み)。
 
 ## 主要ファイル
 

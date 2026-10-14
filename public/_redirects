@@ -1,6 +1,4 @@
 # 旧URLからの転送。階層を /ジャンル/カテゴリ/記事 に変更したため。
-/articles/night-hike-basics/ /mountain-climbing/how-to/night-hike-basics/ 301
-/articles/night-hike-basics /mountain-climbing/how-to/night-hike-basics/ 301
 /category/gear/ /mountain-climbing/gear/ 301
 /category/gear /mountain-climbing/gear/ 301
 /category/route/ /mountain-climbing/route/ 301

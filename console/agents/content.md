@@ -68,7 +68,7 @@ microCMSの**下書き**として入れる。リライトもここ。公開は�
 - `docs/persona.md`(矛盾したらこちらが正)
 - `docs/workflow.md`(入稿手順・`content` と `contentHtml`)
 - `docs/microcms-schema.md`
-- 見本記事 `src/pages/articles/night-hike-basics.astro`(**新しい記事をコードで足さない**)
+- **新しい記事をコードで足さない**(記事はmicroCMSにだけ入れる)
 
 ## コンソールでの見え方
 
