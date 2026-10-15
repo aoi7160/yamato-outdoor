@@ -40,7 +40,7 @@ export type ProofreadCheck = { key: string; ok: boolean; findings: string[] };
 export type Proofread = {
   checkedAt: string;
   rules: { key: string; label: string; doc: string; rule: string }[];
-  articles: { id: string; title: string; url: string; revisedAt?: string; sentences: number; chars: number; failed: number; checks: ProofreadCheck[] }[];
+  articles: { id: string; title: string; url: string; revisedAt?: string; sentences: number; chars: number; failed: number; affiliateLinks?: number; checks: ProofreadCheck[] }[];
   findings: number;
 };
 

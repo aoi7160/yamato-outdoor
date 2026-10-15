@@ -369,6 +369,8 @@ export function checkArticle(a) {
     sentences: ss.length,
     chars: p.text.length,
     failed: checks.filter((c) => !c.ok).length,
+    // アフィリエイト部用:本文のASPのリンクの数
+    affiliateLinks: p.links.filter((l) => isAffiliate(l)).length,
     checks,
   };
 }

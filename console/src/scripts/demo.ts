@@ -752,7 +752,15 @@ const GROUNDED: Record<string, (c: DemoContext) => string> = {
       return `${build}、LCP ${sec(v.lcp)}秒${inp}${lab}で基準内です` + (c.realKeys.has('inp') ? '' : '(INPは実ユーザーの値がまだありません)');
     return [`${build}ですが、表示速度が基準を超えています。`, ...slow.slice(0, 2), '表示の遅さは検索の評価と途中の離脱の両方に効きます。', slow[2]].join('');
   },
-  affiliate: (c) => salesAnswer(c, 'affiliate'),
+  affiliate: (c) => {
+    // 売上(CSV)に加えて、公開記事のうちアフィリエイトリンクがある記事の本数(校閲チェックが読んだ本文から)
+    const pr = c.extra.proofread;
+    const sales = salesAnswer(c, 'affiliate');
+    if (!pr) return sales;
+    const linked = pr.articles.filter((a) => (a.affiliateLinks ?? 0) > 0).length;
+    const links = `公開記事${pr.articles.length}本のうち、アフィリエイトリンクがある記事は${linked}本です`;
+    return c.imported?.affiliate ? `${sales}${sales.endsWith('。') ? '' : '。'}${links}` : `${links}。ASPのCSVはまだ取り込まれていません`;
+  },
   goods: (c) => salesAnswer(c, 'goods'),
   sns: () => 'SNSのアカウントが準備中のため、報告はありません',
   analytics: (c) => {
