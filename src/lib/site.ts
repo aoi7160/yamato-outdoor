@@ -55,6 +55,18 @@ export const LINE_FRIEND_URL: string = '';
 
 /* 物販側の行き先は上の SHOP_URL を使う(記事末のCV枠とヘッダーのカートで共通)。 */
 
+/**
+ * Amazonアソシエイト・プログラムに参加しているか。
+ * **審査に通って参加した日に true にする**(もしもアフィリエイト経由でAmazonのリンクを
+ * 置く場合も、表記はAmazonの規約に合わせて出す)。true の間は、全ページのフッターと
+ * `/privacy` の「広告について」に、Amazonが求める定型文が出る。
+ * 参加していないのに出すと事実と違う表示になるので、先に立てておかないこと。
+ */
+export const AMAZON_ASSOCIATE: boolean = false;
+
+/** Amazonアソシエイトの規約で求められる表記(文言はAmazonの指定どおり。変えない) */
+export const AMAZON_ASSOCIATE_NOTICE = 'Amazonのアソシエイトとして、YAMATO OUTDOORは適格販売により収入を得ています。';
+
 /** リンクの属性をまとめて作る。準備中のものは nofollow を付けて外部評価を渡さない。 */
 export const socialLink = (s: { label: string; href: string }) => {
   const pending = !s.href;

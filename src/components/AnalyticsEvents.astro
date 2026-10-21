@@ -126,10 +126,13 @@ import { hasAnyTag } from '../lib/analytics';
           }
 
           if (url.hostname !== location.hostname) {
+            // 記事本文のアフィリエイトリンクには src/lib/article.ts が data-affiliate(ASP名)を付けている。
+            // 付いていない外部リンクは 'none' で送り、GA4で「ASP別のクリック」と「それ以外」を分けて見る
             track('click_outbound', {
               link_domain: url.hostname,
               link_url: url.href,
               link_text: (link.textContent || '').trim().slice(0, 100),
+              affiliate_network: link.getAttribute('data-affiliate') || 'none',
               page_type: pageType,
             });
           }

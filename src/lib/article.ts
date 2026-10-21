@@ -4,9 +4,12 @@
  *  - 目次データを抜き出す
  *  - table を横スクロール用のdivで包む(スマホで表が潰れるのを防ぐ)
  *  - img に loading="lazy" を足す
- *  - 外部リンクに target と rel を補う(アフィリエイトは rel="sponsored")
+ *  - 外部リンクに target と rel を補う(アフィリエイトは rel="sponsored"。対象は src/lib/affiliate.ts)
+ *  - ASPのインプレッション計測用の1x1画像を外す
  * DOMParserはビルド時(Node)に無いので、素直に正規表現で処理している。
  */
+
+import { affiliateNetworkOf, isImpressionPixel } from './affiliate';
 
 /**
  * microCMSの画像URLにWebP変換と幅指定を付ける。
@@ -28,41 +31,10 @@ export const microcmsSrcSet = (url: string, widths: number[] = [640, 960, 1280, 
 /** 自サイトのホスト名。これ以外へのリンクを外部リンクとして扱う。 */
 const SITE_HOST = 'yamato-outdoor.com';
 
-/**
- * アフィリエイト(成果報酬型広告)のリンク先。ここに該当するリンクには
- * `rel="sponsored nofollow"` を自動で付ける。
- *
- * 付けないとGoogleのリンクスパム対策に引っかかりうるうえ、
- * 2023年10月に施行されたステルスマーケティング規制(景品表示法)の観点でも、
- * 広告であることを機械にも人にも分かる形で示しておく必要がある
- * (人に対する明示は、記事の冒頭に `<p class="pr-notice">` を置く。docs/workflow.md参照)。
- * ASPを増やしたらここに1行足す。
- */
-const AFFILIATE_HOSTS = [
-  'a8.net',
-  'amazon.co.jp',
-  'amzn.to',
-  'amzn.asia',
-  'rakuten.co.jp',
-  'hb.afl.rakuten.co.jp',
-  'valuecommerce.com',
-  'ck.jp.ap.valuecommerce.com',
-  'af.moshimo.com',
-  'moshimo.com',
-  'link-a.net',
-  'accesstrade.net',
-  'rentracks.jp',
-  'felmat.net',
-  'yahoo.co.jp',
-];
-
 const hostOf = (href: string): string | null => {
-  const match = /^https?:\/\/([^/?#]+)/i.exec(href);
+  const match = /^(?:https?:)?\/\/([^/?#]+)/i.exec(href);
   return match ? match[1].toLowerCase() : null;
 };
-
-const isAffiliate = (host: string): boolean =>
-  AFFILIATE_HOSTS.some((domain) => host === domain || host.endsWith(`.${domain}`));
 
 export type TocItem = {
   id: string;
@@ -132,6 +104,9 @@ export const prepareArticle = (source: string | undefined | null): PreparedArtic
     let attrs = rawAttrs.replace(/\s+$/, '');
     const src = /\ssrc=["']([^"']+)["']/i.exec(attrs)?.[1];
 
+    // ASPのリンクコードに付いてくる表示回数計測の1x1画像は外す(理由は src/lib/affiliate.ts)
+    if (isImpressionPixel(attrs, src ? hostOf(src) : null)) return '';
+
     if (src && src.includes('microcms-assets.io')) {
       const srcset = microcmsSrcSet(src);
       attrs = attrs.replace(src, microcmsImage(src, 1280));
@@ -155,12 +130,16 @@ export const prepareArticle = (source: string | undefined | null): PreparedArtic
     // 相対リンク・アンカー・自サイトへのリンクはそのまま
     if (!host || host === SITE_HOST || host.endsWith(`.${SITE_HOST}`)) return match;
 
+    const network = affiliateNetworkOf(host);
     if (!/\btarget\s*=/i.test(attrs)) attrs += ' target="_blank"';
     if (!/\brel\s*=/i.test(attrs)) {
-      attrs += isAffiliate(host)
-        ? ' rel="sponsored nofollow noopener noreferrer"'
-        : ' rel="noopener noreferrer"';
+      attrs += network ? ' rel="sponsored nofollow noopener noreferrer"' : ' rel="noopener noreferrer"';
+    } else if (network && !/\brel\s*=\s*["'][^"']*sponsored/i.test(attrs)) {
+      // ASPのリンクコードは rel="nofollow" だけ付いてくることが多い。sponsored を必ず足す
+      attrs = attrs.replace(/\brel\s*=\s*(["'])/i, (_m, q: string) => `rel=${q}sponsored `);
     }
+    // GA4の click_outbound に、どのASPのリンクかを載せる(src/components/AnalyticsEvents.astro)
+    if (network && !/\bdata-affiliate\s*=/i.test(attrs)) attrs += ` data-affiliate="${network}"`;
     return `<a${attrs}>`;
   });
 

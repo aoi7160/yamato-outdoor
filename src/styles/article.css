@@ -510,6 +510,70 @@
   color: var(--ink-faint);
 }
 
+/* 購入リンクの箱(アフィリエイト)。
+   もしもの「かんたんリンク」やASPのバナーは外部スクリプト・外部画像を読む
+   (表示が重くなり、記事を開いただけで外部送信が起きる)ので使わず、
+   本文HTML(contentHtml)にこの箱を書く。書き方は docs/workflow.md の「購入リンクの箱」。
+   置くのは「本文で判断基準を書いた製品」だけ(console/agents/affiliate.md)。 */
+.prose .buy-box {
+  margin: 2.4em 0;
+  padding: 1.3rem 1.4rem 1.4rem;
+  border: 1px solid var(--line-soft);
+  border-left: 2px solid rgba(127, 145, 121, 0.6);
+  background: rgba(18, 27, 43, 0.5);
+}
+
+.prose .buy-box__name {
+  margin: 0;
+  font-weight: 700;
+  color: var(--ink-strong);
+  line-height: 1.6;
+}
+
+.prose .buy-box__fit {
+  margin: 0.35rem 0 0;
+  font-size: 0.88rem;
+  color: var(--ink-mute);
+}
+
+.prose .buy-box__links {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  margin: 1rem 0 0;
+  padding: 0;
+  list-style: none;
+}
+
+.prose .buy-box__links li { margin: 0; padding: 0; }
+.prose .buy-box__links li::before { content: none; }
+
+.prose .buy-box__links a {
+  display: inline-block;
+  min-width: 7.5rem;
+  padding: 0.55rem 0.9rem;
+  border: 1px solid var(--line);
+  font-size: 0.85rem;
+  letter-spacing: 0.06em;
+  text-align: center;
+  text-decoration: none;
+  color: var(--ink);
+  transition: border-color 0.2s var(--ease), color 0.2s var(--ease);
+}
+
+.prose .buy-box__links a:hover { border-color: var(--ember-soft); color: var(--ink-strong); }
+
+.prose .buy-box__note {
+  margin: 0.8rem 0 0;
+  font-size: 0.75rem;
+  color: var(--ink-faint);
+}
+
+@media (max-width: 36rem) {
+  .prose .buy-box__links a { min-width: 0; flex: 1 1 auto; }
+  .prose .buy-box__links li { flex: 1 1 40%; display: flex; }
+}
+
 /* 持ち物リストなどのチェック欄 */
 .prose .checklist {
   margin: 2.4em 0;

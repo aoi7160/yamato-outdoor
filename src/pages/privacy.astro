@@ -18,7 +18,7 @@
  *   最終的な文言は専門家の確認を受けること。
  */
 import BaseLayout from '../layouts/BaseLayout.astro';
-import { CONTACT_URL } from '../lib/site';
+import { CONTACT_URL, AMAZON_ASSOCIATE, AMAZON_ASSOCIATE_NOTICE } from '../lib/site';
 import { OPT_OUT_KEY, measurementTransmissions } from '../lib/analytics';
 
 const measured = measurementTransmissions();
@@ -130,6 +130,11 @@ const updated = `${today.getFullYear()}年${today.getMonth() + 1}月${today.getD
         記事内に広告（アフィリエイトリンク）を含む場合は、当該記事にその旨を明示します。
         報酬の有無によって評価を変えることはありません。
       </p>
+      <p>
+        アフィリエイトリンクは、読者がリンクを押して移動したときに、移動先の事業者（各アフィリエイト・サービス提供者および販売事業者）がCookie等により成果を計測します。
+        記事を表示しただけで、これらの事業者に情報が送信されることはありません（表示回数の計測用画像は使用していません）。
+      </p>
+      {AMAZON_ASSOCIATE && <p>{AMAZON_ASSOCIATE_NOTICE}</p>}
 
       <h2>{5 + shift}. 免責事項</h2>
       <p>

@@ -4,7 +4,7 @@ import Logo from '../components/Logo.astro';
 import SocialIcon from '../components/SocialIcon.astro';
 import Analytics from '../components/Analytics.astro';
 import AnalyticsEvents from '../components/AnalyticsEvents.astro';
-import { SOCIALS, socialLink, CONTACT_URL, SHOP_URL } from '../lib/site';
+import { SOCIALS, socialLink, CONTACT_URL, SHOP_URL, AMAZON_ASSOCIATE, AMAZON_ASSOCIATE_NOTICE } from '../lib/site';
 import type { PageType } from '../lib/analytics';
 
 interface Props {
@@ -199,6 +199,7 @@ const year = new Date().getFullYear();
             </li>
           ))}
         </ul>
+        {AMAZON_ASSOCIATE && <p class="footer-disclosure">{AMAZON_ASSOCIATE_NOTICE}</p>}
         <p class="footer-copy">&copy; {year} YAMATO OUTDOOR</p>
       </div>
     </footer>

@@ -6,7 +6,7 @@
 import { verifyAccess } from '../server/access.js';
 import { CONNECTORS } from '../server/connectors.js';
 import { handleApi } from '../server/api.js';
-import { checkArticle } from '../server/proofread.js';
+import { checkArticle, AFFILIATE_HOSTS } from '../server/proofread.js';
 import { decide, listApprovals } from '../server/notion.js';
 import { putDraft } from '../server/cms.js';
 import assert from 'node:assert/strict';
@@ -164,6 +164,14 @@ assert.equal(art.url, 'https://yamato-outdoor.com/mountain-climbing/boots/test/'
 assert.ok(art.checks.find((c) => c.key === 'repeat').findings[0].includes('ここを理解して選べば'));
 const okArt = checkArticle({ id: 'b', title: 'あ'.repeat(32), description: 'い'.repeat(100), tags: ['a', 'b', 'c'], contentHtml: '<p class="pr-notice">広告</p>' + ['一', '二', '三', '四'].map((x) => `<h2>${x}</h2><p>短い文だ。次の文である。<a href="/a/">内部</a></p>`).join('') });
 assert.deepEqual(okArt.checks.filter((c) => !c.ok).map((c) => c.key), []);
+// 校閲チェックのASP一覧が、公開サイト(src/lib/affiliate.ts)とずれていないか
+{
+  const { readFileSync } = await import('node:fs');
+  const src = readFileSync(new URL('../../src/lib/affiliate.ts', import.meta.url), 'utf8');
+  const siteHosts = [...src.matchAll(/hosts:\s*\[([^\]]*)\]/g)].flatMap((m) => [...m[1].matchAll(/'([^']+)'/g)].map((x) => x[1]));
+  assert.ok(siteHosts.length > 0);
+  assert.deepEqual([...AFFILIATE_HOSTS].sort(), [...siteHosts].sort(), 'console/server/proofread.js の AFFILIATE_HOSTS を src/lib/affiliate.ts に合わせる');
+}
 console.log('proofread: OK');
 
 // --- 承認トレイ(Notion)---

@@ -331,9 +331,12 @@ const RULES = [
 /** チェックした項目の一覧(画面の「何を見たか」) */
 export const RULE_LIST = RULES.map(({ key, label, doc, rule }) => ({ key, label, doc, rule }));
 
-const AFFILIATE_HOSTS = [
-  'a8.net', 'amazon.co.jp', 'amzn.to', 'amzn.asia', 'rakuten.co.jp', 'valuecommerce.com', 'moshimo.com',
-  'link-a.net', 'accesstrade.net', 'rentracks.jp', 'felmat.net', 'yahoo.co.jp',
+// 公開サイトの src/lib/affiliate.ts と同じ一覧(別アプリなので写している)。
+// ずれは test/server.test.mjs が検出する
+export const AFFILIATE_HOSTS = [
+  'amazon.co.jp', 'amzn.to', 'amzn.asia', 'rakuten.co.jp', 'yahoo.co.jp', 'moshimo.com', 'a8.net',
+  'valuecommerce.com', 'accesstrade.net', 'afi-b.com', 'affiliate-b.com', 'linksynergy.com',
+  'rentracks.jp', 'felmat.net', 'j-a-net.jp', 'trafficgate.net', 'link-a.net',
 ];
 const isAffiliate = (href) => {
   const host = /^https?:\/\/([^/?#]+)/i.exec(href)?.[1]?.toLowerCase();

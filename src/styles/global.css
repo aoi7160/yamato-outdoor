@@ -379,6 +379,16 @@ body::before {
 
 .footer-copy { margin: 0; font-family: var(--font-latin); letter-spacing: 0.14em; }
 
+/* Amazonアソシエイト等の規約で求められる表記。読めるが主張しない大きさにする */
+.footer-disclosure {
+  flex-basis: 100%;
+  margin: 0;
+  font-size: 0.72rem;
+  line-height: 1.7;
+  letter-spacing: 0.04em;
+  color: var(--ink-faint);
+}
+
 /* ---------------------------------------------------------
    写真のカバー(トップ / ジャンル)
    --------------------------------------------------------- */

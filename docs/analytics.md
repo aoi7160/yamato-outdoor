@@ -133,7 +133,7 @@ GTMを同期で読むとモバイルのLCPが目に見えて悪化する。
 | `related_click` | 関連記事を押した | `related_position`, `related_title` |
 | `share` | シェア or リンクのコピー | `share_method`(`x` / `threads` / `facebook` / `line` / `copy_link`) |
 | `cv_click` | CV導線を押した | `cv_id`, `cv_stage`, `cv_place` |
-| `click_outbound` | 外部リンクを押した | `link_domain`, `link_url`, `link_text` |
+| `click_outbound` | 外部リンクを押した | `link_domain`, `link_url`, `link_text`, `affiliate_network`(ASP名。アフィリエイトでなければ `none`) |
 | `file_download` | PDF・GPXなどのファイル | `file_name`, `file_extension` |
 | `contact_click` | mailto / tel を押した | `method` |
 | `page_not_found` | 404ページが表示された | `missing_path` |
@@ -151,6 +151,10 @@ GTMを同期で読むとモバイルのLCPが目に見えて悪化する。
 | soft | `cv_click`(`cv_stage=soft`) | 立ち上げ期の主役。連絡先を残してもらう |
 | hard | `cv_click`(`cv_stage=hard`) | 問い合わせ・ブランド遷移 |
 | 参考 | `article_read` | 記事の質の代理指標。KPIにはしない |
+| 参考 | `click_outbound`(`affiliate_network≠none`) | アフィリエイトのクリック。発生額はASPのCSVで見るので、キーイベントにはしない(EPC = 発生 ÷ このクリック数) |
+
+`affiliate_network` はGA4の管理 → カスタム定義で**イベントスコープのカスタムディメンション**に登録する
+(登録しないとレポートで分けられない)。値は `src/lib/affiliate.ts` の `network`(`amazon` / `rakuten` / `moshimo` / `a8` など)。
 
 `article_read` をキーイベントにすると数字が大きく出て気分は良いが、
 **それが増えても事業は進まない。**「読まれた」は前提条件であってゴールではない。
@@ -320,7 +324,7 @@ GA4の 管理 → サービス間のリンク設定 → Search Console → リ�
 ```
 
 リンク側の `rel="sponsored nofollow"` は `src/lib/article.ts` が自動で付ける
-(ASPのドメイン一覧 `AFFILIATE_HOSTS` に載っているもの)。ASPを増やしたら1行足す。
+(ASPのドメイン一覧は `src/lib/affiliate.ts` の `AFFILIATE_NETWORKS`)。ASPを増やしたら1行足す。
 
 ---
 
