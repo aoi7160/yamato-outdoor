@@ -54,7 +54,7 @@ model: inherit
 
 - h2ごとに「どの疑問・どのサブKW・どのPAAに答えるか」を表にする
 - h2ごとに**体験が要るか**を明記し、要るなら `interview.md` の質問IDと対応させる
-- h2の数は `docs/tone-and-manner.md` 3 に従う(型ごとの例外は `style-guide.md` 11 C4 の決定に従う)
+- h2は**4〜8本**(`docs/tone-and-manner.md` 3。型を問わない)。章が多くなるときは `style-guide.md` 4-1 のようにh3へまとめる
 - 欠点の章を推奨の章の直前に置く(レビュー型)
 
 ### 5. タイトル案と概要案
