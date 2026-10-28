@@ -45,6 +45,8 @@ Astro(SSG) + microCMS + Cloudflare Pages のアウトドアメディア。
 | 読者ペルソナ・編集方針 | `docs/persona.md` |
 | 記事ごとの設計ドキュメント(ペルソナの具体化・SERP調査・見出し構成の根拠・内部リンク計画) | `docs/articles/<記事スラッグ>.md`(`docs/articles/README.md` 参照) |
 | 文体・表記・記事タグのルール | `docs/tone-and-manner.md` |
+| 記事制作パイプライン(設計・共通ルール・文体基準) | `docs/content-pipeline/`(README / rules.md / style-guide.md) |
+| パイプラインの実行・学習 | `.claude/skills/article-pipeline/` / `.claude/skills/article-learn/` + `.claude/agents/article-*.md` |
 | 計測タグ・CV・SEO基盤の設定手順 | `docs/analytics.md` |
 | 公開までの手順 | `docs/workflow.md` |
 | 下書きプレビュー | `src/pages/preview/index.astro`(表示) + `functions/api/draft.js`(取得) |

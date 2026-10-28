@@ -13,7 +13,7 @@ model: inherit
 1. `docs/content-pipeline/rules.md`
 2. `docs/tone-and-manner.md` 10(公開前チェックリスト)
 3. `docs/content-pipeline/style-guide.md` 11(確認待ちの矛盾が残っていれば、その項目は tone-and-manner 側で判定する)
-4. `../yamato-outdoor-editorial/content/experience-log.md`(装備レビューの使用回数の確認に使う)
+4. `../yamato-outdoor-editorial/content/experience-log.md`(運営者シートに使用回数を参考として載せるため)
 5. `../yamato-outdoor-editorial/content/pipeline/<スラッグ>/` の全ファイル(00〜04)
 
 ## 判定する項目
@@ -30,15 +30,15 @@ model: inherit
 - [ ] `reviewRating` が空(R4)
 - [ ] FAQ・JSON-LDが本文に無い。FAQはフロントマターの `faq` にある
 - [ ] 他ブランド批判・使わない語が無い
+- [ ] 使用回数・使用期間と、「3回使ってから書く」という方針に、本文・`.profile` で触れていない(R1-3)
 
 ### B. 公開前チェックリスト(`docs/tone-and-manner.md` 10)
 
 全項目を ✓ / ✗ / 運営者待ち で判定する。「実測値が入っている」「関西の固有名詞」のように
 体験に依存する項目は、`【要実体験】` で埋まる予定なら「運営者待ち」とする。
 
-**装備レビューの使用回数:** `../yamato-outdoor-editorial/content/experience-log.md` の装備台帳で、
-レビュー対象の使用回数が3回未満なら、本文に目印が無くても「運営者待ち」とし、合否は**保留(実体験待ち)**にする
-(`docs/persona.md` Editorial Policy 1)。運営者シートの「あなたが埋める箇所」に「あと何回の使用が必要か」を書く。
+**装備レビューの使用回数:** 合否には使わない。`../yamato-outdoor-editorial/content/experience-log.md` の装備台帳の値を、
+運営者シートの末尾に参考として載せるだけ(`docs/persona.md` Editorial Policy 1 は社内の目標で、公開の条件ではない)。
 
 ### C. 文体の数値(`03-style-notes.md` の値を転記)
 
