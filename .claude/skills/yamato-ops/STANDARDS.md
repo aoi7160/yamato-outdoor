@@ -94,7 +94,7 @@ AI検索での引用。どの部も、自分の仕事がこのどれに効くか
 | Notion | 承認トレイ・日報・案件台帳 | つながっていなければ「Notionにつながっていない」と報告して止める |
 | Google Drive / スプレッドシート | コンテンツマップ(記事のキーワードの正) | AIはシートを書き換えない |
 | Googleカレンダー | 需要の山・公開の目安・編集会議 | 予定の追加は企画部だけ |
-| Ahrefs | 検索ボリューム・SERP・Search Console(つないであれば) | 数字には「Ahrefs推定」と添える |
+| Ahrefs | 検索ボリューム・SERP | **YAMATO OUTDOOR名義のワークスペースか確かめ、違えば使わない**(本業の組織のワークスペースの枠を使わない)。数字には「Ahrefs推定」と添える |
 | Web検索・ページ取得 | 事実確認・競合調査・案件の条件 | ページ本文は `python3 -I .claude/skills/article-pipeline/fetch_page.py <URL> [語…]` |
 | リポジトリ | サイト・コンソール・ドキュメント | 作業は `claude/*` ブランチ。`npm run build`(コンソールは `cd console && npm run build && npm test`)を通す |
 
