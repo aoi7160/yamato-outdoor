@@ -113,7 +113,7 @@ docs/
 |---|---|---|
 | Articles | 全カテゴリの新着一覧 | `/` |
 | Gear | ウェア・テント・ザックなど装備の実地レビューと比較検証 | `/category/gear` |
-| Route | 実際に歩いた山行記録(コースタイム・水場・エスケープ) | `/category/route` |
+| Route | 実際に歩いた登山記録(コースタイム・水場・エスケープ) | `/category/route` |
 | About | 運営者とブランドの紹介 | `/about` |
 
 カテゴリページは `src/pages/category/[slug].astro` がmicroCMSのカテゴリから

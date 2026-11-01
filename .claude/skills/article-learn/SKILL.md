@@ -31,7 +31,7 @@ description: 運営者が記事を仕上げて公開したあとに、AIの最�
 
 ## 3. 記録する
 
-- **実体験** → `../yamato-outdoor-editorial/content/experience-log.md` に、装備(何を持っているか)・山行(いつどこへ)・
+- **実体験** → `../yamato-outdoor-editorial/content/experience-log.md` に、装備(何を持っているか)・登山(いつどこへ)・
   実測値を追記する。次の記事の企画担当が「実体験がそろっているか」の判断に使う
 - **修正** → `correction-log.md` に記事ごとの節を作り、行を追加する。
   公開リポジトリなので、**実体験の中身や運営者の私的な事情は書かない**

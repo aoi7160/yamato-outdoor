@@ -3,7 +3,7 @@ import BaseLayout from '../layouts/BaseLayout.astro';
 import { GENRES, genrePath } from '../lib/taxonomy';
 
 const seoDescription =
-  'YAMATO OUTDOORは、関西の山を軸に、実際に持ち込んだ装備と歩いたルートだけを記録するアウトドアメディアです。挑戦のベースキャンプとして、装備レビュー、山行記録、道具選びのハウツーを掲載しています。';
+  'YAMATO OUTDOORは、関西の山を軸に、実際に持ち込んだ装備と歩いたルートだけを記録するアウトドアメディアです。挑戦のベースキャンプとして、装備レビュー、登山記録、道具選びのハウツーを掲載しています。';
 
 const siteUrl = Astro.site?.toString().replace(/\/$/, '') ?? 'https://yamato-outdoor.com';
 
@@ -66,7 +66,7 @@ const editorBody = [
 const mediaData = [
   { label: '媒体名', value: 'YAMATO OUTDOOR' },
   { label: '領域', value: '登山 / 釣り / キャンプ' },
-  { label: '扱う内容', value: '装備レビュー、山行記録、道具選びのハウツー' },
+  { label: '扱う内容', value: '装備レビュー、登山記録、道具選びのハウツー' },
   { label: '運営', value: '濵地 蒼麗' },
 ];
 ---
