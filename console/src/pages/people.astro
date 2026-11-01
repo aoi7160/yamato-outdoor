@@ -1,40 +1,54 @@
 ---
 /**
- * 名簿(顔ナビ)。人事部が各部の agents/<id>.md に書いた staff から作る。
- * 誰が・どこで・何の仕組みで動いているかを1人1枚で並べる。動きは付けない(fps制約。静止したカードだけ)。
+ * Talent(AIメンバーのタレントマネジメント)。人事部が各部の agents/<id>.md に書いた staff から作る。
+ * 1人(1チーム)1枚で、役割・スキル・担当KPI・働く場所・動く仕組み・次に伸ばす能力を並べる。
+ * 動きは付けない(fps制約。静止したカードと、表示の切り替えだけ)。
  */
 import Base from '../layouts/Base.astro';
 import Figure from '../components/Figure.astro';
-import { AGENTS, DIVISIONS, STATUS_LABEL, STAFF_STATE_LABEL, type StaffState } from '../lib/org';
+import { AGENTS, DIVISIONS, STATUS_LABEL, STAFF_STATE_HINT, STAFF_STATE_LABEL, type StaffState } from '../lib/org';
 
 const people = AGENTS.flatMap((a) => a.staff.map((s, i) => ({ ...s, index: i, agent: a })));
 const count = (st: StaffState) => people.filter((p) => p.state === st).length;
 const STATES: StaffState[] = ['auto', 'on-call', 'defined'];
-// 名簿の無い部(staff 未記入)を人事部が見落とさないように出す
+const skillCount = new Set(people.flatMap((p) => p.skills ?? [])).size;
+// staff が未記入の部を人事部が見落とさないように出す
 const missing = AGENTS.filter((a) => a.staff.length === 0);
 ---
-<Base title="名簿" active="people" wide>
+<Base title="Talent" active="people" wide>
   <div class="page-head">
-    <h1>名簿</h1>
+    <p class="talent-eyebrow">People &amp; Talent</p>
+    <h1>Talent</h1>
     <p>
-      YAMATO OUTDOORで働くAIのメンバー {people.length}人。
-      自動で稼働 {count('auto')}・頼むと動く {count('on-call')}・定義だけ {count('defined')}。
-      まとめているのは<a href="/agents/hr/">人事部</a>(各部の <code>console/agents/&lt;id&gt;.md</code> の <code>staff</code>)。
+      YAMATO OUTDOORで働くAIメンバーのタレントマネジメント。誰が・どの部で・どんなスキルで・何のKPIを持って動いているかを1枚ずつ見られます。
+      運用しているのは<a href="/agents/hr/">人事部</a>(各部の <code>console/agents/&lt;id&gt;.md</code> の <code>staff</code>)。
     </p>
   </div>
 
-  <div class="people-filter" role="group" aria-label="状態で絞り込む">
-    <button type="button" class="btn btn--ghost" data-filter="all" aria-pressed="true">すべて</button>
+  <dl class="talent-stats">
+    <div><dt>Members</dt><dd>{people.length}</dd></div>
     {STATES.map((st) => (
-      <button type="button" class="btn btn--ghost" data-filter={st} aria-pressed="false">
+      <div title={STAFF_STATE_HINT[st]}>
+        <dt><span class={`people-dot people-dot--${st}`}></span>{STAFF_STATE_LABEL[st]}</dt>
+        <dd>{count(st)}</dd>
+      </div>
+    ))}
+    <div><dt>Skills</dt><dd>{skillCount}</dd></div>
+  </dl>
+
+  <div class="people-filter" role="group" aria-label="状態で絞り込む">
+    <button type="button" class="btn btn--ghost" data-filter="all" aria-pressed="true">All</button>
+    {STATES.map((st) => (
+      <button type="button" class="btn btn--ghost" data-filter={st} aria-pressed="false" title={STAFF_STATE_HINT[st]}>
         <span class={`people-dot people-dot--${st}`}></span>{STAFF_STATE_LABEL[st]} {count(st)}
       </button>
     ))}
   </div>
+  <p class="note talent-legend">
+    {STATES.map((st) => <span><strong>{STAFF_STATE_LABEL[st]}</strong>:{STAFF_STATE_HINT[st]}</span>)}
+  </p>
 
-  {missing.length > 0 && (
-    <p class="note">名簿が未記入の部:{missing.map((a) => a.name).join('、')}</p>
-  )}
+  {missing.length > 0 && <p class="note">staff が未記入の部:{missing.map((a) => a.name).join('、')}</p>}
 
   {DIVISIONS.map((d) => {
     const list = people.filter((p) => p.agent.division === d.id);
@@ -49,17 +63,25 @@ const missing = AGENTS.filter((a) => a.staff.length === 0);
                 <Figure label="" index={p.index} division={p.agent.division} seed={p.agent.id} />
                 <div>
                   <strong class="people-card__name">{p.name}</strong>
+                  {p.label && <span class="people-card__label">{p.label}</span>}
                   <a class="people-card__dept" href={`/agents/${p.agent.id}/`}>{p.agent.name}</a>
-                  <span class="people-card__state">
+                  <span class="people-card__state" title={STAFF_STATE_HINT[p.state]}>
                     <span class={`people-dot people-dot--${p.state}`}></span>{STAFF_STATE_LABEL[p.state]}
                     {p.agent.status !== 'active' && <span class="chip">{STATUS_LABEL[p.agent.status]}</span>}
                   </span>
                 </div>
               </div>
               <p class="people-card__does">{p.does}</p>
+              {p.skills && p.skills.length > 0 && (
+                <ul class="people-card__skills" aria-label="スキル">
+                  {p.skills.map((s) => <li>{s}</li>)}
+                </ul>
+              )}
               <dl class="people-card__meta">
-                <div><dt>どこで</dt><dd>{p.where}</dd></div>
-                <div><dt>仕組み</dt><dd>{p.runs}</dd></div>
+                {p.kpi && <div><dt>KPI</dt><dd>{p.kpi}</dd></div>}
+                <div><dt>Workspace</dt><dd>{p.where}</dd></div>
+                <div><dt>Runtime</dt><dd>{p.runs}</dd></div>
+                {p.growth && <div><dt>Next</dt><dd>{p.growth}</dd></div>}
               </dl>
             </li>
           ))}

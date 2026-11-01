@@ -29,7 +29,22 @@ export type Cadence = { when: string; what: string };
 
 /** 名簿のメンバー1人。人事部が agents/<id>.md の staff に書く(agents/hr.md「名簿の書き方」) */
 export type StaffState = 'auto' | 'on-call' | 'defined';
-export type Staff = { name: string; does: string; where: string; runs: string; state: StaffState };
+export type Staff = {
+  /** チーム名(英語)。何をするかは label と does で書く */
+  name: string;
+  /** 日本語の短い肩書き(例:新規制作・リライト) */
+  label?: string;
+  does: string;
+  where: string;
+  runs: string;
+  state: StaffState;
+  /** 持っているスキル(3〜5個) */
+  skills?: string[];
+  /** 担当するKPI */
+  kpi?: string;
+  /** 次に伸ばす能力 */
+  growth?: string;
+};
 
 export type AgentMeta = {
   id: string;
@@ -84,9 +99,16 @@ export const STATUS_LABEL: Record<AgentStatus, string> = {
 };
 
 export const STAFF_STATE_LABEL: Record<StaffState, string> = {
-  auto: '自動で稼働',
-  'on-call': '頼むと動く',
-  defined: '定義だけ',
+  auto: 'Autopilot',
+  'on-call': 'On call',
+  defined: 'Bench',
+};
+
+/** 状態の日本語の説明(ツールチップ・凡例) */
+export const STAFF_STATE_HINT: Record<StaffState, string> = {
+  auto: '定期実行で自動で動いている',
+  'on-call': 'スキルがあり、頼むと動く(定期実行の接続待ちを含む)',
+  defined: '仕組みが無く、まだ動けない',
 };
 
 export const PERMISSION_LABEL = {

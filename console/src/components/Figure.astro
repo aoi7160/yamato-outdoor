@@ -52,10 +52,10 @@ const LOOKS: Record<DivisionId, Look[]> = {
 
 // 役割の名前から、それらしい小物を足す
 function byRole(look: Look, name: string): Look {
-  if (/執筆|リライト/.test(name)) return { ...look, pen: true, glasses: look.glasses ?? 'rect' };
-  if (/校閲|編集長|事実確認|法令|監査/.test(name)) return { ...look, glasses: look.glasses ?? 'brow' };
-  if (/映像|サムネイル|図解|デザイン/.test(name)) return { ...look, headphones: !look.headset };
-  if (/トレンド|案件|リサーチ/.test(name)) return { ...look, headset: !look.headphones && !look.hat };
+  if (/執筆|リライト|Story|Pitch|Report/i.test(name)) return { ...look, pen: true, glasses: look.glasses ?? 'rect' };
+  if (/校閲|編集長|事実確認|法令|監査|Editor|Copy|Verification|Legal|Audit/i.test(name)) return { ...look, glasses: look.glasses ?? 'brow' };
+  if (/映像|サムネイル|図解|デザイン|Cover|Info|Motion|Design/i.test(name)) return { ...look, headphones: !look.headset };
+  if (/トレンド|案件|リサーチ|Radar|Scout|Search/i.test(name)) return { ...look, headset: !look.headphones && !look.hat };
   return look;
 }
 

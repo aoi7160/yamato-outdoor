@@ -13,12 +13,12 @@ interface Props {
 const { title, active, wide = false } = Astro.props;
 
 const NAV = [
-  { id: 'dashboard', href: '/', label: '本日' },
-  { id: 'approvals', href: '/approvals/', label: '承認トレイ' },
-  { id: 'org', href: '/org/', label: '組織図' },
-  { id: 'people', href: '/people/', label: '名簿' },
-  { id: 'data', href: '/data/', label: 'データ連携' },
-  { id: 'settings', href: '/settings/', label: '設定' },
+  { id: 'dashboard', href: '/', label: 'Today' },
+  { id: 'approvals', href: '/approvals/', label: 'Approvals' },
+  { id: 'org', href: '/org/', label: 'Org' },
+  { id: 'people', href: '/people/', label: 'Talent' },
+  { id: 'data', href: '/data/', label: 'Integrations' },
+  { id: 'settings', href: '/settings/', label: 'Settings' },
 ] as const;
 ---
 <!doctype html>

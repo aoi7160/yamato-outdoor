@@ -1651,7 +1651,66 @@ a.msg__bubble--link:hover {
   color: var(--amber);
 }
 
-/* ---------- 名簿(/people/)。静止したカードだけ。動かさない ---------- */
+/* ---------- Talent(/people/)。静止したカードだけ。動かさない ---------- */
+
+.talent-eyebrow {
+  margin: 0 0 0.25rem;
+  font-family: var(--font-latin);
+  font-size: 0.75rem;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  color: var(--ink-faint);
+}
+.talent-stats {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(7.5rem, 1fr));
+  gap: 0.6rem;
+  margin: 0 0 1.25rem;
+}
+.talent-stats div {
+  padding: 0.7rem 0.9rem;
+  border: 1px solid var(--line-soft);
+  border-radius: var(--radius);
+  background: var(--panel);
+}
+.talent-stats dt {
+  font-family: var(--font-latin);
+  font-size: 0.75rem;
+  letter-spacing: 0.06em;
+  color: var(--ink-mute);
+}
+.talent-stats dd {
+  margin: 0.15rem 0 0;
+  font-family: var(--font-latin);
+  font-size: 1.5rem;
+  color: var(--ink-strong);
+}
+.talent-legend {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.25rem 1.25rem;
+  margin: -0.5rem 0 1.25rem;
+}
+.people-card__label {
+  display: block;
+  font-size: 0.75rem;
+  color: var(--ink);
+}
+.people-card__skills {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.3rem;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+.people-card__skills li {
+  padding: 0.05rem 0.5rem;
+  border: 1px solid var(--line);
+  border-radius: 999px;
+  font-size: 0.6875rem;
+  color: var(--ink-mute);
+}
 .people-filter {
   display: flex;
   flex-wrap: wrap;
@@ -1729,6 +1788,8 @@ a.msg__bubble--link:hover {
 }
 .people-card__name {
   display: block;
+  font-family: var(--font-latin);
+  letter-spacing: 0.01em;
   color: var(--ink-strong);
 }
 .people-card__dept {
@@ -1759,10 +1820,11 @@ a.msg__bubble--link:hover {
 }
 .people-card__meta div {
   display: grid;
-  grid-template-columns: 3.2em 1fr;
+  grid-template-columns: 5.6em 1fr;
   gap: 0.5rem;
 }
 .people-card__meta dt {
+  font-family: var(--font-latin);
   color: var(--ink-faint);
 }
 .people-card__meta dd {
