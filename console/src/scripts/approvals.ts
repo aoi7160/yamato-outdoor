@@ -59,6 +59,12 @@ export type ApplyFill = {
   /** 受け付けるドメイン(このドメインかそのサブドメイン)。空なら https なら何でも */
   hosts?: string[];
   required?: boolean;
+  /**
+   * url  … URLだけを {{key}} に入れる(href="{{key}}" の形で使う)
+   * code … ASPが発行したリンクコード(<a>〜計測用<img>)を、発行されたまま {{key}} に入れる(<li>{{key}}</li> の形で使う)。
+   *        もしも・A8.netはリンク部分だけ使う・計測用画像を外すことを改変として禁じているので、ASPのリンクは code にする
+   */
+  mode?: 'url' | 'code';
 };
 export type ApplyBody = {
   /** 何の本文か(例:サロモンの記事の本文) */
@@ -202,10 +208,10 @@ const TEMPLATES: ApprovalItem[] = [
       apply: {
         label: 'サロモンの記事の購入リンクの箱',
         where: 'microCMS → 記事 → サロモンの登山靴 → 本文(HTML)',
-        html: '<div class="buy-box">\n  <p class="buy-box__name">サロモン X ULTRA 5 MID GORE-TEX</p>\n  <ul class="buy-box__links">\n    <li><a href="{{rakuten}}">楽天市場で見る</a></li>\n    <li><a href="{{amazon}}">Amazonで見る</a></li>\n  </ul>\n</div>',
+        html: '<div class="buy-box">\n  <p class="buy-box__name">サロモン X ULTRA 5 MID GORE-TEX</p>\n  <ul class="buy-box__links">\n    <li>{{rakuten}}</li>\n    <li>{{amazon}}</li>\n  </ul>\n</div>',
         fills: [
-          { key: 'rakuten', label: '楽天市場', hint: 'もしもの「楽天市場」で取ったテキストリンク', hosts: ['moshimo.com', 'rakuten.co.jp'], required: true },
-          { key: 'amazon', label: 'Amazon', hint: 'もしもの「Amazon」で取ったテキストリンク(提携前なら空欄でよい)', hosts: ['moshimo.com', 'amazon.co.jp', 'amzn.to', 'amzn.asia'] },
+          { key: 'rakuten', label: '楽天市場', hint: 'もしもの「楽天市場」で作ったテキストリンクのコードを丸ごと', hosts: ['moshimo.com', 'rakuten.co.jp'], required: true, mode: 'code' },
+          { key: 'amazon', label: 'Amazon', hint: 'もしもの「Amazon」で作ったテキストリンクのコードを丸ごと(提携前なら空欄でよい)', hosts: ['moshimo.com', 'amazon.co.jp', 'amzn.to', 'amzn.asia'], mode: 'code' },
         ],
       },
     },
@@ -396,6 +402,7 @@ function fromNotion(x: any): TrayItem {
                   hint: str(f?.hint) || undefined,
                   hosts: arr(f?.hosts).map(str).filter(Boolean),
                   required: f?.required === true,
+                  mode: f?.mode === 'code' ? ('code' as const) : ('url' as const),
                 }))
                 .filter((f) => f.key),
             }

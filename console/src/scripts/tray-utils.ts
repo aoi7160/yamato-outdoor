@@ -60,27 +60,60 @@ const hostOf = (u: string) => {
 };
 export const hostMatches = (host: string, domains: string[]) => domains.some((d) => host === d || host.endsWith(`.${d}`));
 
-export type Pasted = { url: string; error?: string; host?: string };
+export type Pasted = {
+  /** リンク先のURL(code のときはコードの中の href) */
+  url: string;
+  /** code のとき:本文に入れるコード(発行されたまま) */
+  code?: string;
+  /** 本文に入れる値(url なら URL、code ならコード)。エラーのときは空 */
+  value: string;
+  error?: string;
+  /** 通すが気をつけてほしいこと(計測用画像が入っていない、など) */
+  warn?: string;
+  host?: string;
+};
+
+/** ASPのリンクコードとして通すタグ。これ以外のタグ・イベント属性・javascript: が入っていたら断る */
+const CODE_TAGS = new Set(['a', 'img', 'br']);
+export function codeProblem(code: string): string {
+  if (/<\s*(script|iframe|style|object|embed|form)\b/i.test(code)) return 'スクリプトや埋め込みが入っています。もしもの「テキストリンク」のコードを貼ってください(かんたんリンク・バナーは使いません)';
+  if (/\son[a-z]+\s*=/i.test(code) || /javascript:/i.test(code)) return '使えない書き方(イベント属性・javascript:)が入っています';
+  const tags = [...code.matchAll(/<\/?\s*([a-z0-9-]+)/gi)].map((m) => m[1].toLowerCase());
+  const bad = tags.find((t) => !CODE_TAGS.has(t));
+  if (bad) return `<${bad}> は入れられません。テキストリンクのコード(<a>と<img>)だけを貼ってください`;
+  return '';
+}
 
 /**
  * 差し込み欄に貼られた文字から、使うURLを1つ決める。
  * - ASPのテキストリンクのコード(<a href="…">…</a><img …>)をそのまま貼っても、href だけを取り出す
  * - かんたんリンク・バナーのスクリプトは使わない約束(CLAUDE.md)なので、はっきり断る
  */
-export function readPasted(raw: string, fill: Pick<ApplyFill, 'hosts'>): Pasted {
+export function readPasted(raw: string, fill: Pick<ApplyFill, 'hosts' | 'mode'>): Pasted {
   const v = raw.trim();
-  if (!v) return { url: '' };
+  const none = { url: '', value: '' };
+  if (!v) return none;
   if (/<script\b/i.test(v))
-    return { url: '', error: 'かんたんリンク(スクリプト)のコードです。もしもの「テキストリンク」を選んで、そのURLかコードを貼ってください' };
+    return { ...none, error: 'かんたんリンク(スクリプト)のコードです。もしもの「テキストリンク」を選んで、そのコードを貼ってください' };
+  if (fill.mode === 'code') {
+    if (!/<a\b[^>]*\shref\s*=/i.test(v)) return { ...none, error: 'リンクのコードではありません。ASPの管理画面で作った「テキストリンク」のコードを丸ごと貼ってください(URLだけでは貼れません)' };
+    const problem = codeProblem(v);
+    if (problem) return { ...none, error: problem };
+  }
   const href = /\shref\s*=\s*["']([^"']+)["']/i.exec(v)?.[1];
   let url = (href ?? v).replace(/&amp;/g, '&').trim();
   if (/^\/\//.test(url)) url = `https:${url}`;
   if (/^http:\/\//i.test(url)) url = url.replace(/^http:/i, 'https:');
   const host = hostOf(url);
-  if (!host || !/^https:\/\//i.test(url)) return { url: '', error: 'URLの形になっていません。https:// で始まるリンクを貼ってください' };
+  if (!host || !/^https:\/\//i.test(url)) return { ...none, error: 'URLの形になっていません。https:// で始まるリンクを貼ってください' };
   if (fill.hosts?.length && !hostMatches(host, fill.hosts))
-    return { url: '', host, error: `${host} のリンクは、この欄では使えません(受け付けるのは ${fill.hosts.join(' / ')})` };
-  return { url, host };
+    return { ...none, host, error: `${host} のリンクは、この欄では使えません(受け付けるのは ${fill.hosts.join(' / ')})` };
+  if (fill.mode === 'code') {
+    // 発行されたまま入れる(改変しない)。前後の空白と改行だけ落とす
+    const warn = /<img\b/i.test(v) ? undefined : '計測用の画像(<img …>)が入っていません。コードを最後までコピーしたか確かめてください';
+    return { url, code: v, value: v, host, warn };
+  }
+  return { url, value: url, host };
 }
 
 const attr = (s: string) => s.replace(/&/g, '&amp;').replace(/"/g, '&quot;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
@@ -97,7 +130,7 @@ export type Applied = {
   links: number;
 };
 
-/** 本文の {{key}} を値に置き換える。values は readPasted を通したURL(空文字は未入力) */
+/** 本文の {{key}} を値に置き換える。values は readPasted の value(url ならURL、code ならコード。空文字は未入力) */
 export function applyFills(html: string, fills: ApplyFill[], values: Record<string, string>): Applied {
   let out = html;
   const missing: ApplyFill[] = [];
@@ -106,7 +139,7 @@ export function applyFills(html: string, fills: ApplyFill[], values: Record<stri
     const token = `{{${f.key}}}`;
     const v = (values[f.key] ?? '').trim();
     if (v) {
-      out = out.split(token).join(attr(v));
+      out = out.split(token).join(f.mode === 'code' ? v : attr(v));
       continue;
     }
     if (f.required) missing.push(f);

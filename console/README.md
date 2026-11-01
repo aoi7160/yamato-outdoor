@@ -495,8 +495,8 @@ APIの提供状況は変わりやすい。出たら `src/lib/sources.ts` を書�
   "draft": { "label": "送るメールの文面", "text": "…" },
   "apply": {
     "label": "サロモンの記事の本文", "where": "microCMS → 記事 → サロモンの登山靴 → 本文(HTML)",
-    "html": "<p class=\"pr-notice\">…</p>…<li><a href=\"{{amazon}}\">Amazonで見る</a></li>…",
-    "fills": [{ "key": "amazon", "label": "Amazon", "hint": "もしもの「Amazon」で取ったテキストリンク", "hosts": ["moshimo.com", "amazon.co.jp", "amzn.to"], "required": false }]
+    "html": "<p class=\"pr-notice\">…</p>…<li>{{amazon}}</li>…",
+    "fills": [{ "key": "amazon", "label": "Amazon", "hint": "もしもの「Amazon」で作ったテキストリンクのコードを丸ごと", "hosts": ["moshimo.com", "amazon.co.jp", "amzn.to"], "required": false, "mode": "code" }]
   }
 }
 ```
@@ -511,8 +511,11 @@ APIの提供状況は変わりやすい。出たら `src/lib/sources.ts` を書�
   承認すると、`MICROCMS_WRITE_KEY` があればmicroCMSに下書きとして入稿し、編集画面が開く(`server/cms.js`。公開はmicroCMSでCEOが押す)
 - **既存の記事**の依頼は `cms.contentId` を入れる。「microCMSで直接直す」のボタンが出る(ガッツリ直したいとき、CEOがその場で直せる)
 - **CEOにURLを貼ってもらうだけで本文が仕上がる依頼**(アフィリエイトのリンクの差し込みなど)は `apply` を使う。
-  `html` の `{{key}}` が、承認トレイの差し込み欄に貼られたURLに置き換わる。ASPのリンクコードを丸ごと貼っても `href` だけを取り出し、
-  かんたんリンク(スクリプト)と `hosts` 以外のドメインは断る。任意の欄が空なら、その `{{key}}` を含む `<li>` を行ごと外し、
+  `html` の `{{key}}` が、承認トレイの差し込み欄に貼られた値に置き換わる。**ASPのリンクは `"mode": "code"`** にして `<li>{{key}}</li>` の形で書く
+  (発行されたコードを `<a>` から計測用の `<img>` まで書き換えずに入れる。もしも・A8.netはリンク部分だけ使うこと・計測用画像を外すことを
+  改変として禁じているため)。`code` は `<a>`・`<img>`・`<br>` 以外のタグ、イベント属性、`javascript:`、`hosts` 以外のリンク先を断る。
+  `"mode": "url"`(既定)は `href="{{key}}"` の形で使い、コードを貼っても `href` だけを取り出す(ASP以外のURL向け)。
+  どちらもかんたんリンク(スクリプト)は断る。任意の欄が空なら、その `{{key}}` を含む `<li>` を行ごと外し、
   リンクが1つも残らない `buy-box` は箱ごと外す(`src/scripts/tray-utils.ts`)。CEOは「本文HTMLをコピー」でそのまま貼れる。
   承認すると、貼ったURLが本文に「差し込み:key=URL」として記録される(Claudeは処理のときにこれを使う)
 - AIに書けない実測・体験の箇所は、本文に `【要実測:…】` `【要確認:…】` `【体験を入れる:…】` と書く。レビュー画面で色が付き、一覧になる

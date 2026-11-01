@@ -100,6 +100,31 @@ export type ExternalTransmission = {
 };
 
 /**
+ * アフィリエイト(ASP)のリンクコードに付いている、表示回数の計測用画像。
+ *
+ * もしも・A8.netは、広告コードの改変(計測用画像を外してリンク部分だけを使うことを含む)を規約で禁じているため、
+ * リンクコードは発行されたまま本文に貼り、計測用画像も外さない(src/lib/article.ts)。
+ * 記事を表示しただけでASPへ送信が起きるので、使っているASPをここに並べて /privacy で公表する。
+ * **ASPを使い始めたら(提携してリンクを貼ったら)、ここに1行足す。**
+ */
+export const AFFILIATE_TRANSMISSIONS: ExternalTransmission[] = [
+  {
+    name: 'もしもアフィリエイト',
+    provider: '株式会社もしも',
+    data: '閲覧ページ、IPアドレス、端末情報、リンクの表示とクリック',
+    purpose: 'アフィリエイト広告の表示回数・成果の計測',
+    policy: 'https://www.moshimo.co.jp/company/privacy',
+  },
+  {
+    name: 'A8.net',
+    provider: '株式会社ファンコミュニケーションズ',
+    data: '閲覧ページ、IPアドレス、端末情報、リンクの表示とクリック',
+    purpose: 'アフィリエイト広告の表示回数・成果の計測',
+    policy: 'https://www.fancs.com/privacy/',
+  },
+];
+
+/**
  * 計測タグ。IDが入っているものだけを返す。
  *
  * Cloudflare(配信)・Google Fonts・microCMSの画像配信は載せていない。

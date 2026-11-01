@@ -62,8 +62,8 @@ import { agentsForClient } from '../lib/org';
   <script type="application/json" id="org-data" set:html={JSON.stringify(agentsForClient())} />
   <script>
     import type { ClientAgent } from '../lib/org';
-    import { cmsEditUrl, instructionText, loadTray, previewUrl, sendDecision, type DecisionInput, type Tray, type TrayItem, type TrayState } from '../scripts/approvals';
-    import { ageDays, ageLabel, applyFills, readPasted, wordDiff, type Applied } from '../scripts/tray-utils';
+    import { cmsEditUrl, instructionText, loadTray, previewUrl, sendDecision, type ApplyFill, type DecisionInput, type Tray, type TrayItem, type TrayState } from '../scripts/approvals';
+    import { ageDays, ageLabel, applyFills, readPasted, wordDiff, type Applied, type Pasted } from '../scripts/tray-utils';
     import { esc, loadSettings } from '../scripts/store';
 
     const agents: ClientAgent[] = JSON.parse(document.getElementById('org-data')!.textContent || '[]');
@@ -208,19 +208,27 @@ import { agentsForClient } from '../lib/org';
         .map((f) => {
           const raw = values[f.key] ?? '';
           const r = readPasted(raw, f);
-          const status = !raw ? (f.required ? '必須' : '空欄なら行ごと外します') : r.error ? '' : `✓ ${esc(r.host ?? '')}`;
-          return `<div class="fill ${r.error ? 'is-error' : raw ? 'is-ok' : ''}">
-            <label class="fill__label" for="fill-${esc(it.id)}-${esc(f.key)}">${esc(f.label)}${f.required ? '<span class="fill__req">必須</span>' : ''}</label>
-            <input id="fill-${esc(it.id)}-${esc(f.key)}" class="fill__input" data-fill="${esc(f.key)}" value="${esc(raw)}" ${editable ? '' : 'readonly'}
-              placeholder="URL、またはテキストリンクのコードをそのまま貼る" autocomplete="off" spellcheck="false" inputmode="url" />
-            <p class="fill__status" data-fill-status="${esc(f.key)}">${r.error ? esc(r.error) : status}</p>
+          const status = fillStatus(f, raw, r);
+          const id = `fill-${esc(it.id)}-${esc(f.key)}`;
+          const input =
+            f.mode === 'code'
+              ? `<textarea id="${id}" class="fill__input fill__input--code" data-fill="${esc(f.key)}" rows="2" ${editable ? '' : 'readonly'} placeholder="テキストリンクのコードを丸ごと貼る(<a href=… から最後の <img …> まで)" autocomplete="off" spellcheck="false">${esc(raw)}</textarea>`
+              : `<input id="${id}" class="fill__input" data-fill="${esc(f.key)}" value="${esc(raw)}" ${editable ? '' : 'readonly'} placeholder="URLを貼る(コードを貼ってもURLだけ取り出します)" autocomplete="off" spellcheck="false" inputmode="url" />`;
+          return `<div class="fill ${r.error ? 'is-error' : r.value ? (r.warn ? 'is-warn' : 'is-ok') : ''}">
+            <label class="fill__label" for="${id}">${esc(f.label)}${f.required ? '<span class="fill__req">必須</span>' : ''}</label>
+            ${input}
+            <p class="fill__status" data-fill-status="${esc(f.key)}">${esc(status)}</p>
             ${f.hint ? `<p class="fill__hint">${esc(f.hint)}</p>` : ''}
           </div>`;
         })
         .join('');
       return `<section class="td-block td-apply" data-apply>
         <h3>${esc(ap.label)}にリンクを入れる</h3>
-        <p class="td-apply__lead">提携できたストアのリンクを貼ってください。コードを丸ごと貼っても、URLだけを取り出します。</p>
+        <p class="td-apply__lead">${
+          ap.fills.some((f) => f.mode === 'code')
+            ? '提携できたストアの「テキストリンク」のコードを、ASPの画面から<strong>丸ごと</strong>コピーして貼ってください。コードは書き換えずにそのまま本文に入ります(URLだけを抜く・計測用の画像を外すのは、ASPの規約で禁止されています)。'
+            : '提携できたストアのリンクを貼ってください。コードを丸ごと貼っても、URLだけを取り出します。'
+        }</p>
         <div class="fills">${fields}</div>
         <div class="td-apply__out" data-apply-out></div>
       </section>`;
@@ -229,10 +237,20 @@ import { agentsForClient } from '../lib/org';
     function applyResult(it: TrayItem): Applied | null {
       const ap = it.detail.apply;
       if (!ap) return null;
+      return applyFills(ap.html, ap.fills, fillValues(it));
+    }
+
+    /** 差し込み欄の、本文に入る値(url ならURL、code ならコード)。エラーの欄は空 */
+    function fillValues(it: TrayItem): Record<string, string> {
       const raw = loadDraft(it.id).fills ?? {};
-      const values: Record<string, string> = {};
-      for (const f of ap.fills) values[f.key] = readPasted(raw[f.key] ?? '', f).url;
-      return applyFills(ap.html, ap.fills, values);
+      return Object.fromEntries((it.detail.apply?.fills ?? []).map((f) => [f.key, readPasted(raw[f.key] ?? '', f).value]));
+    }
+
+    function fillStatus(f: ApplyFill, raw: string, r: Pasted) {
+      if (!raw.trim()) return f.required ? '必須' : '空欄なら、この行は本文から外します';
+      if (r.error) return r.error;
+      if (r.warn) return `${r.host} — ${r.warn}`;
+      return f.mode === 'code' ? `✓ ${r.host} のテキストリンク(計測用画像つき)。そのまま本文に入ります` : `✓ ${r.host}`;
     }
 
     function renderApplyOut(it: TrayItem) {
@@ -583,7 +601,7 @@ import { agentsForClient } from '../lib/org';
       if (!it) return;
       if (name === 'approve') {
         if (it.state !== '承認待ち' || approveBlock(it)) return;
-        const fills = it.detail.apply ? Object.fromEntries(it.detail.apply.fills.map((f) => [f.key, readPasted(loadDraft(it.id).fills?.[f.key] ?? '', f).url]).filter(([, v]) => v)) : undefined;
+        const fills = it.detail.apply ? Object.fromEntries(Object.entries(fillValues(it)).filter(([, v]) => v)) : undefined;
         decide(it, { action: 'approve', toCms: !!it.detail.article && !!tray.cms?.writable, fills });
         return;
       }
@@ -714,15 +732,16 @@ import { agentsForClient } from '../lib/org';
         const f = it.detail.apply?.fills.find((x) => x.key === t.dataset.fill);
         if (f) {
           const r = readPasted(t.value, f);
-          // コードを丸ごと貼ったら、欄の中身もURLだけにしておく(何が使われるかが見て分かるように)
-          if (r.url && r.url !== t.value.trim() && /<a\b/i.test(t.value)) {
+          // URLの欄にコードを丸ごと貼ったら、欄の中身もURLだけにしておく(何が使われるかが見て分かるように)
+          if (f.mode !== 'code' && r.url && r.url !== t.value.trim() && /<a\b/i.test(t.value)) {
             t.value = r.url;
             saveDraft(it.id, { fills: { ...fills, [f.key]: r.url } });
           }
           const box = t.closest('.fill')!;
           box.classList.toggle('is-error', !!r.error);
-          box.classList.toggle('is-ok', !!r.url);
-          pane.querySelector<HTMLElement>(`[data-fill-status="${f.key}"]`)!.textContent = r.error ?? (r.url ? `✓ ${r.host}` : f.required ? '必須' : '空欄なら行ごと外します');
+          box.classList.toggle('is-ok', !!r.value && !r.warn);
+          box.classList.toggle('is-warn', !!r.value && !!r.warn);
+          pane.querySelector<HTMLElement>(`[data-fill-status="${f.key}"]`)!.textContent = fillStatus(f, t.value, r);
         }
         renderApplyOut(it);
         return;

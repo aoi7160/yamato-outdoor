@@ -21,7 +21,7 @@ const VERSION = '2025-09-03';
 /** 状態は、この5つ以外は扱わない(Notionで手で足されても、コンソールからは書かない) */
 export const STATES = ['承認待ち', '修正依頼', '承認', '差し戻し', '対応済み'];
 const SIZES = ['小さな修正', '大きな修正'];
-const LIMIT = { note: 2000, comment: 1000, comments: 50, where: 300, fills: 12, url: 2000 };
+const LIMIT = { note: 2000, comment: 1000, comments: 50, where: 300, fills: 12, url: 2000, code: 4000 };
 /** 経営企画の推奨(プロパティ「経営企画の推奨」)。この4つ以外は推奨なしとして扱う */
 export const RECOMMENDS = ['承認', '修正を依頼', '差し戻し', '保留'];
 
@@ -170,9 +170,22 @@ const cap = (s, n) => String(s ?? '').trim().slice(0, n);
 /** 日本時間の「2026-10-13 21:40」 */
 const jst = (d) => new Date(d.getTime() + 9 * 3600_000).toISOString().slice(0, 16).replace('T', ' ');
 
+/** ASPのリンクコードとして通すか(<a>・<img>・<br> だけ、イベント属性・javascript: なし、リンク先は https)。tray-utils.ts の codeProblem と同じ基準 */
+const safeCode = (s) => {
+  if (s.length > LIMIT.code) return false;
+  if (/<\s*(script|iframe|style|object|embed|form)\b/i.test(s) || /\son[a-z]+\s*=/i.test(s) || /javascript:/i.test(s)) return false;
+  if ([...s.matchAll(/<\/?\s*([a-z0-9-]+)/gi)].some((m) => !['a', 'img', 'br'].includes(m[1].toLowerCase()))) return false;
+  const href = /<a\b[^>]*\shref\s*=\s*["']([^"']+)["']/i.exec(s)?.[1]?.replace(/&amp;/g, '&');
+  try {
+    return !!href && new URL(href).protocol === 'https:';
+  } catch {
+    return false;
+  }
+};
+
 /**
  * 承認と一緒に送られる「差し込み欄」の値(本文の {{key}} に入るアフィリエイトのリンクなど)。
- * キーは英小文字・数字・_- だけ、値は https のURLだけを通す(Notionに書く前に必ずここを通す)
+ * キーは英小文字・数字・_- だけ。値は https のURLか、ASPのリンクコード(safeCode)だけを通す(Notionに書く前に必ずここを通す)
  */
 export function cleanFills(raw) {
   if (!raw || typeof raw !== 'object' || Array.isArray(raw)) return {};
@@ -180,7 +193,12 @@ export function cleanFills(raw) {
   for (const [k, v] of Object.entries(raw).slice(0, LIMIT.fills)) {
     if (!/^[a-z0-9_-]{1,32}$/.test(k)) continue;
     const u = String(v ?? '').trim();
-    if (!u || u.length > LIMIT.url) continue;
+    if (!u) continue;
+    if (u.startsWith('<')) {
+      if (safeCode(u)) out[k] = u;
+      continue;
+    }
+    if (u.length > LIMIT.url) continue;
     try {
       if (new URL(u).protocol === 'https:') out[k] = u;
     } catch {}

@@ -19,7 +19,7 @@
  */
 import BaseLayout from '../layouts/BaseLayout.astro';
 import { CONTACT_URL, AMAZON_ASSOCIATE, AMAZON_ASSOCIATE_NOTICE } from '../lib/site';
-import { OPT_OUT_KEY, measurementTransmissions } from '../lib/analytics';
+import { AFFILIATE_TRANSMISSIONS, OPT_OUT_KEY, measurementTransmissions } from '../lib/analytics';
 
 const measured = measurementTransmissions();
 
@@ -132,8 +132,16 @@ const updated = `${today.getFullYear()}年${today.getMonth() + 1}月${today.getD
       </p>
       <p>
         アフィリエイトリンクは、読者がリンクを押して移動したときに、移動先の事業者（各アフィリエイト・サービス提供者および販売事業者）がCookie等により成果を計測します。
-        記事を表示しただけで、これらの事業者に情報が送信されることはありません（表示回数の計測用画像は使用していません）。
+        また、アフィリエイトリンクを含む記事を表示すると、広告の表示回数を計測するために、次の事業者へ情報が送信されます。
       </p>
+      <ul>
+        {AFFILIATE_TRANSMISSIONS.map((item) => (
+          <li>
+            {item.name}（{item.provider}）:{item.data}。目的は{item.purpose}。
+            <a href={item.policy} rel="noopener noreferrer" target="_blank">プライバシーポリシー</a>
+          </li>
+        ))}
+      </ul>
       {AMAZON_ASSOCIATE && <p>{AMAZON_ASSOCIATE_NOTICE}</p>}
 
       <h2>{5 + shift}. 免責事項</h2>

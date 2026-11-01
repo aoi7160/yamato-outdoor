@@ -212,6 +212,8 @@ assert.deepEqual([items[0].recommend, items[0].recommendWhy], ['承認', '収益
 // 差し込み欄:https のURLと、決まった形のキーだけ通す
 assert.deepEqual(cleanFills({ amazon: ' https://af.moshimo.com/x ', rakuten: 'javascript:alert(1)', 'BAD KEY': 'https://a.example', yahoo: '' }), { amazon: 'https://af.moshimo.com/x' });
 assert.deepEqual(cleanFills('x'), {});
+const code = '<a href="https://af.moshimo.com/af/c/click?a_id=1&amp;p_id=170" rel="nofollow" referrerpolicy="no-referrer-when-downgrade">Amazonで見る</a><img src="//i.moshimo.com/af/i/impression?a_id=1" width="1" height="1" style="border:none;">';
+assert.deepEqual(cleanFills({ amazon: code, bad: '<a href="https://x.example" onclick="x()">x</a>', js: '<script>x</script>' }), { amazon: code });
 sent.length = 0;
 const da = await decide(nenv, PAGE, { action: 'approve', fills: { amazon: 'https://af.moshimo.com/af/c/click?a_id=1' } }, new Date('2026-10-13T12:00:00Z'));
 assert.deepEqual(da.fills, { amazon: 'https://af.moshimo.com/af/c/click?a_id=1' });

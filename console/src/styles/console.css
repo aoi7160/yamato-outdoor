@@ -2425,3 +2425,14 @@ a.msg__bubble--link:hover {
 .td-links li {
   align-items: flex-start;
 }
+.fill__input--code {
+  font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+  font-size: 0.75rem !important;
+  line-height: 1.55 !important;
+}
+.fill.is-warn .fill__input {
+  border-color: rgba(224, 176, 90, 0.7);
+}
+.fill.is-warn .fill__status {
+  color: var(--amber);
+}

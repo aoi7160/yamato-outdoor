@@ -191,8 +191,10 @@ A/Bテストや見比べ用に、過去のトップページ構成をブラン�
   ASPを増やすときは `src/lib/affiliate.ts` の `AFFILIATE_NETWORKS` に1行足し、
   `console/server/proofread.js` の一覧にも足す(`cd console && npm test` でずれを検出する)。
 - **ASPのバナー・かんたんリンク(外部スクリプト)は使わない。** テキストリンクを
-  `buy-box`(`docs/workflow.md`)に入れる。リンクコードに付いてくる1x1の計測用画像は
-  `article.ts` が自動で外す。残すと記事を開いただけで外部送信が起き、`/privacy` の公表とずれる。
+  `buy-box`(`docs/workflow.md`)に入れる。**テキストリンクのコードは発行されたまま丸ごと貼る**
+  (URLだけを抜く・文言や計測用の1x1画像を外すのは、もしも・A8.netの規約の「改変」に当たる)。
+  計測用画像があると記事を開いただけでASPへ送信が起きるので、使うASPは `src/lib/analytics.ts` の
+  `AFFILIATE_TRANSMISSIONS` に足して `/privacy` で公表する。
 - アフィリエイトを含む記事は、冒頭に `<p class="pr-notice">` を置く(景品表示法)。
 - Amazonアソシエイトに参加したら `src/lib/site.ts` の `AMAZON_ASSOCIATE` を `true` にする
   (フッターと `/privacy` にAmazon指定の表記が出る)。参加前に立てない。

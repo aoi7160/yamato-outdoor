@@ -48,6 +48,21 @@ r = applyFills(html, [{ ...F[0], required: true }, F[1]], { rakuten: 'https://r.
 assert.equal(r.missing[0].key, 'amazon');
 assert.deepEqual(applyFills('{{unknown}}', F, {}).leftover, ['{{unknown}}']);
 
+// code モード:ASPのリンクコードを発行されたまま入れる(URLだけは断る・余計なタグは断る)
+const C = { hosts: ['moshimo.com'], mode: 'code' };
+const moshimo = '<a href="https://af.moshimo.com/af/c/click?a_id=1&amp;p_id=54" rel="nofollow" referrerpolicy="no-referrer-when-downgrade" attributionsrc>楽天市場で見る</a><img src="//i.moshimo.com/af/i/impression?a_id=1&amp;p_id=54" width="1" height="1" style="border:none;" loading="lazy">';
+const pc = readPasted(`  ${moshimo}\n`, C);
+assert.equal(pc.value, moshimo);
+assert.equal(pc.warn, undefined);
+assert.match(readPasted('https://af.moshimo.com/x', C).error, /URLだけでは/);
+assert.match(readPasted('<a href="https://af.moshimo.com/x">x</a>', C).warn, /計測用の画像/);
+assert.match(readPasted('<a href="https://af.moshimo.com/x"><span>x</span></a>', C).error, /<span>/);
+assert.match(readPasted('<a href="https://af.moshimo.com/x" onclick="a()">x</a>', C).error, /イベント属性/);
+const tmpl = '<ul class="buy-box__links">\n    <li>{{rakuten}}</li>\n    <li>{{amazon}}</li>\n  </ul>';
+const rc = applyFills(`<div class="buy-box">\n  ${tmpl}\n</div>`, [{ key: 'rakuten', label: '楽天', mode: 'code' }, { key: 'amazon', label: 'Amazon', mode: 'code' }], { rakuten: moshimo });
+assert.ok(rc.html.includes(`<li>${moshimo}</li>`), 'コードは改変せずに入れる');
+assert.equal(rc.links, 1);
+
 // 日数は日本時間の日付で数える
 assert.equal(ageDays('2026-10-14T23:09:53Z', new Date('2026-11-01T14:00:00Z')), 17);
 assert.equal(ageDays(undefined), null);
