@@ -495,7 +495,7 @@ const SCREENS: Record<string, (c: DemoContext) => Screen> = {
     rows: [
       { label: '07:00 記事告知(X)', value: '準備中', tone: 'warn' },
       { label: '12:00 装備の図解(Instagram)', value: '準備中', tone: 'warn' },
-      { label: '20:00 山行の記録(Threads)', value: '準備中', tone: 'warn' },
+      { label: '20:00 登山の記録(Threads)', value: '準備中', tone: 'warn' },
     ],
   }),
   'ga4-today': (c) => {
@@ -798,7 +798,7 @@ const GROUNDED: Record<string, (c: DemoContext) => string> = {
     const lines: Record<typeof close.kind, string[]> = {
       collect: [
         `月末なので、${close.text}の時期です。`,
-        '今月の費用の領収書・作業時間・山行の記録を集めてください。',
+        '今月の費用の領収書・作業時間・登山の記録を集めてください。',
         `${((c.today.getMonth() + 1) % 12) + 1}/3に月次P&Lを確定するため、それまでにそろっている必要があります。`,
         `なお、${head}。`,
       ],

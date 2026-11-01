@@ -87,7 +87,7 @@ reports_to: executive
 
 ## 参照するドキュメント・データ
 
-- `docs/persona.md`(P1の山行プロファイル・行動。季節の動き方)
+- `docs/persona.md`(P1の登山プロファイル・行動。季節の動き方)
 - `src/lib/taxonomy.ts`(ジャンル:登山 / 釣り / キャンプ)
 
 ## コンソールでの見え方
