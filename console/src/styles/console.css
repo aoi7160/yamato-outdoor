@@ -1714,8 +1714,14 @@ a.msg__bubble--link:hover {
 .people-filter {
   display: flex;
   flex-wrap: wrap;
+  align-items: center;
   gap: 0.5rem;
-  margin-bottom: 1.25rem;
+  margin: 2.5rem 0 1.25rem;
+}
+.people-filter__label {
+  margin-right: 0.25rem;
+  font-size: 0.75rem;
+  color: var(--ink-faint);
 }
 .people-filter [aria-pressed='true'] {
   background: var(--panel-raise);
@@ -1737,15 +1743,6 @@ a.msg__bubble--link:hover {
 }
 .people-dot--defined {
   background: var(--ink-faint);
-}
-.people-div + .people-div {
-  margin-top: 2rem;
-}
-.people-div__title {
-  margin: 0 0 0.75rem;
-  padding-left: 0.6rem;
-  border-left: 3px solid var(--div);
-  font-size: 1rem;
 }
 .people-grid {
   display: grid;
@@ -1830,4 +1827,277 @@ a.msg__bubble--link:hover {
 .people-card__meta dd {
   margin: 0;
   color: var(--ink-mute);
+}
+
+/* 組織マップ:CEO → 本部(列)→ 部(箱)→ メンバー(行)。人に説明するための1枚の図 */
+.orgmap {
+  padding: 1.25rem;
+  border: 1px solid var(--line-soft);
+  border-radius: calc(var(--radius) * 1.5);
+  background: var(--panel);
+}
+.orgmap__head {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 0.5rem 1.5rem;
+  margin-bottom: 1rem;
+}
+.orgmap__head h2 {
+  margin: 0;
+  font-size: 1.125rem;
+}
+.orgmap__head .note {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.25rem 1rem;
+  margin: 0;
+}
+.orgmap__legend {
+  overflow-wrap: anywhere;
+}
+.orgmap__ceo {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.6rem;
+  width: fit-content;
+  margin: 0 auto;
+  padding: 0.5rem 1rem;
+  border: 1px solid var(--line);
+  border-radius: 999px;
+  font-size: 0.8125rem;
+  color: var(--ink-mute);
+}
+.orgmap__ceo-badge {
+  font-family: var(--font-latin);
+  font-weight: 700;
+  letter-spacing: 0.12em;
+  color: var(--ink-strong);
+}
+/* CEOから本部へ伸びる線(静止画。CSSの罫線だけ) */
+.orgmap__divs {
+  position: relative;
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 0.9rem;
+  margin-top: 1.75rem;
+  padding-top: 1.1rem;
+  border-top: 1px solid var(--line);
+}
+.orgmap__divs::before {
+  content: '';
+  position: absolute;
+  top: -1.75rem;
+  left: 50%;
+  height: 1.75rem;
+  border-left: 1px solid var(--line);
+}
+.orgmap__div {
+  position: relative;
+  display: grid;
+  align-content: start;
+  gap: 0.6rem;
+}
+.orgmap__div::before {
+  content: '';
+  position: absolute;
+  top: -1.1rem;
+  left: 50%;
+  height: 1.1rem;
+  border-left: 1px solid var(--line);
+}
+.orgmap__div-head {
+  display: grid;
+  gap: 0.1rem;
+  padding: 0.65rem 0.8rem;
+  border-radius: var(--radius);
+  background: color-mix(in srgb, var(--div) 22%, var(--panel-solid));
+  border: 1px solid color-mix(in srgb, var(--div) 55%, transparent);
+  text-decoration: none;
+  color: var(--ink-strong);
+}
+.orgmap__div-head span {
+  font-size: 0.75rem;
+  color: var(--ink-mute);
+}
+.orgmap__depts,
+.orgmap__members {
+  display: grid;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+.orgmap__depts {
+  gap: 0.5rem;
+}
+.orgmap__dept > a {
+  display: grid;
+  gap: 0.35rem;
+  padding: 0.65rem 0.75rem;
+  border: 1px solid var(--line-soft);
+  border-left: 3px solid var(--div);
+  border-radius: 0.5rem;
+  background: var(--panel-solid);
+  text-decoration: none;
+  color: inherit;
+}
+.orgmap__dept > a:hover {
+  border-color: color-mix(in srgb, var(--div) 60%, transparent);
+}
+.orgmap__dept[data-status='planned'] > a,
+.orgmap__dept[data-status='standby'] > a {
+  border-left-style: dashed;
+}
+.orgmap__dept-name {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.35rem;
+  font-weight: 700;
+  font-size: 0.875rem;
+  color: var(--ink-strong);
+}
+.orgmap__dept-summary {
+  font-size: 0.6875rem;
+  line-height: 1.6;
+  color: var(--ink-mute);
+}
+.orgmap__members {
+  gap: 0.2rem;
+  padding-top: 0.35rem;
+  border-top: 1px dashed var(--line-soft);
+}
+.orgmap__members li {
+  display: grid;
+  grid-template-columns: auto auto 1fr;
+  align-items: center;
+  gap: 0.35rem;
+  font-size: 0.6875rem;
+}
+.orgmap__members .people-dot {
+  margin: 0;
+}
+.orgmap__member-name {
+  font-family: var(--font-latin);
+  color: var(--ink);
+  white-space: nowrap;
+}
+.orgmap__member-label {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  color: var(--ink-faint);
+}
+@media (max-width: 72rem) {
+  .orgmap__divs {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+  .orgmap__div::before {
+    display: none;
+  }
+}
+@media (max-width: 40rem) {
+  .orgmap {
+    padding: 1rem;
+  }
+  .orgmap__divs {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}
+
+/* 部ごとの詳細:本部の帯 → 部のパネル → メンバーのカード */
+.talent-div {
+  margin-top: 1.5rem;
+}
+.talent-div[hidden],
+.talent-dept[hidden] {
+  display: none;
+}
+.talent-div__head {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 1rem;
+  padding: 0.75rem 1rem;
+  border-radius: var(--radius);
+  background: color-mix(in srgb, var(--div) 20%, var(--panel-solid));
+  border: 1px solid color-mix(in srgb, var(--div) 50%, transparent);
+}
+.talent-div__head h2 {
+  margin: 0;
+  font-size: 1.125rem;
+}
+.talent-div__head span {
+  font-size: 0.8125rem;
+  color: var(--ink-mute);
+}
+.talent-dept {
+  margin: 0.9rem 0 0 0.9rem;
+  padding: 1rem 1rem 1rem 1.1rem;
+  border-left: 2px solid color-mix(in srgb, var(--div) 70%, transparent);
+  background: linear-gradient(90deg, color-mix(in srgb, var(--div) 7%, transparent), transparent 40%);
+  border-radius: 0 var(--radius) var(--radius) 0;
+}
+.talent-dept__head {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: 0.75rem 2rem;
+  margin-bottom: 0.9rem;
+}
+.talent-dept__path,
+.people-card__path {
+  margin: 0;
+  font-size: 0.6875rem;
+  letter-spacing: 0.04em;
+  color: var(--ink-faint);
+}
+.talent-dept__head h3 {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.5rem;
+  margin: 0.1rem 0 0.25rem;
+  font-size: 1.0625rem;
+}
+.talent-dept__head h3 a {
+  color: var(--ink-strong);
+  text-decoration: none;
+}
+.talent-dept__summary {
+  margin: 0;
+  font-size: 0.875rem;
+  color: var(--ink);
+}
+.talent-dept__meta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem 1.25rem;
+  margin: 0;
+  font-size: 0.75rem;
+}
+.talent-dept__meta dt {
+  color: var(--ink-faint);
+}
+.talent-dept__meta dd {
+  margin: 0.1rem 0 0;
+  color: var(--ink);
+}
+.people-card__more summary {
+  cursor: pointer;
+  font-size: 0.75rem;
+  color: var(--ink-faint);
+}
+.people-card__more[open] summary {
+  margin-bottom: 0.4rem;
+}
+@media (max-width: 48rem) {
+  .talent-dept {
+    margin-left: 0.4rem;
+    padding-left: 0.8rem;
+  }
+  .talent-dept__head {
+    grid-template-columns: minmax(0, 1fr);
+  }
 }

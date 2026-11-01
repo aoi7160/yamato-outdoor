@@ -2,6 +2,7 @@
 id: community
 name: コミュニティ・イベント部
 short: コミュニティ
+summary: "LINE・メール・イベントで読者とのつながりを作る"
 tagline: 挑む輪を、広げる
 division: revenue
 status: planned
@@ -23,9 +24,9 @@ cadence:
   - { when: "monthly", what: メルマガ(月1〜2回) }
 reports_to: executive
 staff:
-  - { name: "CRM Studio", label: "LINE・メールの配信設計", does: "受け口の開設の判断材料・配信設計・ステップ配信・LINEとメルマガの配信文を下書きする(配信しない。受け口が空のあいだは配信文を積まず準備を進める)", where: "非公開リポジトリ yamato-outdoor-editorial(content/community/)/ Notion承認トレイ", runs: "スキル yamato-community(今週の配信案・開設の準備)。運営の時間割(yamato-ops)の weekly で実行。頼まれたときも実行", state: on-call, skills: ["ステップ配信", "配信文", "soft CVの導線"], kpi: "soft CV(LINE・メール登録)", growth: "受け口ができたら、記事の読者を配信につなぐ" }
-  - { name: "Event Lab", label: "登山企画・イベント", does: "登山企画・イベントの企画書を、安全・旅行業法・個人情報の論点つきで作る", where: "非公開リポジトリ(content/community/events/)/ Notion承認トレイ", runs: "スキル yamato-community(企画書)。頼まれたときに実行(受け口が開いたら月初の weekly で棚卸し)", state: on-call, skills: ["企画書", "安全の論点", "旅行業法の確認"], kpi: "企画の採用数", growth: "読者が集まったら、関西の山での企画を形にする" }
-  - { name: "Concierge", label: "問い合わせ対応", does: "問い合わせ・DMを分類して返信の下書きを作り、質問の要旨をSEO部・企画部に渡す(返信はCEO)", where: "Notion承認トレイ / 非公開リポジトリ(content/community/questions.md)", runs: "スキル yamato-community(返信の下書き)。頼まれたときに実行", state: on-call, skills: ["問い合わせの分類", "返信の下書き", "個人情報の扱い"], kpi: "返信までの時間", growth: "問い合わせの受け口ができたら、返信の下書きを自動にする" }
+  - { name: "CRM Studio", label: "LINE・メールの配信", does: "LINEやメールで読者に届ける配信の流れと文面を作る(配信はCEOが判断)。", where: "非公開リポジトリ yamato-outdoor-editorial(content/community/)/ Notion承認トレイ", runs: "スキル yamato-community(今週の配信案・開設の準備)。運営の時間割(yamato-ops)の weekly で実行。頼まれたときも実行", state: on-call, skills: ["配信の設計", "配信文の制作", "登録の導線"], kpi: "LINE・メールの登録者数", growth: "登録の窓口ができたら、記事の読者を配信につなげる" }
+  - { name: "Event Lab", label: "イベントの企画", does: "読者と一緒に登る企画やイベントの企画書を作る。安全面や法律の注意点も整理する。", where: "非公開リポジトリ(content/community/events/)/ Notion承認トレイ", runs: "スキル yamato-community(企画書)。頼まれたときに実行(受け口が開いたら月初の weekly で棚卸し)", state: on-call, skills: ["イベントの企画書", "安全面の確認", "法律の確認"], kpi: "実施まで進んだ企画の数", growth: "読者が集まったら、関西の山での企画を形にする" }
+  - { name: "Concierge", label: "問い合わせの対応", does: "読者からの問い合わせを分類し、返信の下書きを作る。個人情報は法務のルールに従って扱う。", where: "Notion承認トレイ / 非公開リポジトリ(content/community/questions.md)", runs: "スキル yamato-community(返信の下書き)。頼まれたときに実行", state: on-call, skills: ["問い合わせの分類", "返信の下書き", "個人情報の扱い"], kpi: "返信までの時間", growth: "問い合わせ窓口ができたら、返信の下書きを自動にする" }
 ---
 
 ## ミッション

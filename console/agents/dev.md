@@ -2,6 +2,7 @@
 id: dev
 name: サイト開発・パフォーマンス部
 short: サイト開発
+summary: "サイトとBASE CAMPを作り、表示の速さを守る"
 tagline: 凝ったデザインを、速いまま保つ
 division: product-content
 status: active
@@ -24,8 +25,8 @@ cadence:
   - { when: "daily 19:00", what: 定例ヒアリングに回答 }
 reports_to: executive
 staff:
-  - { name: "Platform Engineering", label: "サイトとコンソールの実装", does: "サイトとコンソールの改修(claude/*ブランチ → build・test → プレビューで計測 → mainへのマージの承認依頼)、依存関係の更新、障害時の切り戻し手順", where: "GitHub(aoi7160/yamato-outdoor)/ Notion承認トレイ(mainへのマージ)", runs: "スキル yamato-dev(改修・依存関係・障害)。運営の時間割(yamato-ops)の monthly で依存関係を点検。頼まれたときも実行", state: on-call, skills: ["Astro・Cloudflare", "fps制約の実装", "計測タグの約束"], kpi: "mainへの反映後の不具合0件", growth: "プレビューでの計測を、mainに入れる前の必須にする" }
-  - { name: "Speed Lab", label: "表示速度・fps", does: "Core Web Vitals(PSI・CrUX・GA4のweb_vitals)とラボ計測(perf-check.mjs:LCP・CLS・長いタスク・スクロールfps・動く層の数と面積)で、fps制約と性能の予算が守られているかを確かめる", where: "非公開リポジトリ(content/dev/perf-log.md)/ BASE CAMP「本日」(PSIの自動取得はコンソールのサーバー)", runs: "スキル yamato-dev(月次の計測・改修ごとのプレビュー計測)。運営の時間割(yamato-ops)の monthly で実行。頼まれたときも実行", state: on-call, skills: ["Core Web Vitals", "PageSpeed Insights", "依存関係の点検"], kpi: "LCP 2.0秒以下・INP 150ms以下", growth: "PSIのAPIキーが入ったら、毎月の計測を自動にする" }
+  - { name: "Platform Engineering", label: "サイトの開発", does: "サイトとBASE CAMPの機能を作り、直す。デザインの約束と表示の速さを守って作る。", where: "GitHub(aoi7160/yamato-outdoor)/ Notion承認トレイ(mainへのマージ)", runs: "スキル yamato-dev(改修・依存関係・障害)。運営の時間割(yamato-ops)の monthly で依存関係を点検。頼まれたときも実行", state: on-call, skills: ["サイトの実装", "BASE CAMPの実装", "計測タグの約束の順守"], kpi: "本番に出したあとの不具合0件", growth: "本番に出す前のプレビューでの計測を必須にする" }
+  - { name: "Speed Lab", label: "表示速度の改善", does: "ページの表示の速さと、スクロールの滑らかさを測り、遅くなる原因を見つけて直す。", where: "非公開リポジトリ(content/dev/perf-log.md)/ BASE CAMP「本日」(PSIの自動取得はコンソールのサーバー)", runs: "スキル yamato-dev(月次の計測・改修ごとのプレビュー計測)。運営の時間割(yamato-ops)の monthly で実行。頼まれたときも実行", state: on-call, skills: ["表示速度の計測", "表示の重さの原因調査", "部品の更新の点検"], kpi: "表示の速さの目標(主要部分が2秒以内)", growth: "表示速度の計測を毎月自動にする" }
 ---
 
 ## ミッション

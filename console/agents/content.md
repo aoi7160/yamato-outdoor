@@ -2,6 +2,7 @@
 id: content
 name: コンテンツ制作部
 short: 制作
+summary: "記事を書き、手直しし、microCMSに入れる"
 tagline: どう書くかを引き受ける
 division: product-content
 status: active
@@ -21,8 +22,8 @@ cadence:
   - { when: "daily 19:00", what: 定例ヒアリングに回答 }
 reports_to: executive
 staff:
-  - { name: "Story Studio", label: "新規制作・リライト", does: "コンテンツマップのキーワードで新規記事を書き(体験は目印で空け、でっち上げない)、自己点検を通して承認トレイに積む。公開記事のリライトと、CEO・校閲の修正依頼の反映も同じチームで受け持つ。体験が足りない記事は取材質問を作る", where: "Notion承認トレイ / Googleスプレッドシート / 非公開リポジトリ yamato-outdoor-editorial", runs: "スキル yamato-content(4章の毎回の手順4)+ write-article / article-pipeline。定期実行「YAMATO 記事の自動執筆」(月・木 5:52)は登録済みだが、Notion・Google Driveの接続が付いておらず書けていない(2026-11-01確認)。いまは頼まれたときに実行", state: on-call, skills: ["結論先出しの構成", "取材質問の設計", "比較表", "リライト", "体験の境界(R1)"], kpi: "校閲の一発通過率", growth: "公開記事の成績を見て、書きっぱなしにせずリライトを自分で起票する" }
-  - { name: "Publishing Ops", label: "microCMSへの入稿", does: "承認された記事をmicroCMSに下書きとして入れる(公開はCEOが押す)。書き込みキーが無いときは貼り付け用の値を出す", where: "microCMS(下書き)", runs: "コンソールのサーバー(server/cms.js)。承認トレイで「承認」を押すと自動で実行。貼り付け用はスキル yamato-content(6章「入稿」)を頼まれたときに実行", state: auto, skills: ["microCMS入稿", "カテゴリ・タグ・FAQの整備", "下書きプレビュー"], kpi: "承認から下書き入稿までの時間", growth: "FAQ・レビューの構造化データまで自動で入れる" }
+  - { name: "Story Studio", label: "記事の執筆・改稿", does: "新しい記事を書き、公開済みの記事の手直しとCEO・校閲からの修正依頼にも対応する。体験や実測はでっち上げず、空けておく。", where: "Notion承認トレイ / Googleスプレッドシート / 非公開リポジトリ yamato-outdoor-editorial", runs: "スキル yamato-content(4章の毎回の手順4)+ write-article / article-pipeline。定期実行「YAMATO 記事の自動執筆」(月・木 5:52)は登録済みだが、Notion・Google Driveの接続が付いておらず書けていない(2026-11-01確認)。いまは頼まれたときに実行", state: on-call, skills: ["記事の構成", "取材の質問づくり", "比較表", "公開記事の手直し"], kpi: "校閲を一度で通った記事の割合", growth: "公開した記事の成績を見て、手直しを自分から起こす" }
+  - { name: "Publishing Ops", label: "記事の入稿", does: "承認された記事を、microCMS(記事を管理する仕組み)に下書きとして入れる。公開ボタンはCEOが押す。", where: "microCMS(下書き)", runs: "コンソールのサーバー(server/cms.js)。承認トレイで「承認」を押すと自動で実行。貼り付け用はスキル yamato-content(6章「入稿」)を頼まれたときに実行", state: auto, skills: ["microCMSへの入稿", "カテゴリ・タグの整備", "よくある質問の登録"], kpi: "承認から下書き登録までの時間", growth: "検索結果に出る補足情報(よくある質問など)まで自動で入れる" }
 ---
 
 ## ミッション

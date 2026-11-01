@@ -2,6 +2,7 @@
 id: seo
 name: SEO・検索戦略部
 short: SEO
+summary: "検索で読まれるために、何を書くか・記事をどうつなぐかを決める"
 tagline: 何を書くかを決める
 division: product-content
 status: active
@@ -24,9 +25,9 @@ cadence:
   - { when: "weekly mon 07:00", what: 順位が落ちた記事・前年モデルのままの記事の一覧 }
 reports_to: executive
 staff:
-  - { name: "Search Intelligence", label: "検索結果と検索意図の調査", does: "コンテンツマップの「新規記事案」から次に書く候補を段階戦略・検索意図・共食いの確認で選び、SERP分析シート(上位が答えていない疑問)を作る", where: "Googleスプレッドシート「メディア Topic cluster」(読むだけ)/ Web検索 / 非公開リポジトリ yamato-outdoor-editorial(content/seo/)", runs: "スキル yamato-seo(3-2〜3-5・週次の「次に書く候補」)。運営の時間割(yamato-ops)の weekly で実行。write-article の経路Aもこの基準で選ぶ。頼まれたときも実行", state: on-call, skills: ["SERP分析", "検索意図の分類", "競合の空白の発見"], kpi: "狙ったキーワードの上位10位入り本数", growth: "YAMATO名義のSEOツールが入ったら、KDと流入の見込みで候補を並べる" }
-  - { name: "Content Architecture", label: "構成・クラスター・内部リンク", does: "承認された記事の設計書(docs/articles/)と、内部リンク計画(どの記事・どのh2・どの段落・アンカー)・LLMOの指示を作る。大きな修正のときは構成の根拠を出し直す", where: "GitHub(docs/articles/・claude/*ブランチ)/ Notion承認トレイ", runs: "スキル yamato-seo(3-6・3-8・依頼時の設計書)。運営の時間割(yamato-ops)の weekly(内部リンクの穴)で実行。頼まれたときも実行", state: on-call, skills: ["トピッククラスター", "内部リンク設計", "カニバリ検出", "LLMO"], kpi: "孤立記事0本・共食い0件", growth: "記事が20本を超えたら、ピラー記事の設計に進む" }
-  - { name: "Rank Watch", label: "順位・インデックス・リンク切れ", does: "Search Console・Bingの順位とインデックスの差分、サイト内リンク切れ(自前チェック)を見て、リライト候補を28日の閾値で判定する", where: "BASE CAMP「本日」/ Search Console / Bing / サイトマップ", runs: "数字はコンソールのサーバー(server/connectors.js)が開くたびに自動で取得。判定はスキル yamato-seo(3-7・3-10・linkcheck.py)で、運営の時間割(yamato-ops)の morning・weekly で実行。頼まれたときも実行", state: auto, skills: ["Search Console", "リンク切れ検知", "リライト判定"], kpi: "インデックス率", growth: "Search Consoleの数字を読めるようになったら、リライト候補を毎週自動で出す" }
+  - { name: "Search Intelligence", label: "検索市場の調査", does: "狙うキーワードで今どんな記事が上位にあり、読者が何を知りたいのかを調べ、勝てる余地を見つける。", where: "Googleスプレッドシート「メディア Topic cluster」(読むだけ)/ Web検索 / 非公開リポジトリ yamato-outdoor-editorial(content/seo/)", runs: "スキル yamato-seo(3-2〜3-5・週次の「次に書く候補」)。運営の時間割(yamato-ops)の weekly で実行。write-article の経路Aもこの基準で選ぶ。頼まれたときも実行", state: on-call, skills: ["検索結果の分析", "検索意図の読み解き", "競合が書いていない論点の発見"], kpi: "狙ったキーワードで10位以内に入った記事の数", growth: "YAMATO名義の調査ツールが入ったら、勝ちやすさの数値で候補を並べる" }
+  - { name: "Content Architecture", label: "サイト構造の設計", does: "記事どうしのつながり(どの記事からどの記事へ案内するか)を設計し、記事同士が同じキーワードを奪い合わないようにする。", where: "GitHub(docs/articles/・claude/*ブランチ)/ Notion承認トレイ", runs: "スキル yamato-seo(3-6・3-8・依頼時の設計書)。運営の時間割(yamato-ops)の weekly(内部リンクの穴)で実行。頼まれたときも実行", state: on-call, skills: ["記事群の設計", "内部リンクの設計", "記事の重複の発見", "AI検索への対応"], kpi: "どこからもリンクされていない記事0本", growth: "記事が20本を超えたら、テーマの柱になるまとめ記事を設計する" }
+  - { name: "Rank Watch", label: "検索順位の監視", does: "検索順位・Googleへの登録状況・リンク切れを見張り、手直しが要る記事を見つける。", where: "BASE CAMP「本日」/ Search Console / Bing / サイトマップ", runs: "数字はコンソールのサーバー(server/connectors.js)が開くたびに自動で取得。判定はスキル yamato-seo(3-7・3-10・linkcheck.py)で、運営の時間割(yamato-ops)の morning・weekly で実行。頼まれたときも実行", state: auto, skills: ["検索順位の確認", "リンク切れの発見", "手直し候補の判定"], kpi: "Googleに登録された記事の割合", growth: "Search Consoleを読めるようになったら、手直し候補を毎週自動で出す" }
 ---
 
 ## ミッション

@@ -2,6 +2,7 @@
 id: affiliate
 name: アフィリエイト部
 short: アフィリエイト
+summary: "記事から商品の購入につなげ、アフィリエイトの収益を作る"
 tagline: 記事×案件で、準備を後押しする
 division: revenue
 status: active
@@ -29,9 +30,9 @@ cadence:
   - { when: "セールの3週間前", what: "セール対象になりやすい記事のリンク点検と、企画部へのセール情報" }
 reports_to: executive
 staff:
-  - { name: "Program Scout", label: "案件の発掘と評価", does: "ASPの案件を報酬×CVR×確定率×Cookie×記事との適合で評価して案件台帳に報酬と確認日を書き、申請の条件がそろったらASP登録の提案を積む", where: "Notion「案件台帳」/ Notion承認トレイ", runs: "スキル yamato-affiliate(案件台帳の点検・案件の評価・ASP登録の提案)。運営の時間割(yamato-ops)の morning で実行(木曜は全件点検)。頼まれたときも実行", state: on-call, skills: ["ASPの審査対策", "案件の採点(報酬×CVR×Cookie)", "案件台帳"], kpi: "提携中の案件数", growth: "提携が通ったら、記事ごとの最適な案件を自動で選ぶ" }
-  - { name: "Conversion Design", label: "購入導線(buy-box)の設計", does: "記事ごとにbuy-boxを置く製品・場所・店の順を設計し(未提携の案件はURLなし)、提携中の案件はリンク差し替えの差分を、リンク切れ・提携終了は差し替え案を承認トレイに積む", where: "非公開リポジトリ(content/affiliate/link-plans)/ Notion承認トレイ", runs: "スキル yamato-affiliate(リンク設計・差し替え案)。運営の時間割(yamato-ops)の morning で実行(月曜は新しい記事のリンク設計)。頼まれたときも実行", state: on-call, skills: ["buy-boxの位置と文言", "PR表記", "セールの逆算"], kpi: "記事のアフィリエイトクリック率", growth: "提携後、承認トレイの記事にリンクを差し込む案を出す" }
-  - { name: "Revenue Insights", label: "収益の分析", does: "ASPのCSVから記事別の発生・確定・EPCを出し、置き場所・店の順・案件の見直しを診断する(確定値はデータ分析部・記帳は事業報告部へ渡す)", where: "非公開リポジトリ(content/affiliate/monthly)/ BASE CAMP「データ連携」(CSVはCEOのブラウザ内)", runs: "スキル yamato-affiliate(月次の締め・EPCの診断)。運営の時間割(yamato-ops)の morning で毎月1日に実行(CEOからCSVを受け取ったとき)。頼まれたときも実行", state: on-call, skills: ["記事別EPC", "リンク切れ・提携終了の検知", "ASPのCSV"], kpi: "記事別EPC", growth: "ASPのデータを自動で取り込めたら、毎週の収益レポートを出す" }
+  - { name: "Program Scout", label: "提携先の選定", does: "アフィリエイトの提携先(Amazon・楽天・専門店など)を調べ、報酬と記事との相性で、どこと組むかを決める。", where: "Notion「案件台帳」/ Notion承認トレイ", runs: "スキル yamato-affiliate(案件台帳の点検・案件の評価・ASP登録の提案)。運営の時間割(yamato-ops)の morning で実行(木曜は全件点検)。頼まれたときも実行", state: on-call, skills: ["提携先の比較", "アフィリエイトの審査準備", "提携先の一覧管理"], kpi: "提携できた提携先の数", growth: "提携が通ったら、記事ごとに最適な提携先を自動で選ぶ" }
+  - { name: "Conversion Design", label: "購入導線の設計", does: "記事のどこに、どの商品の購入リンクを置くかを決め、広告であることの表示もそろえる。", where: "非公開リポジトリ(content/affiliate/link-plans)/ Notion承認トレイ", runs: "スキル yamato-affiliate(リンク設計・差し替え案)。運営の時間割(yamato-ops)の morning で実行(月曜は新しい記事のリンク設計)。頼まれたときも実行", state: on-call, skills: ["購入リンクの配置", "広告表示", "セール時期の準備"], kpi: "記事から購入リンクが押された割合", growth: "提携が通ったら、承認待ちの記事にリンクを入れる案を出す" }
+  - { name: "Revenue Insights", label: "収益の分析", does: "記事ごとの収益を集計し、リンク切れや提携の終了をいち早く見つける。", where: "非公開リポジトリ(content/affiliate/monthly)/ BASE CAMP「データ連携」(CSVはCEOのブラウザ内)", runs: "スキル yamato-affiliate(月次の締め・EPCの診断)。運営の時間割(yamato-ops)の morning で毎月1日に実行(CEOからCSVを受け取ったとき)。頼まれたときも実行", state: on-call, skills: ["記事ごとの収益の集計", "リンク切れの発見", "提携先の成績の比較"], kpi: "記事1回のクリックあたりの収益", growth: "収益データを自動で取り込めたら、毎週の収益レポートを出す" }
 ---
 
 ## ミッション

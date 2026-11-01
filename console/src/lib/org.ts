@@ -51,6 +51,8 @@ export type AgentMeta = {
   name: string;
   short: string;
   tagline: string;
+  /** 何をする部かを、初めて見る人にも分かる言葉で1文(Talentの組織マップに出す) */
+  summary: string;
   division: DivisionId;
   status: AgentStatus;
   standby_until: string;
@@ -81,6 +83,7 @@ export const AGENTS: Agent[] = Object.entries(modules)
     sources: mod.frontmatter.sources ?? [],
     cadence: mod.frontmatter.cadence ?? [],
     staff: mod.frontmatter.staff ?? [],
+    summary: mod.frontmatter.summary ?? mod.frontmatter.tagline,
     standby_until: mod.frontmatter.standby_until ?? '',
     Content: mod.Content,
   }))

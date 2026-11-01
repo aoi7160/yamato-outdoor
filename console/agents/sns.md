@@ -2,6 +2,7 @@
 id: sns
 name: SNS部
 short: SNS
+summary: "SNSで記事と登山の記録を届け、サイトとLINEに人を呼ぶ"
 tagline: 投稿から、サイトとLINEへ流す
 division: revenue
 status: standby
@@ -23,9 +24,9 @@ cadence:
   - { when: "daily 19:00", what: 定例ヒアリングに回答 }
 reports_to: executive
 staff:
-  - { name: "Trend Radar", label: "トレンドの調査", does: "季節と関西の山の話題を出典つきで集めて投稿の下書き(関西の山のメモ)にし、記事にすべき話題は企画部へ渡す", where: "Web検索 / 非公開リポジトリ(content/sns/trends)", runs: "スキル yamato-sns(トレンド調査)。運営の時間割(yamato-ops)の weekly で実行。頼まれたときも実行", state: on-call, skills: ["媒体ごとの傾向", "登山の話題の発見", "投稿の時刻の仮説"], kpi: "伸びた話題の発見数", growth: "アカウントが稼働したら、反応の良い型を毎週見直す" }
-  - { name: "Social Studio", label: "投稿の制作", does: "媒体ごとの運用設計・プロフィール文・記事ごとの投稿キュー(1記事3本)・週の投稿カレンダーを作る。稼働後は投稿を承認トレイに積む(投稿はCEO)", where: "非公開リポジトリ(content/sns)/ 稼働後はNotion承認トレイ", runs: "スキル yamato-sns(運用設計・投稿キュー・カレンダー)。運営の時間割(yamato-ops)の weekly で実行。頼まれたときも実行", state: on-call, skills: ["投稿の型7つ", "投稿キュー", "PR表記"], kpi: "週の投稿キューの充足率", growth: "アカウントが稼働したら、記事の公開に合わせて告知を自動で積む" }
-  - { name: "Social Insights", label: "SNSの分析", does: "稼働後は型ごとの反応とSNSからサイト・LINEへの流れを週次で見て投稿の配分を直す。準備中は月1回、参考アカウントの投稿の型を観察する", where: "非公開リポジトリ(content/sns/results・benchmarks)/ SNSからの流入はデータ分析部の数字", runs: "スキル yamato-sns(運用分析)。運営の時間割(yamato-ops)の weekly で実行(媒体の数字は稼働後、CEOから受け取ったとき)。頼まれたときも実行", state: on-call, skills: ["媒体別の反応", "サイト・LINEへの流入", "UTM設計"], kpi: "SNSからの流入数", growth: "アカウントが稼働したら、型ごとに8投稿で判断する" }
+  - { name: "Trend Radar", label: "SNSの話題の調査", does: "SNSで今どんな登山の話題が伸びているかを調べ、投稿のネタと時間帯を決める。", where: "Web検索 / 非公開リポジトリ(content/sns/trends)", runs: "スキル yamato-sns(トレンド調査)。運営の時間割(yamato-ops)の weekly で実行。頼まれたときも実行", state: on-call, skills: ["SNSの話題の調査", "媒体ごとの特徴", "投稿時間の検討"], kpi: "見つけた伸びている話題の数", growth: "アカウントができたら、反応の良い投稿の型を毎週見直す" }
+  - { name: "Social Studio", label: "SNS投稿の制作", does: "記事の告知や登山の記録を、SNSごとの投稿文にして、投稿の予定表に並べる(投稿はCEO)。", where: "非公開リポジトリ(content/sns)/ 稼働後はNotion承認トレイ", runs: "スキル yamato-sns(運用設計・投稿キュー・カレンダー)。運営の時間割(yamato-ops)の weekly で実行。頼まれたときも実行", state: on-call, skills: ["投稿文の制作", "投稿の予定表", "広告であることの表示"], kpi: "1週間分の投稿の準備率", growth: "アカウントができたら、記事の公開に合わせて告知を自動で準備する" }
+  - { name: "Social Insights", label: "SNSの分析", does: "SNSからサイトやLINEにどれだけ人が来たかを測り、効いた投稿を見つける。", where: "非公開リポジトリ(content/sns/results・benchmarks)/ SNSからの流入はデータ分析部の数字", runs: "スキル yamato-sns(運用分析)。運営の時間割(yamato-ops)の weekly で実行(媒体の数字は稼働後、CEOから受け取ったとき)。頼まれたときも実行", state: on-call, skills: ["媒体ごとの反応の分析", "サイトへの流入の計測", "流入元の目印づけ"], kpi: "SNSからサイトに来た人の数", growth: "アカウントができたら、投稿の型ごとに効果を判断する" }
 ---
 
 ## ミッション

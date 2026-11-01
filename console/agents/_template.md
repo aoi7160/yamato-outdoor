@@ -5,7 +5,8 @@
 id: example
 name: 〇〇部
 short: 〇〇
-tagline: 一言で何をする部か
+summary: 何をする部かを、初めて見る人にも分かる言葉で1文
+tagline: 一言で何をする部か(コピー)
 division: product-content   # executive | product-content | revenue | corporate
 status: planned             # active | standby | planned
 standby_until: ""

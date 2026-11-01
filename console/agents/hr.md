@@ -2,6 +2,7 @@
 id: hr
 name: 人事部
 short: 人事
+summary: "AIメンバーの稼働と能力を管理し、配置と育成を提案する"
 tagline: 誰が、どこで、何をしているかを一枚にする
 division: corporate
 status: active
@@ -21,8 +22,8 @@ cadence:
   - { when: "組織変更時", what: 部の追加・分割・廃止に合わせて名簿と ORG.md を更新 }
 reports_to: executive
 staff:
-  - { name: "Talent Ops", label: "タレント管理・棚卸し", does: "定期実行の一覧(list_triggers)・.claude/skills・.claude/agents・console/server と各部の staff を照合し、成果物の有無で auto / on-call / defined を判定して名簿を直す。毎日、今日の定期実行が動いたか・空振りかを記録する", where: "BASE CAMP「Talent」/ GitHub(console/agents/)/ Notion「日報・週報」", runs: "スキル yamato-hr(稼働の記録・名簿の棚卸し。機械チェックは roster_audit.mjs)。運営の時間割(yamato-ops)の evening・weekly で実行。頼まれたときも実行", state: on-call, skills: ["名簿の棚卸し", "定期実行の照合", "Autopilot/On call/Benchの判定"], kpi: "名簿と実体のずれ0件", growth: "定期実行の結果を読んで、空振りを自動で見つける" }
-  - { name: "Talent Partner", label: "配置・育成", does: "動いていない・空振りのメンバーに、いちばん軽く動く方法(スキルの手順・時間割の枠・定期実行の接続・サーバー)の案を出し、各部スキルの能力の棚卸し(9見出し・判断の型・住み分けの重なり)を月1回監査する", where: "Notion承認トレイ / Notion「日報・週報」(週報の能力の棚卸し)/ GitHub(.claude/skills/)", runs: "スキル yamato-hr(配置の案・能力の棚卸し)。運営の時間割(yamato-ops)の weekly で実行(能力の棚卸しは毎月最初の weekly)。頼まれたときも実行", state: on-call, skills: ["配置の提案", "スキルの監査(9見出し)", "住み分けの監査"], kpi: "Benchのメンバー0人", growth: "各部のスキルを月1回監査して、伸ばす能力を提案する" }
+  - { name: "Talent Ops", label: "人材の管理", does: "AIメンバー全員が実際に動いているかを確かめ、このTalentのページを最新に保つ。", where: "BASE CAMP「Talent」/ GitHub(console/agents/)/ Notion「日報・週報」", runs: "スキル yamato-hr(稼働の記録・名簿の棚卸し。機械チェックは roster_audit.mjs)。運営の時間割(yamato-ops)の evening・weekly で実行。頼まれたときも実行", state: on-call, skills: ["メンバーの稼働確認", "定期実行の点検", "Talentの更新"], kpi: "ページと実態のずれ0件", growth: "定期実行の結果を読んで、動いていないメンバーを自動で見つける" }
+  - { name: "Talent Partner", label: "配置と育成", does: "動いていないメンバーの動かし方と、各メンバーの能力の伸ばし方を提案する。仕事の重なりもなくす。", where: "Notion承認トレイ / Notion「日報・週報」(週報の能力の棚卸し)/ GitHub(.claude/skills/)", runs: "スキル yamato-hr(配置の案・能力の棚卸し)。運営の時間割(yamato-ops)の weekly で実行(能力の棚卸しは毎月最初の weekly)。頼まれたときも実行", state: on-call, skills: ["配置の提案", "能力の点検", "仕事の重なりの解消"], kpi: "まだ動けないメンバー0人", growth: "各部の能力を月1回点検し、伸ばす能力を提案する" }
 ---
 
 ## ミッション
@@ -53,7 +54,7 @@ CEOが「誰が、どこで、何をしているか」を名簿の1画面で分�
 
 ```yaml
 staff:
-  - { name: "Story Studio", does: "何をしているか(1文)", where: "働いている場所(Notion・GitHub・microCMS など)", runs: "実体(どの仕組みで動くか)", state: auto }
+  - { name: "Story Studio", does: "新しい記事を書き、公開済みの記事の手直しとCEO・校閲からの修正依頼にも対応する。体験や実測はでっち上げず、空けておく。", where: "働いている場所(Notion・GitHub・microCMS など)", runs: "実体(どの仕組みで動くか)", state: auto }
 ```
 
 | state | 意味 | 名簿での見え方 |

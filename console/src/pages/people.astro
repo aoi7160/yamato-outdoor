@@ -1,17 +1,34 @@
 ---
 /**
  * Talent(AIメンバーのタレントマネジメント)。人事部が各部の agents/<id>.md に書いた staff から作る。
- * 1人(1チーム)1枚で、役割・スキル・担当KPI・働く場所・動く仕組み・次に伸ばす能力を並べる。
- * 動きは付けない(fps制約。静止したカードと、表示の切り替えだけ)。
+ *
+ * 大きなまとまりから見ていけるように、2段で組む。
+ *   1. 組織マップ …… CEO → 本部 → 部 → メンバー を1枚の図で。人に説明するときはここを見せる
+ *   2. 部ごとの詳細 …… 本部の帯の中に部のパネルを置き、その中にメンバーのカードを並べる。
+ *      どのカードにも「本部 › 部」を出し、カードだけ見ても所属が分かるようにする
+ * 動きは付けない(fps制約。静止した図と、表示の切り替えだけ)。
  */
 import Base from '../layouts/Base.astro';
 import Figure from '../components/Figure.astro';
-import { AGENTS, DIVISIONS, STATUS_LABEL, STAFF_STATE_HINT, STAFF_STATE_LABEL, type StaffState } from '../lib/org';
+import {
+  AGENTS,
+  DIVISIONS,
+  PERMISSION_LABEL,
+  STATUS_LABEL,
+  STAFF_STATE_HINT,
+  STAFF_STATE_LABEL,
+  type StaffState,
+} from '../lib/org';
 
-const people = AGENTS.flatMap((a) => a.staff.map((s, i) => ({ ...s, index: i, agent: a })));
-const count = (st: StaffState) => people.filter((p) => p.state === st).length;
 const STATES: StaffState[] = ['auto', 'on-call', 'defined'];
+const people = AGENTS.flatMap((a) => a.staff);
+const count = (st: StaffState) => people.filter((p) => p.state === st).length;
 const skillCount = new Set(people.flatMap((p) => p.skills ?? [])).size;
+
+const divisions = DIVISIONS.map((d) => {
+  const depts = AGENTS.filter((a) => a.division === d.id);
+  return { ...d, depts, members: depts.reduce((n, a) => n + a.staff.length, 0) };
+}).filter((d) => d.depts.length > 0);
 // staff が未記入の部を人事部が見落とさないように出す
 const missing = AGENTS.filter((a) => a.staff.length === 0);
 ---
@@ -20,75 +37,150 @@ const missing = AGENTS.filter((a) => a.staff.length === 0);
     <p class="talent-eyebrow">People &amp; Talent</p>
     <h1>Talent</h1>
     <p>
-      YAMATO OUTDOORで働くAIメンバーのタレントマネジメント。誰が・どの部で・どんなスキルで・何のKPIを持って動いているかを1枚ずつ見られます。
-      運用しているのは<a href="/agents/hr/">人事部</a>(各部の <code>console/agents/&lt;id&gt;.md</code> の <code>staff</code>)。
+      YAMATO OUTDOORで働くAIメンバーの一覧。<strong>本部 → 部 → メンバー</strong>の順に、誰がどこで何をしているかを見られます。
+      運用しているのは<a href="/agents/hr/">人事部</a>です。
     </p>
   </div>
 
   <dl class="talent-stats">
-    <div><dt>Members</dt><dd>{people.length}</dd></div>
+    <div><dt>本部</dt><dd>{divisions.length}</dd></div>
+    <div><dt>部</dt><dd>{AGENTS.length}</dd></div>
+    <div><dt>メンバー</dt><dd>{people.length}</dd></div>
     {STATES.map((st) => (
       <div title={STAFF_STATE_HINT[st]}>
         <dt><span class={`people-dot people-dot--${st}`}></span>{STAFF_STATE_LABEL[st]}</dt>
         <dd>{count(st)}</dd>
       </div>
     ))}
-    <div><dt>Skills</dt><dd>{skillCount}</dd></div>
+    <div><dt>スキル</dt><dd>{skillCount}</dd></div>
   </dl>
 
+  {missing.length > 0 && <p class="note">メンバーが未記入の部:{missing.map((a) => a.name).join('、')}</p>}
+
+  {/* ---------- 1. 組織マップ ---------- */}
+  <section class="orgmap" aria-labelledby="orgmap-title">
+    <div class="orgmap__head">
+      <h2 id="orgmap-title">組織マップ</h2>
+      <p class="note">
+        {STATES.map((st) => (
+          <span class="orgmap__legend"><span class={`people-dot people-dot--${st}`}></span>{STAFF_STATE_LABEL[st]}:{STAFF_STATE_HINT[st]}</span>
+        ))}
+      </p>
+    </div>
+
+    <div class="orgmap__ceo">
+      <span class="orgmap__ceo-badge">CEO</span>
+      <span>報告を聞いて、承認トレイで判断する</span>
+    </div>
+
+    <div class="orgmap__divs">
+      {divisions.map((d) => (
+        <div class="orgmap__div" style={`--div:${d.color}`}>
+          <a class="orgmap__div-head" href={`#div-${d.id}`}>
+            <strong>{d.name}</strong>
+            <span>{d.depts.length}部・{d.members}人</span>
+          </a>
+          <ul class="orgmap__depts">
+            {d.depts.map((a) => (
+              <li class="orgmap__dept" data-status={a.status}>
+                <a href={`#dept-${a.id}`}>
+                  <span class="orgmap__dept-name">
+                    {a.name}
+                    {a.status !== 'active' && <span class="chip">{STATUS_LABEL[a.status]}</span>}
+                  </span>
+                  <span class="orgmap__dept-summary">{a.summary}</span>
+                  <ul class="orgmap__members">
+                    {a.staff.map((s) => (
+                      <li title={`${s.name}:${s.label ?? ''}(${STAFF_STATE_LABEL[s.state]})`}>
+                        <span class={`people-dot people-dot--${s.state}`}></span>
+                        <span class="orgmap__member-name">{s.name}</span>
+                        {s.label && <span class="orgmap__member-label">{s.label}</span>}
+                      </li>
+                    ))}
+                  </ul>
+                </a>
+              </li>
+            ))}
+          </ul>
+        </div>
+      ))}
+    </div>
+  </section>
+
+  {/* ---------- 2. 部ごとの詳細 ---------- */}
   <div class="people-filter" role="group" aria-label="状態で絞り込む">
-    <button type="button" class="btn btn--ghost" data-filter="all" aria-pressed="true">All</button>
+    <span class="people-filter__label">詳細を絞り込む</span>
+    <button type="button" class="btn btn--ghost" data-filter="all" aria-pressed="true">すべて</button>
     {STATES.map((st) => (
       <button type="button" class="btn btn--ghost" data-filter={st} aria-pressed="false" title={STAFF_STATE_HINT[st]}>
         <span class={`people-dot people-dot--${st}`}></span>{STAFF_STATE_LABEL[st]} {count(st)}
       </button>
     ))}
   </div>
-  <p class="note talent-legend">
-    {STATES.map((st) => <span><strong>{STAFF_STATE_LABEL[st]}</strong>:{STAFF_STATE_HINT[st]}</span>)}
-  </p>
 
-  {missing.length > 0 && <p class="note">staff が未記入の部:{missing.map((a) => a.name).join('、')}</p>}
+  {divisions.map((d) => (
+    <section class="talent-div" id={`div-${d.id}`} style={`--div:${d.color}`}>
+      <header class="talent-div__head">
+        <h2>{d.name}</h2>
+        <span>{d.depts.length}部・{d.members}人</span>
+      </header>
 
-  {DIVISIONS.map((d) => {
-    const list = people.filter((p) => p.agent.division === d.id);
-    if (list.length === 0) return null;
-    return (
-      <section class="people-div" style={`--div:${d.color}`}>
-        <h2 class="people-div__title">{d.name}</h2>
-        <ul class="people-grid">
-          {list.map((p) => (
-            <li class="people-card" data-state={p.state}>
-              <div class="people-card__head">
-                <Figure label="" index={p.index} division={p.agent.division} seed={p.agent.id} />
-                <div>
-                  <strong class="people-card__name">{p.name}</strong>
-                  {p.label && <span class="people-card__label">{p.label}</span>}
-                  <a class="people-card__dept" href={`/agents/${p.agent.id}/`}>{p.agent.name}</a>
-                  <span class="people-card__state" title={STAFF_STATE_HINT[p.state]}>
-                    <span class={`people-dot people-dot--${p.state}`}></span>{STAFF_STATE_LABEL[p.state]}
-                    {p.agent.status !== 'active' && <span class="chip">{STATUS_LABEL[p.agent.status]}</span>}
-                  </span>
+      {d.depts.map((a) => (
+        <section class="talent-dept" id={`dept-${a.id}`} data-dept>
+          <header class="talent-dept__head">
+            <div>
+              <p class="talent-dept__path">{d.name}</p>
+              <h3>
+                <a href={`/agents/${a.id}/`}>{a.name}</a>
+                {a.status !== 'active' && <span class="chip">{STATUS_LABEL[a.status]}</span>}
+              </h3>
+              <p class="talent-dept__summary">{a.summary}</p>
+            </div>
+            <dl class="talent-dept__meta">
+              <div><dt>メンバー</dt><dd>{a.staff.length}人</dd></div>
+              {a.kpi[0] && <div><dt>部の主なKPI</dt><dd>{a.kpi[0].label}</dd></div>}
+              <div><dt>権限</dt><dd>{PERMISSION_LABEL[a.permission]}</dd></div>
+            </dl>
+          </header>
+
+          <ul class="people-grid">
+            {a.staff.map((p, i) => (
+              <li class="people-card" data-state={p.state}>
+                <p class="people-card__path">{d.name} › {a.name}</p>
+                <div class="people-card__head">
+                  <Figure label="" index={i} division={a.division} seed={a.id} />
+                  <div>
+                    <strong class="people-card__name">{p.name}</strong>
+                    {p.label && <span class="people-card__label">{p.label}</span>}
+                    <span class="people-card__state" title={STAFF_STATE_HINT[p.state]}>
+                      <span class={`people-dot people-dot--${p.state}`}></span>{STAFF_STATE_LABEL[p.state]}
+                    </span>
+                  </div>
                 </div>
-              </div>
-              <p class="people-card__does">{p.does}</p>
-              {p.skills && p.skills.length > 0 && (
-                <ul class="people-card__skills" aria-label="スキル">
-                  {p.skills.map((s) => <li>{s}</li>)}
-                </ul>
-              )}
-              <dl class="people-card__meta">
-                {p.kpi && <div><dt>KPI</dt><dd>{p.kpi}</dd></div>}
-                <div><dt>Workspace</dt><dd>{p.where}</dd></div>
-                <div><dt>Runtime</dt><dd>{p.runs}</dd></div>
-                {p.growth && <div><dt>Next</dt><dd>{p.growth}</dd></div>}
-              </dl>
-            </li>
-          ))}
-        </ul>
-      </section>
-    );
-  })}
+                <p class="people-card__does">{p.does}</p>
+                {p.skills && p.skills.length > 0 && (
+                  <ul class="people-card__skills" aria-label="スキル">
+                    {p.skills.map((s) => <li>{s}</li>)}
+                  </ul>
+                )}
+                <dl class="people-card__meta">
+                  {p.kpi && <div><dt>KPI</dt><dd>{p.kpi}</dd></div>}
+                  {p.growth && <div><dt>次の目標</dt><dd>{p.growth}</dd></div>}
+                </dl>
+                <details class="people-card__more">
+                  <summary>働く場所と仕組み</summary>
+                  <dl class="people-card__meta">
+                    <div><dt>場所</dt><dd>{p.where}</dd></div>
+                    <div><dt>仕組み</dt><dd>{p.runs}</dd></div>
+                  </dl>
+                </details>
+              </li>
+            ))}
+          </ul>
+        </section>
+      ))}
+    </section>
+  ))}
 
   <script>
     // 状態で絞り込む(表示の切り替えだけ。アニメーションはしない)
@@ -100,8 +192,11 @@ const missing = AGENTS.filter((a) => a.staff.length === 0);
         document.querySelectorAll<HTMLElement>('.people-card').forEach((c) => {
           c.hidden = f !== 'all' && c.dataset.state !== f;
         });
-        document.querySelectorAll<HTMLElement>('.people-div').forEach((s) => {
+        document.querySelectorAll<HTMLElement>('[data-dept]').forEach((s) => {
           s.hidden = !s.querySelector('.people-card:not([hidden])');
+        });
+        document.querySelectorAll<HTMLElement>('.talent-div').forEach((s) => {
+          s.hidden = !s.querySelector('[data-dept]:not([hidden])');
         });
       }),
     );

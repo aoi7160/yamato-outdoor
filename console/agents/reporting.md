@@ -2,6 +2,7 @@
 id: reporting
 name: 事業報告部
 short: 事業報告
+summary: "お金と時間を記録し、事業報告書にまとめる"
 tagline: お金と時間を記帳し、事業を数字で語れる形に残す
 division: corporate
 status: active
@@ -27,9 +28,9 @@ cadence:
   - { when: "随時", what: 事業計画書の清書(経営企画の案がCEOに承認されたあと) }
 reports_to: executive
 staff:
-  - { name: "Finance Ops", label: "記帳・P&L", does: "売上(分析部の確定値を写す)・費用・作業時間をP&L台帳に記帳し、月次の締めを検算する", where: "Notion(P&L台帳・作業時間ログ・月次の締め)", runs: "スキル yamato-reporting(記帳・月次の締め)。運営の時間割(yamato-ops)の evening と monthly で実行。頼まれたときも実行", state: on-call, skills: ["P&L台帳", "作業時間ログ", "検算"], kpi: "月次P&Lの締め日", growth: "売上の確定値がそろったら、月次の締めを自動にする" }
-  - { name: "Field Archive", label: "活動と登山の記録", does: "登山の記録(写真から読んだことは推測としてCEOに確認)と、月の活動の記録(全ブランチ・PR・記事・日報)を残す", where: "Notion(登山記録)/ GitHub", runs: "スキル yamato-reporting(登山の記録・活動の記録)。運営の時間割(yamato-ops)の evening と monthly で実行。頼まれたときも実行", state: on-call, skills: ["登山の記録", "実績の一覧", "写真の管理"], kpi: "記録の欠け0件", growth: "登山の記録を、記事の実体験の台帳とつなぐ" }
-  - { name: "Report Studio", label: "事業報告書", does: "月次事業報告書(社内版)・四半期の対外版の下書き・事業計画書の清書を、検算と出どころつきで作る", where: "Notion", runs: "スキル yamato-reporting(報告書)。運営の時間割(yamato-ops)の monthly で実行(対外版は1・4・7・10月)。頼まれたときも実行", state: on-call, skills: ["月次事業報告書", "四半期の対外版", "事業計画の清書"], kpi: "報告書の期限内提出", growth: "数字がそろったら、対外版の報告書まで仕上げる" }
+  - { name: "Finance Ops", label: "経理", does: "売上・費用・作業時間を帳簿に記録し、毎月の損益をまとめる。", where: "Notion(P&L台帳・作業時間ログ・月次の締め)", runs: "スキル yamato-reporting(記帳・月次の締め)。運営の時間割(yamato-ops)の evening と monthly で実行。頼まれたときも実行", state: on-call, skills: ["帳簿の記録", "月次の損益", "数字の検算"], kpi: "月次の損益を締められた日", growth: "売上の数字がそろったら、月末の締めを自動にする" }
+  - { name: "Field Archive", label: "活動の記録", does: "登山や活動の記録(山名・日付・天気・写真)を残し、記事の体験談の元にする。", where: "Notion(登山記録)/ GitHub", runs: "スキル yamato-reporting(登山の記録・活動の記録)。運営の時間割(yamato-ops)の evening と monthly で実行。頼まれたときも実行", state: on-call, skills: ["登山の記録", "活動実績の一覧", "写真の管理"], kpi: "記録の抜け0件", growth: "登山の記録を、記事の体験談の台帳とつなぐ" }
+  - { name: "Report Studio", label: "事業報告書の作成", does: "毎月・四半期の事業報告書と、事業計画書を清書する。", where: "Notion", runs: "スキル yamato-reporting(報告書)。運営の時間割(yamato-ops)の monthly で実行(対外版は1・4・7・10月)。頼まれたときも実行", state: on-call, skills: ["月次の事業報告書", "社外向けの報告書", "事業計画の清書"], kpi: "報告書を期限内に出せた割合", growth: "数字がそろったら、社外向けの報告書まで仕上げる" }
 ---
 
 ## ミッション
