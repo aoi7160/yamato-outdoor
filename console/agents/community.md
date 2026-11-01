@@ -23,9 +23,9 @@ cadence:
   - { when: "monthly", what: メルマガ(月1〜2回) }
 reports_to: executive
 staff:
-  - { name: "配信AI", does: "LINE・メルマガの配信文を作る", where: "LINE公式アカウント / メール配信", runs: "将来(配信先がそろってから)", state: defined }
-  - { name: "企画AI", does: "登山企画・イベントの案を作る", where: "Notion", runs: "将来(定義だけ)", state: defined }
-  - { name: "受付AI", does: "読者からの質問・問い合わせに返信の下書きを作る", where: "問い合わせフォーム", runs: "将来(定義だけ)", state: defined }
+  - { name: "配信AI", does: "受け口の開設の判断材料・配信設計・ステップ配信・LINEとメルマガの配信文を下書きする(配信しない。受け口が空のあいだは配信文を積まず準備を進める)", where: "非公開リポジトリ yamato-outdoor-editorial(content/community/)/ Notion承認トレイ", runs: "スキル yamato-community(今週の配信案・開設の準備)。運営の時間割(yamato-ops)の weekly で実行。頼まれたときも実行", state: on-call }
+  - { name: "企画AI", does: "登山企画・イベントの企画書を、安全・旅行業法・個人情報の論点つきで作る", where: "非公開リポジトリ(content/community/events/)/ Notion承認トレイ", runs: "スキル yamato-community(企画書)。頼まれたときに実行(受け口が開いたら月初の weekly で棚卸し)", state: on-call }
+  - { name: "受付AI", does: "問い合わせ・DMを分類して返信の下書きを作り、質問の要旨をSEO部・企画部に渡す(返信はCEO)", where: "Notion承認トレイ / 非公開リポジトリ(content/community/questions.md)", runs: "スキル yamato-community(返信の下書き)。頼まれたときに実行", state: on-call }
 ---
 
 ## ミッション
@@ -62,6 +62,7 @@ Visionの「挑む輪を広げていく」に直結する部。読者を「答�
 
 ## 参照するドキュメント・データ
 
+- スキル `yamato-community`(`.claude/skills/yamato-community/`)— 受け口の選び方・配信設計・返信テンプレ・企画書の型
 - `src/lib/site.ts`(`LINE_FRIEND_URL` / `NEWSLETTER_URL` / `CONTACT_URL`)/ `src/lib/cv.ts`
 - `docs/analytics.md` 7章(CV設計)
 - `src/pages/privacy.astro`

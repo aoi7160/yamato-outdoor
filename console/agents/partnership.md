@@ -17,11 +17,11 @@ kpi:
 screen: contact-list
 sources: [コンタクト台帳, 媒体資料]
 cadence:
-  - { when: "weekly wed 10:00", what: コンタクト台帳の更新 }
+  - { when: "monthly 1st", what: コンタクト台帳の更新と依頼文の下書き(運営の時間割 monthly) }
 reports_to: executive
 staff:
-  - { name: "リスト作成AI", does: "メーカー・自治体などの連絡先リストを作る", where: "コンタクト台帳", runs: "将来(定義だけ)", state: defined }
-  - { name: "提案書AI", does: "サンプル依頼・タイアップの提案書を下書きする", where: "媒体資料", runs: "将来(定義だけ)", state: defined }
+  - { name: "リスト作成AI", does: "関西のメーカー・店・自治体・山の施設を5軸で採点し、公開窓口つきのコンタクト台帳を更新する", where: "非公開リポジトリ yamato-outdoor-editorial(content/partnership/contacts.csv)", runs: "スキル yamato-partnership(台帳の更新)。運営の時間割(yamato-ops)の monthly で実行。頼まれたときも実行", state: on-call }
+  - { name: "提案書AI", does: "媒体資料と、取材協力・サンプル貸与・共同企画の依頼文、タイアップの条件メモを下書きして承認トレイに積む(送らない)", where: "非公開リポジトリ(content/partnership/)/ Notion承認トレイ", runs: "スキル yamato-partnership(媒体資料・依頼文の下書き)。運営の時間割(yamato-ops)の monthly で実行。頼まれたときも実行", state: on-call }
 ---
 
 ## ミッション
@@ -58,6 +58,7 @@ staff:
 
 ## 参照するドキュメント・データ
 
+- スキル `yamato-partnership`(`.claude/skills/yamato-partnership/`)— 採点・提携のはしご・交渉の論点・依頼文の型
 - `docs/persona.md`(Mission / 三階建て / Editorial Policy)
 - `docs/analytics.md` 6-3章(ステマ規制)
 

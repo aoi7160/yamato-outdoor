@@ -27,9 +27,9 @@ cadence:
   - { when: "随時", what: 事業計画書の清書(経営企画の案がCEOに承認されたあと) }
 reports_to: executive
 staff:
-  - { name: "経理AI", does: "売上・費用・作業時間をP&L台帳に記帳する", where: "Notion", runs: "仕組みは未実装(定義だけ)", state: defined }
-  - { name: "記録AI", does: "活動と登山の記録(山名・日付・天気・写真)を残す", where: "Notion", runs: "仕組みは未実装(定義だけ)", state: defined }
-  - { name: "報告書AI", does: "月次・四半期の事業報告書を清書する", where: "Notion / Googleドキュメント", runs: "仕組みは未実装(定義だけ)", state: defined }
+  - { name: "経理AI", does: "売上(分析部の確定値を写す)・費用・作業時間をP&L台帳に記帳し、月次の締めを検算する", where: "Notion(P&L台帳・作業時間ログ・月次の締め)", runs: "スキル yamato-reporting(記帳・月次の締め)。運営の時間割(yamato-ops)の evening と monthly で実行。頼まれたときも実行", state: on-call }
+  - { name: "記録AI", does: "登山の記録(写真から読んだことは推測としてCEOに確認)と、月の活動の記録(全ブランチ・PR・記事・日報)を残す", where: "Notion(登山記録)/ GitHub", runs: "スキル yamato-reporting(登山の記録・活動の記録)。運営の時間割(yamato-ops)の evening と monthly で実行。頼まれたときも実行", state: on-call }
+  - { name: "報告書AI", does: "月次事業報告書(社内版)・四半期の対外版の下書き・事業計画書の清書を、検算と出どころつきで作る", where: "Notion", runs: "スキル yamato-reporting(報告書)。運営の時間割(yamato-ops)の monthly で実行(対外版は1・4・7・10月)。頼まれたときも実行", state: on-call }
 ---
 
 ## ミッション
@@ -45,7 +45,7 @@ staff:
 
 ### 経理AI — P&L台帳
 
-- **月次P&L**を作る。科目・計上基準・按分のルールはスキル `business-report` の `references/pl-definition.md` に従う
+- **月次P&L**を作る。科目・計上基準・按分のルールはスキル `yamato-reporting` の `references/pl-definition.md` に従う
   - 売上はデータ分析部の確定値を使う(自分で集計し直さない)。ASPの「発生・確定・入金」は3列で並べ、P&Lは**確定ベース**
   - 費用(ドメイン・ツール・取材の交通費・検証用ギアなど)は台帳に1件ずつ記帳し、**領収書の有無**を残す
   - 年額払いは月割り、私用と兼用のもの(PC・通信)は事業割合で按分し、割合を台帳に残す
@@ -56,7 +56,7 @@ staff:
 ### 記録AI — 活動と登山のアーカイブ
 
 - その月にやったことを、**リポジトリの全ブランチ**とPull Request、各部の日報から漏れなく拾う
-  (日付で絞り込まない・未マージのブランチも見る。手順は `references/data-sources.md`)
+  (日付で絞り込まない・未マージのブランチも見る。手順はスキル `yamato-reporting` の `references/formats.md` 5章)
 - 登山(登頂記録)を残す:山名・標高・日付・場所・参加人数・天気・写真・メモ
   - 写真はリポジトリに入れない(公開リポジトリのため。メンバーの顔が写る)。Notionの登山記録DBに置く
   - 写真から読み取った事実(天気・人数・岩場があった等)は**推測として扱い、CEOに確認してから確定**する
@@ -65,12 +65,12 @@ staff:
 
 | 文書 | 読み手 | 頻度 | 書式 |
 |---|---|---|---|
-| 月次事業報告書(社内版) | CEO・メンバー | 毎月5日 | `references/style-internal.md` |
-| 事業報告書(対外版) | 投資家・金融機関 | 四半期(依頼があれば随時) | `references/style-external.md` |
-| 事業計画書 | CEO(社内)/ 対外 | 経営企画の案が承認されたとき | `references/style-plan.md` |
+| 月次事業報告書(社内版) | CEO・メンバー | 毎月5日 | `references/formats.md` 1章 |
+| 事業報告書(対外版) | 投資家・金融機関 | 四半期(依頼があれば随時) | `references/formats.md` 2章 |
+| 事業計画書 | CEO(社内)/ 対外 | 経営企画の案が承認されたとき | `references/formats.md` 3章 |
 
-- PDFは `scripts/report_pdf.py` で作る(JSONの構成ファイルから生成。毎回同じ品質になる)
-- 出す前に `references/checklist.md` を上から確認する(検算・出どころ・用語・レイアウト)
+- PDFが要るときは、Notionの内容から pdf スキルで作る(専用のスクリプトは未実装)
+- 出す前に `references/formats.md` 4章のチェックリストを上から確認する(検算・出どころ・用語)
 
 ## やらないこと(他部の担当)
 
@@ -105,7 +105,7 @@ staff:
 
 ## 参照するドキュメント・データ
 
-- スキル `business-report`(`.claude/skills/business-report/`)— 書式・計上ルール・データの取り方・過去の失敗と対策
+- スキル `yamato-reporting`(`.claude/skills/yamato-reporting/`)— 計上ルール・Notionの台帳の設計・書式・データの取り方・チェックリスト
 - `docs/persona.md`(Mission / Vision / Value。対外版の理念の表記はここから引く)
 - ロードマップ(`claude/media-roadmap-creation-*` ブランチの `docs/roadmap.md`。読むだけ。mainには入れない)
 - Notion「YAMATO BASE CAMP」配下の **P&L台帳**・**作業時間ログ**・**登山**データベース(実データの置き場所。公開リポジトリには置かない)

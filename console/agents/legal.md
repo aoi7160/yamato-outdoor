@@ -21,8 +21,8 @@ cadence:
   - { when: "依頼時", what: 記事・グッズ・タイアップの確認 }
 reports_to: executive
 staff:
-  - { name: "法令確認AI", does: "景品表示法・ステマ規制・電気通信事業法の外部送信規律に照らして表現と表記を見る", where: "GitHub(src/lib/analytics.ts・/privacy)", runs: "頼まれたときにClaude Codeで実行", state: on-call }
-  - { name: "監査AI", does: "サイト全体の外部送信の公表と実態のずれを月1回監査する", where: "GitHub / 公開サイト", runs: "仕組みは未実装(月次の定期実行は未登録)", state: defined }
+  - { name: "法令確認AI", does: "景品表示法・ステマ告示・外部送信規律・著作権・商標・個人情報・特定電子メール法・ASP規約のルールを持ち、他部の確認依頼に結論(可/条件つきで可/不可/専門家へ)と出典で答える", where: "GitHub(.claude/skills/yamato-legal/rulebook.md・sources.md)/ Notion承認トレイ", runs: "スキル yamato-legal(確認依頼への回答)。頼まれたときに実行(四半期の商標の検索は monthly に含む)", state: on-call }
+  - { name: "監査AI", does: "公開サイトの実際のHTML・/privacy・GTMコンテナを取り、外部送信の公表・広告表記・画像の出どころを月1回照合する", where: "公開サイト / 非公開リポジトリ yamato-outdoor-editorial(content/legal/audit/)", runs: "スキル yamato-legal(audit_site.py による月次監査)。運営の時間割(yamato-ops)の monthly で実行。頼まれたときも実行", state: on-call }
 ---
 
 ## ミッション
@@ -62,6 +62,7 @@ staff:
 
 ## 参照するドキュメント・データ
 
+- スキル `yamato-legal`(`.claude/skills/yamato-legal/`)— ルールブック・出典と確認日・月次監査のスクリプト
 - `CLAUDE.md`「計測タグの約束」
 - `docs/analytics.md` 6章(同意と法令)
 - `src/lib/analytics.ts` / `src/pages/privacy.astro` / `src/components/Analytics.astro`
