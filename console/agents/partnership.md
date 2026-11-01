@@ -19,6 +19,9 @@ sources: [コンタクト台帳, 媒体資料]
 cadence:
   - { when: "weekly wed 10:00", what: コンタクト台帳の更新 }
 reports_to: executive
+staff:
+  - { name: "リスト作成AI", does: "メーカー・自治体などの連絡先リストを作る", where: "コンタクト台帳", runs: "将来(定義だけ)", state: defined }
+  - { name: "提案書AI", does: "サンプル依頼・タイアップの提案書を下書きする", where: "媒体資料", runs: "将来(定義だけ)", state: defined }
 ---
 
 ## ミッション

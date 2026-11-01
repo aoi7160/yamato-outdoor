@@ -1650,3 +1650,122 @@ a.msg__bubble--link:hover {
   font-size: 0.75rem;
   color: var(--amber);
 }
+
+/* ---------- 名簿(/people/)。静止したカードだけ。動かさない ---------- */
+.people-filter {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  margin-bottom: 1.25rem;
+}
+.people-filter [aria-pressed='true'] {
+  background: var(--panel-raise);
+  color: var(--ink-strong);
+}
+.people-dot {
+  display: inline-block;
+  width: 0.5rem;
+  height: 0.5rem;
+  margin-right: 0.35rem;
+  border-radius: 50%;
+  vertical-align: 0.05em;
+}
+.people-dot--auto {
+  background: var(--ember-soft);
+}
+.people-dot--on-call {
+  background: var(--amber);
+}
+.people-dot--defined {
+  background: var(--ink-faint);
+}
+.people-div + .people-div {
+  margin-top: 2rem;
+}
+.people-div__title {
+  margin: 0 0 0.75rem;
+  padding-left: 0.6rem;
+  border-left: 3px solid var(--div);
+  font-size: 1rem;
+}
+.people-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(min(100%, 17rem), 1fr));
+  gap: 0.75rem;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+.people-card {
+  display: grid;
+  align-content: start;
+  gap: 0.6rem;
+  padding: 0.9rem;
+  border: 1px solid var(--line-soft);
+  border-top: 2px solid var(--div);
+  border-radius: var(--radius);
+  background: var(--panel);
+}
+.people-card[hidden] {
+  display: none;
+}
+.people-card[data-state='defined'] {
+  opacity: 0.62;
+}
+.people-card__head {
+  display: grid;
+  grid-template-columns: auto 1fr;
+  align-items: center;
+  gap: 0.75rem;
+}
+.people-card__head .fig__label {
+  display: none;
+}
+.people-card[data-state='on-call'] .fig__led {
+  fill: var(--amber);
+}
+.people-card[data-state='defined'] .fig__led {
+  fill: var(--ink-faint);
+}
+.people-card__name {
+  display: block;
+  color: var(--ink-strong);
+}
+.people-card__dept {
+  display: block;
+  font-size: 0.75rem;
+  color: var(--ink-mute);
+}
+.people-card__state {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.35rem;
+  margin-top: 0.2rem;
+  font-size: 0.75rem;
+  color: var(--ink);
+}
+.people-card__does {
+  margin: 0;
+  font-size: 0.875rem;
+  line-height: 1.7;
+}
+.people-card__meta {
+  display: grid;
+  gap: 0.35rem;
+  margin: 0;
+  font-size: 0.75rem;
+  line-height: 1.6;
+}
+.people-card__meta div {
+  display: grid;
+  grid-template-columns: 3.2em 1fr;
+  gap: 0.5rem;
+}
+.people-card__meta dt {
+  color: var(--ink-faint);
+}
+.people-card__meta dd {
+  margin: 0;
+  color: var(--ink-mute);
+}

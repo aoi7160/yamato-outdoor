@@ -38,7 +38,7 @@ export const CV_SLOTS: CvSlot[] = [
     id: 'newsletter',
     stage: 'soft',
     eyebrow: 'Next trip',
-    title: '次の山行の前に、1通だけ。',
+    title: '次の登山の前に、1通だけ。',
     body: '装備の実測値と、関西の山の状況をまとめて月に1〜2回送ります。宣伝だけのメールは送りません。',
     actionLabel: 'メールで受け取る',
     href: NEWSLETTER_URL,

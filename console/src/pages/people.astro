@@ -1,0 +1,87 @@
+---
+/**
+ * 名簿(顔ナビ)。人事部が各部の agents/<id>.md に書いた staff から作る。
+ * 誰が・どこで・何の仕組みで動いているかを1人1枚で並べる。動きは付けない(fps制約。静止したカードだけ)。
+ */
+import Base from '../layouts/Base.astro';
+import Figure from '../components/Figure.astro';
+import { AGENTS, DIVISIONS, STATUS_LABEL, STAFF_STATE_LABEL, type StaffState } from '../lib/org';
+
+const people = AGENTS.flatMap((a) => a.staff.map((s, i) => ({ ...s, index: i, agent: a })));
+const count = (st: StaffState) => people.filter((p) => p.state === st).length;
+const STATES: StaffState[] = ['auto', 'on-call', 'defined'];
+// 名簿の無い部(staff 未記入)を人事部が見落とさないように出す
+const missing = AGENTS.filter((a) => a.staff.length === 0);
+---
+<Base title="名簿" active="people" wide>
+  <div class="page-head">
+    <h1>名簿</h1>
+    <p>
+      YAMATO OUTDOORで働くAIのメンバー {people.length}人。
+      自動で稼働 {count('auto')}・頼むと動く {count('on-call')}・定義だけ {count('defined')}。
+      まとめているのは<a href="/agents/hr/">人事部</a>(各部の <code>console/agents/&lt;id&gt;.md</code> の <code>staff</code>)。
+    </p>
+  </div>
+
+  <div class="people-filter" role="group" aria-label="状態で絞り込む">
+    <button type="button" class="btn btn--ghost" data-filter="all" aria-pressed="true">すべて</button>
+    {STATES.map((st) => (
+      <button type="button" class="btn btn--ghost" data-filter={st} aria-pressed="false">
+        <span class={`people-dot people-dot--${st}`}></span>{STAFF_STATE_LABEL[st]} {count(st)}
+      </button>
+    ))}
+  </div>
+
+  {missing.length > 0 && (
+    <p class="note">名簿が未記入の部:{missing.map((a) => a.name).join('、')}</p>
+  )}
+
+  {DIVISIONS.map((d) => {
+    const list = people.filter((p) => p.agent.division === d.id);
+    if (list.length === 0) return null;
+    return (
+      <section class="people-div" style={`--div:${d.color}`}>
+        <h2 class="people-div__title">{d.name}</h2>
+        <ul class="people-grid">
+          {list.map((p) => (
+            <li class="people-card" data-state={p.state}>
+              <div class="people-card__head">
+                <Figure label="" index={p.index} division={p.agent.division} seed={p.agent.id} />
+                <div>
+                  <strong class="people-card__name">{p.name}</strong>
+                  <a class="people-card__dept" href={`/agents/${p.agent.id}/`}>{p.agent.name}</a>
+                  <span class="people-card__state">
+                    <span class={`people-dot people-dot--${p.state}`}></span>{STAFF_STATE_LABEL[p.state]}
+                    {p.agent.status !== 'active' && <span class="chip">{STATUS_LABEL[p.agent.status]}</span>}
+                  </span>
+                </div>
+              </div>
+              <p class="people-card__does">{p.does}</p>
+              <dl class="people-card__meta">
+                <div><dt>どこで</dt><dd>{p.where}</dd></div>
+                <div><dt>仕組み</dt><dd>{p.runs}</dd></div>
+              </dl>
+            </li>
+          ))}
+        </ul>
+      </section>
+    );
+  })}
+
+  <script>
+    // 状態で絞り込む(表示の切り替えだけ。アニメーションはしない)
+    const buttons = document.querySelectorAll<HTMLButtonElement>('[data-filter]');
+    buttons.forEach((b) =>
+      b.addEventListener('click', () => {
+        const f = b.dataset.filter;
+        buttons.forEach((x) => x.setAttribute('aria-pressed', String(x === b)));
+        document.querySelectorAll<HTMLElement>('.people-card').forEach((c) => {
+          c.hidden = f !== 'all' && c.dataset.state !== f;
+        });
+        document.querySelectorAll<HTMLElement>('.people-div').forEach((s) => {
+          s.hidden = !s.querySelector('.people-card:not([hidden])');
+        });
+      }),
+    );
+  </script>
+</Base>

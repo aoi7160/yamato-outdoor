@@ -22,6 +22,9 @@ cadence:
   - { when: "daily 07:30", what: mainのビルド状態とCore Web Vitalsの確認 }
   - { when: "daily 19:00", what: 定例ヒアリングに回答 }
 reports_to: executive
+staff:
+  - { name: "実装AI", does: "サイトとコンソールの改修。ビルドとテストを通してからmainに入れる", where: "GitHub(aoi7160/yamato-outdoor)/ Cloudflare", runs: "Claude Codeのセッション。頼まれたときに実行", state: on-call }
+  - { name: "パフォーマンス計測AI", does: "PageSpeed Insights・Web Vitalsの数字を見て、fps制約が守られているかを確かめる", where: "BASE CAMP「本日」/ PageSpeed Insights", runs: "コンソールのサーバー(server/connectors.js)。開くたびに自動で取得", state: auto }
 ---
 
 ## ミッション

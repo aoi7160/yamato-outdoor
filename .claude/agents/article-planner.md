@@ -14,7 +14,7 @@ model: inherit
 2. `docs/content-pipeline/rules.md`(特に R1 実体験の境界)
 3. `docs/persona.md`(P1と Editorial Policy)
 4. `../yamato-outdoor-editorial/content/content-map.md`(コンテンツマップ兼キュー)
-5. `../yamato-outdoor-editorial/content/experience-log.md`(運営者の装備台帳・山行記録)
+5. `../yamato-outdoor-editorial/content/experience-log.md`(運営者の装備台帳・登山記録)
 6. `docs/articles/`(公開済み記事の設計書。重複と内部リンク候補の確認に使う)
 
 ## 手順
@@ -37,7 +37,7 @@ model: inherit
 **運営者にしか書けないこと**を全部挙げる。少なくとも次の観点で確認する。
 
 - 実測値(重量・寸法・時間・気温)
-- 使用した山行(どの山・どのルート・季節・天候)
+- 使用した登山(どの山・どのルート・季節・天候)
 - 使用回数(装備台帳から企画書に転記するだけ。**着手や公開を止める条件にはしない。** 記事には書かない。`docs/persona.md` Editorial Policy 1)
 - 合わなかった点(良い点と同じ分量が必要)
 - 写真(何が写っていればよいか)

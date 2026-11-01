@@ -23,6 +23,10 @@ cadence:
   - { when: "daily 07:00", what: 順位・インデックス・外部リンク切れの差分 }
   - { when: "weekly mon 07:00", what: 順位が落ちた記事・前年モデルのままの記事の一覧 }
 reports_to: executive
+staff:
+  - { name: "SERP調査AI", does: "狙うキーワードの検索結果の上位・関連する質問・競合が答えていない疑問を調べる", where: "Google検索 / Googleスプレッドシート「メディア Topic cluster」", runs: "サブエージェント article-researcher・スキル write-article。頼まれたときに実行", state: on-call }
+  - { name: "構成設計AI", does: "見出し構成と内部リンクの計画を作り、設計書(docs/articles/)に残す", where: "GitHub(docs/articles/)", runs: "サブエージェント article-researcher。頼まれたときに実行", state: on-call }
+  - { name: "順位監視AI", does: "Search Console・Bingの表示回数・順位・インデックスの変化を見る", where: "BASE CAMP「本日」/ Search Console / Bing", runs: "コンソールのサーバー(server/connectors.js)。開くたびに自動で取得", state: auto }
 ---
 
 ## ミッション

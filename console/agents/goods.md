@@ -23,6 +23,10 @@ cadence:
   - { when: "daily 19:00", what: 定例ヒアリングに回答 }
   - { when: "monthly 1st", what: 新作の企画案 }
 reports_to: executive
+staff:
+  - { name: "企画AI", does: "SUZURIで出すグッズの企画を立てる", where: "SUZURI", runs: "頼まれたときにClaude Codeで実行", state: on-call }
+  - { name: "デザイン案AI", does: "グッズのデザイン案を作る", where: "SUZURI", runs: "頼まれたときにClaude Codeで実行", state: on-call }
+  - { name: "販売分析AI", does: "SUZURIの売上を集計する", where: "BASE CAMP「データ連携」", runs: "仕組みは未実装(売上データの取り込み待ち)", state: defined }
 ---
 
 ## ミッション

@@ -21,6 +21,10 @@ sources: [microCMS(下書き), docs/articles/]
 cadence:
   - { when: "daily 19:00", what: 定例ヒアリングに回答 }
 reports_to: executive
+staff:
+  - { name: "執筆AI", does: "コンテンツマップのキーワードで記事を公開直前まで書き、承認トレイに積む", where: "Notion承認トレイ / Googleスプレッドシート", runs: "定期実行「YAMATO 記事の自動執筆」(月・木 5:52)は登録済みだが、Notion・Google Driveの接続が付いておらず書けていない(2026-11-01確認)。いまはスキル write-article を頼まれたときに実行", state: on-call }
+  - { name: "リライトAI", does: "承認トレイでCEOが付けた修正依頼(箇所ごとのコメント・修正案)を反映する", where: "Notion承認トレイ / BASE CAMP「記事レビュー」", runs: "定期実行「YAMATO 記事の自動執筆」の1つ目の手順(接続が付くまでは、頼まれたときに実行)", state: on-call }
+  - { name: "入稿AI", does: "承認された記事をmicroCMSに下書きとして入れる(公開はCEOが押す)", where: "microCMS(下書き)", runs: "コンソールのサーバー(server/cms.js)。承認トレイで「承認」を押すと自動で実行", state: auto }
 ---
 
 ## ミッション

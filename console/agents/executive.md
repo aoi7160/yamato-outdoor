@@ -24,6 +24,10 @@ cadence:
   - { when: "weekly mon 08:00", what: 週次KPIレポートと今週の優先3つの案 }
   - { when: "monthly 1st", what: 月次の振り返り }
 reports_to: ceo
+staff:
+  - { name: "参謀AI", does: "各部の報告をまとめ、日報・週報(本日の合計・明日の優先3つ・CEOに決めてほしいこと)を書く", where: "Notion「日報・週報」", runs: "頼まれたときにClaude Codeで実行(21:00の定期実行は未登録)", state: on-call }
+  - { name: "KPI集計AI", does: "つないだデータの数字を「本日」の画面に集めて出す", where: "BASE CAMP「本日」", runs: "コンソールのサーバー(server/connectors.js)とブラウザ(scripts/real.ts)。開くたびに自動で集計", state: auto }
+  - { name: "議事録AI", does: "月曜の編集会議の決定事項を記録する", where: "Notion / Googleカレンダー", runs: "仕組みは未実装(定義だけ)", state: defined }
 ---
 
 ## ミッション

@@ -23,6 +23,10 @@ cadence:
   - { when: "daily 08:00", what: 公開済み記事の価格・廃番の定期チェック(週1周するローテーション) }
   - { when: "daily 19:00", what: 定例ヒアリングに回答 }
 reports_to: executive
+staff:
+  - { name: "編集長AI", does: "公開前チェックリストを全項目見て、合格・保留・差し戻しを出す", where: "GitHub(非公開リポジトリ yamato-outdoor-editorial)", runs: "サブエージェント article-final-checker。パイプライン実行時", state: on-call }
+  - { name: "校閲AI", does: "表記ゆれ・使わない語・文の長さ・見出し・広告表記などを機械で調べる", where: "BASE CAMP「校閲チェック」", runs: "コンソールのサーバー(server/proofread.js)。公開記事を1時間ごとに自動でチェック。トンマナの手直しはサブエージェント article-style-editor", state: auto }
+  - { name: "事実確認AI", does: "本文の数字・固有名詞を出典と照合し、体験の文が運営者の回答の範囲に収まっているかを見る", where: "メーカー公式サイト / 非公開リポジトリ", runs: "サブエージェント article-fact-checker。パイプライン実行時", state: on-call }
 ---
 
 ## ミッション
