@@ -186,9 +186,9 @@ standby_until: ""            # standby のとき、稼働の条件(例:「SOCIAL
 order: 20                    # 本部内の並び
 permission: L1               # L0 | L1 | L2(上限)
 members:                     # 役割。コンソールの人形
-  - SERP調査AI
-  - 構成設計AI
-  - 順位監視AI
+  - Search Intelligence
+  - Content Architecture
+  - Rank Watch
 kpi:                         # 先頭が部カードの代表KPI
   - { key: top10_keywords, label: 10位以内のクエリ, unit: 件, source: Search Console }
 screen: rank-tracker         # 部カードのミニ画面の種類(コンソール側の部品名)

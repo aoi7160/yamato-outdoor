@@ -116,6 +116,16 @@ export const measurementTransmissions = (): ExternalTransmission[] =>
       policy: 'https://policies.google.com/privacy',
       optOut: 'https://tools.google.com/dlpage/gaoptout',
     },
+    // Cloudflare Web Analytics は、Cloudflareの管理画面で有効にしているため、コード側のIDに関係なく
+    // 本番の全ページに計測用ビーコン(static.cloudflareinsights.com)が差し込まれる(2026-11-01 本番で確認)。
+    // 計測が目的なので、配信のための通信とは分けて公表する。止めるときはCloudflare側で無効にし、この行も消す
+    {
+      name: 'Cloudflare Web Analytics',
+      provider: 'Cloudflare, Inc.',
+      data: '閲覧ページ、参照元、端末・ブラウザの情報、ページの表示速度(Cookieは使わない)',
+      purpose: 'サイトの利用状況と表示速度の把握',
+      policy: 'https://www.cloudflare.com/privacypolicy/',
+    },
     usesClarity && {
       name: 'Microsoft Clarity',
       provider: 'Microsoft Corporation',

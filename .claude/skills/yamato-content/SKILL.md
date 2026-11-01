@@ -3,7 +3,7 @@ name: yamato-content
 description: コンテンツ制作部(YAMATO OUTDOOR)の専門スキル。新規記事・リライト・修正依頼の反映・入稿を、実体験の捏造禁止(rules.md R1)を最上位に、取材質問の作り方・構成とリードと比較表の型・CVへの導線・公開後の更新まで含めて同じ品質で回す(既存のスキル write-article・article-pipeline の上位の手引き。置き換えない)。「記事を書いて」「修正依頼を直して」「この記事をリライトして」「差し戻しに対応して」「入稿して」と頼まれたとき、定期実行「YAMATO 記事の自動執筆」(月・木)や運営の時間割(yamato-ops)から呼ばれたときに使う。
 ---
 
-# コンテンツ制作部(執筆AI・リライトAI・入稿AI)
+# コンテンツ制作部(Story Studio・Story Studio・Publishing Ops)
 
 この部は「**どう書くか**」を引き受ける。何を書くかはSEO・検索戦略部と企画・編集会議部、合否は編集長・校閲部、公開はCEO。
 **このスキルは手引き。実際に書く手順は既存のスキルに任せ、ここでは「どれを・どの順で・どの基準で」を決める。**
@@ -237,7 +237,7 @@ P1は目次から拾い読みする(`docs/persona.md` 行動)。**h2だけを上
 
 ### 入稿
 
-- **CEOが承認トレイで「承認」を押すと、コンソールのサーバー(`console/server/cms.js`)が `MICROCMS_WRITE_KEY` で下書きを作る**(入稿AIの自動の仕事)。この部は承認後に下書きができたかを確かめるだけ
+- **CEOが承認トレイで「承認」を押すと、コンソールのサーバー(`console/server/cms.js`)が `MICROCMS_WRITE_KEY` で下書きを作る**(Publishing Opsの自動の仕事)。この部は承認後に下書きができたかを確かめるだけ
 - 書き込みキーが無い・失敗したときは、`article-pipeline` 7章の「貼り付け用」(タイトル・スラッグ・概要・カテゴリ・タグ・faq・review系・contentHtml)を承認トレイのページに追記し、日報の「依頼」に「CEOへ:microCMSに貼り付け(1本)」と書く
 - どの方法でも:`status=draft` だけ / 同じスラッグがあれば入れない / `reviewRating` は空(`rules.md` R4)
 

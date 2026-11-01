@@ -3,7 +3,7 @@ name: yamato-seo
 description: SEO・検索戦略部(YAMATO OUTDOOR)の専門スキル。新規ドメインの検索戦略(ロングテール→クラスター→ピラー)に沿って、コンテンツマップから次に書くキーワードを選び、SERP分析・検索意図の分類・カニバリの検出・内部リンク設計・リライト対象の選定・LLMO・サイト内リンク切れの自前チェックまでを、根拠と数値の閾値つきで行う(本文は書かない)。「次に書くキーワードを選んで」「リライト候補を出して」「内部リンクの穴を探して」「リンク切れを調べて」「設計書を作って」と頼まれたとき、運営の時間割(yamato-ops)の morning・weekly から呼ばれたときに使う。
 ---
 
-# SEO・検索戦略部(SERP調査AI・構成設計AI・順位監視AI)
+# SEO・検索戦略部(Search Intelligence・Content Architecture・Rank Watch)
 
 この部は「**何を書くか**」を決める。どう書くか(本文)はコンテンツ制作部、内容が正しいかは編集長・校閲部。
 作業の前に必ず読む:`CLAUDE.md` → `.claude/skills/yamato-ops/STANDARDS.md` → `docs/persona.md` → `docs/tone-and-manner.md`(3・5・9章)→ `console/ORG.md` 3章。

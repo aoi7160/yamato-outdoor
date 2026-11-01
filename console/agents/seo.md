@@ -9,9 +9,9 @@ standby_until: ""
 order: 20
 permission: L1
 members:
-  - SERP調査AI
-  - 構成設計AI
-  - 順位監視AI
+  - Search Intelligence
+  - Content Architecture
+  - Rank Watch
 kpi:
   - { key: top10_keywords, label: 10位以内のクエリ, unit: 件, source: Search Console }
   - { key: clicks_7d, label: 検索クリック(7日), unit: 回, source: Search Console / Bing Webmaster Tools }
@@ -24,9 +24,9 @@ cadence:
   - { when: "weekly mon 07:00", what: 順位が落ちた記事・前年モデルのままの記事の一覧 }
 reports_to: executive
 staff:
-  - { name: "SERP調査AI", does: "コンテンツマップの「新規記事案」から次に書く候補を段階戦略・検索意図・共食いの確認で選び、SERP分析シート(上位が答えていない疑問)を作る", where: "Googleスプレッドシート「メディア Topic cluster」(読むだけ)/ Web検索 / 非公開リポジトリ yamato-outdoor-editorial(content/seo/)", runs: "スキル yamato-seo(3-2〜3-5・週次の「次に書く候補」)。運営の時間割(yamato-ops)の weekly で実行。write-article の経路Aもこの基準で選ぶ。頼まれたときも実行", state: on-call }
-  - { name: "構成設計AI", does: "承認された記事の設計書(docs/articles/)と、内部リンク計画(どの記事・どのh2・どの段落・アンカー)・LLMOの指示を作る。大きな修正のときは構成の根拠を出し直す", where: "GitHub(docs/articles/・claude/*ブランチ)/ Notion承認トレイ", runs: "スキル yamato-seo(3-6・3-8・依頼時の設計書)。運営の時間割(yamato-ops)の weekly(内部リンクの穴)で実行。頼まれたときも実行", state: on-call }
-  - { name: "順位監視AI", does: "Search Console・Bingの順位とインデックスの差分、サイト内リンク切れ(自前チェック)を見て、リライト候補を28日の閾値で判定する", where: "BASE CAMP「本日」/ Search Console / Bing / サイトマップ", runs: "数字はコンソールのサーバー(server/connectors.js)が開くたびに自動で取得。判定はスキル yamato-seo(3-7・3-10・linkcheck.py)で、運営の時間割(yamato-ops)の morning・weekly で実行。頼まれたときも実行", state: auto }
+  - { name: "Search Intelligence", label: "検索結果と検索意図の調査", does: "コンテンツマップの「新規記事案」から次に書く候補を段階戦略・検索意図・共食いの確認で選び、SERP分析シート(上位が答えていない疑問)を作る", where: "Googleスプレッドシート「メディア Topic cluster」(読むだけ)/ Web検索 / 非公開リポジトリ yamato-outdoor-editorial(content/seo/)", runs: "スキル yamato-seo(3-2〜3-5・週次の「次に書く候補」)。運営の時間割(yamato-ops)の weekly で実行。write-article の経路Aもこの基準で選ぶ。頼まれたときも実行", state: on-call, skills: ["SERP分析", "検索意図の分類", "競合の空白の発見"], kpi: "狙ったキーワードの上位10位入り本数", growth: "YAMATO名義のSEOツールが入ったら、KDと流入の見込みで候補を並べる" }
+  - { name: "Content Architecture", label: "構成・クラスター・内部リンク", does: "承認された記事の設計書(docs/articles/)と、内部リンク計画(どの記事・どのh2・どの段落・アンカー)・LLMOの指示を作る。大きな修正のときは構成の根拠を出し直す", where: "GitHub(docs/articles/・claude/*ブランチ)/ Notion承認トレイ", runs: "スキル yamato-seo(3-6・3-8・依頼時の設計書)。運営の時間割(yamato-ops)の weekly(内部リンクの穴)で実行。頼まれたときも実行", state: on-call, skills: ["トピッククラスター", "内部リンク設計", "カニバリ検出", "LLMO"], kpi: "孤立記事0本・共食い0件", growth: "記事が20本を超えたら、ピラー記事の設計に進む" }
+  - { name: "Rank Watch", label: "順位・インデックス・リンク切れ", does: "Search Console・Bingの順位とインデックスの差分、サイト内リンク切れ(自前チェック)を見て、リライト候補を28日の閾値で判定する", where: "BASE CAMP「本日」/ Search Console / Bing / サイトマップ", runs: "数字はコンソールのサーバー(server/connectors.js)が開くたびに自動で取得。判定はスキル yamato-seo(3-7・3-10・linkcheck.py)で、運営の時間割(yamato-ops)の morning・weekly で実行。頼まれたときも実行", state: auto, skills: ["Search Console", "リンク切れ検知", "リライト判定"], kpi: "インデックス率", growth: "Search Consoleの数字を読めるようになったら、リライト候補を毎週自動で出す" }
 ---
 
 ## ミッション

@@ -9,8 +9,8 @@ standby_until: "記事数と月間PVが媒体資料に書ける水準になっ�
 order: 40
 permission: L1
 members:
-  - リスト作成AI
-  - 提案書AI
+  - Partner Scout
+  - Pitch Studio
 kpi:
   - { key: active_talks, label: 進行中の話, unit: 件, source: コンタクト台帳 }
   - { key: samples_received, label: サンプル受領, unit: 件, source: コンタクト台帳 }
@@ -20,8 +20,8 @@ cadence:
   - { when: "monthly 1st", what: コンタクト台帳の更新と依頼文の下書き(運営の時間割 monthly) }
 reports_to: executive
 staff:
-  - { name: "リスト作成AI", does: "関西のメーカー・店・自治体・山の施設を5軸で採点し、公開窓口つきのコンタクト台帳を更新する", where: "非公開リポジトリ yamato-outdoor-editorial(content/partnership/contacts.csv)", runs: "スキル yamato-partnership(台帳の更新)。運営の時間割(yamato-ops)の monthly で実行。頼まれたときも実行", state: on-call }
-  - { name: "提案書AI", does: "媒体資料と、取材協力・サンプル貸与・共同企画の依頼文、タイアップの条件メモを下書きして承認トレイに積む(送らない)", where: "非公開リポジトリ(content/partnership/)/ Notion承認トレイ", runs: "スキル yamato-partnership(媒体資料・依頼文の下書き)。運営の時間割(yamato-ops)の monthly で実行。頼まれたときも実行", state: on-call }
+  - { name: "Partner Scout", label: "連絡先の発掘と採点", does: "関西のメーカー・店・自治体・山の施設を5軸で採点し、公開窓口つきのコンタクト台帳を更新する", where: "非公開リポジトリ yamato-outdoor-editorial(content/partnership/contacts.csv)", runs: "スキル yamato-partnership(台帳の更新)。運営の時間割(yamato-ops)の monthly で実行。頼まれたときも実行", state: on-call, skills: ["関西のメーカー・店・自治体", "連絡先の採点", "コンタクト台帳"], kpi: "有望な連絡先の数", growth: "実績が増えたら、提案の優先順位を見直す" }
+  - { name: "Pitch Studio", label: "媒体資料・提案書", does: "媒体資料と、取材協力・サンプル貸与・共同企画の依頼文、タイアップの条件メモを下書きして承認トレイに積む(送らない)", where: "非公開リポジトリ(content/partnership/)/ Notion承認トレイ", runs: "スキル yamato-partnership(媒体資料・依頼文の下書き)。運営の時間割(yamato-ops)の monthly で実行。頼まれたときも実行", state: on-call, skills: ["媒体資料", "依頼文", "条件メモ", "編集の独立"], kpi: "提案書の採用率", growth: "CEOの承認を経て、提携の条件交渉の論点まで出す" }
 ---
 
 ## ミッション

@@ -9,9 +9,8 @@ standby_until: ""
 order: 30
 permission: L1
 members:
-  - 執筆AI
-  - リライトAI
-  - 入稿AI
+  - Story Studio
+  - Publishing Ops
 kpi:
   - { key: drafts_ready, label: 校閲に出した下書き, unit: 本, source: microCMS(下書き) }
   - { key: published_updated, label: 公開・更新, unit: 本, source: microCMS }
@@ -22,9 +21,8 @@ cadence:
   - { when: "daily 19:00", what: 定例ヒアリングに回答 }
 reports_to: executive
 staff:
-  - { name: "執筆AI", does: "コンテンツマップのキーワードで新規記事を書き(体験は目印で空け、でっち上げない)、自己点検を通して承認トレイに積む。体験が足りない記事は取材質問を作る", where: "Notion承認トレイ / Googleスプレッドシート / 非公開リポジトリ yamato-outdoor-editorial", runs: "スキル yamato-content(4章の毎回の手順4)+ write-article / article-pipeline。定期実行「YAMATO 記事の自動執筆」(月・木 5:52)は登録済みだが、Notion・Google Driveの接続が付いておらず書けていない(2026-11-01確認)。いまは頼まれたときに実行", state: on-call }
-  - { name: "リライトAI", does: "CEOの修正依頼・校閲の差し戻し・他部の判断(価格改定・順位・リンク差し替え・季節の更新)を受けて既存の記事を直し、変更前/変更後と理由を承認トレイに積む", where: "Notion承認トレイ / BASE CAMP「記事レビュー」/ 公開中の記事", runs: "スキル yamato-content(4章の毎回の手順2・3、3-7)+ write-article の1章。定期実行「YAMATO 記事の自動執筆」の最初の手順(接続が付くまでは、頼まれたときに実行)", state: on-call }
-  - { name: "入稿AI", does: "承認された記事をmicroCMSに下書きとして入れる(公開はCEOが押す)。書き込みキーが無いときは貼り付け用の値を出す", where: "microCMS(下書き)", runs: "コンソールのサーバー(server/cms.js)。承認トレイで「承認」を押すと自動で実行。貼り付け用はスキル yamato-content(6章「入稿」)を頼まれたときに実行", state: auto }
+  - { name: "Story Studio", label: "新規制作・リライト", does: "コンテンツマップのキーワードで新規記事を書き(体験は目印で空け、でっち上げない)、自己点検を通して承認トレイに積む。公開記事のリライトと、CEO・校閲の修正依頼の反映も同じチームで受け持つ。体験が足りない記事は取材質問を作る", where: "Notion承認トレイ / Googleスプレッドシート / 非公開リポジトリ yamato-outdoor-editorial", runs: "スキル yamato-content(4章の毎回の手順4)+ write-article / article-pipeline。定期実行「YAMATO 記事の自動執筆」(月・木 5:52)は登録済みだが、Notion・Google Driveの接続が付いておらず書けていない(2026-11-01確認)。いまは頼まれたときに実行", state: on-call, skills: ["結論先出しの構成", "取材質問の設計", "比較表", "リライト", "体験の境界(R1)"], kpi: "校閲の一発通過率", growth: "公開記事の成績を見て、書きっぱなしにせずリライトを自分で起票する" }
+  - { name: "Publishing Ops", label: "microCMSへの入稿", does: "承認された記事をmicroCMSに下書きとして入れる(公開はCEOが押す)。書き込みキーが無いときは貼り付け用の値を出す", where: "microCMS(下書き)", runs: "コンソールのサーバー(server/cms.js)。承認トレイで「承認」を押すと自動で実行。貼り付け用はスキル yamato-content(6章「入稿」)を頼まれたときに実行", state: auto, skills: ["microCMS入稿", "カテゴリ・タグ・FAQの整備", "下書きプレビュー"], kpi: "承認から下書き入稿までの時間", growth: "FAQ・レビューの構造化データまで自動で入れる" }
 ---
 
 ## ミッション

@@ -9,8 +9,8 @@ standby_until: ""
 order: 20
 permission: L0
 members:
-  - 法令確認AI
-  - 監査AI
+  - Legal Review
+  - Compliance Audit
 kpi:
   - { key: audit_findings, label: 監査の未解決の指摘, unit: 件, source: 月次監査 }
   - { key: reviews_done, label: 確認依頼の対応, unit: 件, source: 確認依頼の台帳 }
@@ -21,8 +21,8 @@ cadence:
   - { when: "依頼時", what: 記事・グッズ・タイアップの確認 }
 reports_to: executive
 staff:
-  - { name: "法令確認AI", does: "景品表示法・ステマ告示・外部送信規律・著作権・商標・個人情報・特定電子メール法・ASP規約のルールを持ち、他部の確認依頼に結論(可/条件つきで可/不可/専門家へ)と出典で答える", where: "GitHub(.claude/skills/yamato-legal/rulebook.md・sources.md)/ Notion承認トレイ", runs: "スキル yamato-legal(確認依頼への回答)。頼まれたときに実行(四半期の商標の検索は monthly に含む)", state: on-call }
-  - { name: "監査AI", does: "公開サイトの実際のHTML・/privacy・GTMコンテナを取り、外部送信の公表・広告表記・画像の出どころを月1回照合する", where: "公開サイト / 非公開リポジトリ yamato-outdoor-editorial(content/legal/audit/)", runs: "スキル yamato-legal(audit_site.py による月次監査)。運営の時間割(yamato-ops)の monthly で実行。頼まれたときも実行", state: on-call }
+  - { name: "Legal Review", label: "法令・表記の確認", does: "景品表示法・ステマ告示・外部送信規律・著作権・商標・個人情報・特定電子メール法・ASP規約のルールを持ち、他部の確認依頼に結論(可/条件つきで可/不可/専門家へ)と出典で答える", where: "GitHub(.claude/skills/yamato-legal/rulebook.md・sources.md)/ Notion承認トレイ", runs: "スキル yamato-legal(確認依頼への回答)。頼まれたときに実行(四半期の商標の検索は monthly に含む)", state: on-call, skills: ["景品表示法・ステマ告示", "電気通信事業法の外部送信規律", "著作権・商標"], kpi: "確認依頼の対応期限の順守", growth: "ASPの規約の論点を、案件ごとに整理する" }
+  - { name: "Compliance Audit", label: "サイト全体の監査", does: "公開サイトの実際のHTML・/privacy・GTMコンテナを取り、外部送信の公表・広告表記・画像の出どころを月1回照合する", where: "公開サイト / 非公開リポジトリ yamato-outdoor-editorial(content/legal/audit/)", runs: "スキル yamato-legal(audit_site.py による月次監査)。運営の時間割(yamato-ops)の monthly で実行。頼まれたときも実行", state: on-call, skills: ["外部送信の公表との照合", "広告表記の監査", "画像の出どころ"], kpi: "監査の未解決の指摘0件", growth: "月次監査を自動で回す" }
 ---
 
 ## ミッション

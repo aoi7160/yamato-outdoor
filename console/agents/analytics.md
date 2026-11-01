@@ -9,8 +9,8 @@ standby_until: ""
 order: 10
 permission: L0
 members:
-  - 集計AI
-  - 分析AI
+  - Metrics Desk
+  - Insight Lab
 kpi:
   - { key: pv_today, label: 本日のPV, unit: PV, source: GA4 }
   - { key: soft_cv_today, label: soft CV(LINE/メール/フォロー), unit: 件, source: GA4(cv_click) }
@@ -24,8 +24,8 @@ cadence:
   - { when: "公開後10日・33日", what: "記事ごとの公開後7日・30日のレポート(Search Consoleの確定を待つため3日遅れで作る)" }
 reports_to: executive
 staff:
-  - { name: "集計AI", does: "GA4・Search Console・Clarity・PSI・Bing・ASP・SUZURIの数字を、指標の定義と速報/確定のルールで確定させ、台帳と日報・週報に書く。取れない数字は未取得と理由", where: "非公開リポジトリ(content/analytics/ledger.csv)/ Notion日報・週報(画面の自動取得はコンソールのサーバー)", runs: "スキル yamato-analytics(前日の確定・週次・月次・計測の健康診断)。運営の時間割(yamato-ops)の morning・weekly・monthly で実行。頼まれたときも実行", state: on-call }
-  - { name: "分析AI", does: "異常値(同じ曜日の過去4週との差)の切り分けと、記事の公開後7日・30日のレポート、数字が動いた理由の調査(次に何をやるかは決めない)", where: "非公開リポジトリ(content/analytics/articles/)/ Notion日報", runs: "スキル yamato-analytics(異常値・記事レポート・なぜ)。運営の時間割(yamato-ops)の morning で期日の記事を実行。頼まれたときも実行", state: on-call }
+  - { name: "Metrics Desk", label: "数字の確定", does: "GA4・Search Console・Clarity・PSI・Bing・ASP・SUZURIの数字を、指標の定義と速報/確定のルールで確定させ、台帳と日報・週報に書く。取れない数字は未取得と理由", where: "非公開リポジトリ(content/analytics/ledger.csv)/ Notion日報・週報(画面の自動取得はコンソールのサーバー)", runs: "スキル yamato-analytics(前日の確定・週次・月次・計測の健康診断)。運営の時間割(yamato-ops)の morning・weekly・monthly で実行。頼まれたときも実行", state: on-call, skills: ["GA4", "Search Console", "指標の定義", "速報と確定の線引き"], kpi: "日次の数字の確定率", growth: "GA4・Search Consoleの鍵が直ったら、日次の確定を自動にする" }
+  - { name: "Insight Lab", label: "要因の分析", does: "異常値(同じ曜日の過去4週との差)の切り分けと、記事の公開後7日・30日のレポート、数字が動いた理由の調査(次に何をやるかは決めない)", where: "非公開リポジトリ(content/analytics/articles/)/ Notion日報", runs: "スキル yamato-analytics(異常値・記事レポート・なぜ)。運営の時間割(yamato-ops)の morning で期日の記事を実行。頼まれたときも実行", state: on-call, skills: ["異常値の検知(z値)", "記事の7日・30日レポート", "なぜの切り分け"], kpi: "レポートの期限内提出率", growth: "記事が増えたら、記事群ごとの比較に進む" }
 ---
 
 ## ミッション

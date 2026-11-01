@@ -9,9 +9,9 @@ standby_until: "src/lib/site.ts の SOCIALS にURLが入ったら(少なくと�
 order: 20
 permission: L1
 members:
-  - トレンド調査AI
-  - 投稿作成AI
-  - 運用分析AI
+  - Trend Radar
+  - Social Studio
+  - Social Insights
 kpi:
   - { key: followers, label: フォロワー(合計), unit: 人, source: 各SNS }
   - { key: sns_to_site, label: SNSからの流入, unit: セッション, source: GA4 }
@@ -23,9 +23,9 @@ cadence:
   - { when: "daily 19:00", what: 定例ヒアリングに回答 }
 reports_to: executive
 staff:
-  - { name: "トレンド調査AI", does: "季節と関西の山の話題を出典つきで集めて投稿の下書き(関西の山のメモ)にし、記事にすべき話題は企画部へ渡す", where: "Web検索 / 非公開リポジトリ(content/sns/trends)", runs: "スキル yamato-sns(トレンド調査)。運営の時間割(yamato-ops)の weekly で実行。頼まれたときも実行", state: on-call }
-  - { name: "投稿作成AI", does: "媒体ごとの運用設計・プロフィール文・記事ごとの投稿キュー(1記事3本)・週の投稿カレンダーを作る。稼働後は投稿を承認トレイに積む(投稿はCEO)", where: "非公開リポジトリ(content/sns)/ 稼働後はNotion承認トレイ", runs: "スキル yamato-sns(運用設計・投稿キュー・カレンダー)。運営の時間割(yamato-ops)の weekly で実行。頼まれたときも実行", state: on-call }
-  - { name: "運用分析AI", does: "稼働後は型ごとの反応とSNSからサイト・LINEへの流れを週次で見て投稿の配分を直す。準備中は月1回、参考アカウントの投稿の型を観察する", where: "非公開リポジトリ(content/sns/results・benchmarks)/ SNSからの流入はデータ分析部の数字", runs: "スキル yamato-sns(運用分析)。運営の時間割(yamato-ops)の weekly で実行(媒体の数字は稼働後、CEOから受け取ったとき)。頼まれたときも実行", state: on-call }
+  - { name: "Trend Radar", label: "トレンドの調査", does: "季節と関西の山の話題を出典つきで集めて投稿の下書き(関西の山のメモ)にし、記事にすべき話題は企画部へ渡す", where: "Web検索 / 非公開リポジトリ(content/sns/trends)", runs: "スキル yamato-sns(トレンド調査)。運営の時間割(yamato-ops)の weekly で実行。頼まれたときも実行", state: on-call, skills: ["媒体ごとの傾向", "登山の話題の発見", "投稿の時刻の仮説"], kpi: "伸びた話題の発見数", growth: "アカウントが稼働したら、反応の良い型を毎週見直す" }
+  - { name: "Social Studio", label: "投稿の制作", does: "媒体ごとの運用設計・プロフィール文・記事ごとの投稿キュー(1記事3本)・週の投稿カレンダーを作る。稼働後は投稿を承認トレイに積む(投稿はCEO)", where: "非公開リポジトリ(content/sns)/ 稼働後はNotion承認トレイ", runs: "スキル yamato-sns(運用設計・投稿キュー・カレンダー)。運営の時間割(yamato-ops)の weekly で実行。頼まれたときも実行", state: on-call, skills: ["投稿の型7つ", "投稿キュー", "PR表記"], kpi: "週の投稿キューの充足率", growth: "アカウントが稼働したら、記事の公開に合わせて告知を自動で積む" }
+  - { name: "Social Insights", label: "SNSの分析", does: "稼働後は型ごとの反応とSNSからサイト・LINEへの流れを週次で見て投稿の配分を直す。準備中は月1回、参考アカウントの投稿の型を観察する", where: "非公開リポジトリ(content/sns/results・benchmarks)/ SNSからの流入はデータ分析部の数字", runs: "スキル yamato-sns(運用分析)。運営の時間割(yamato-ops)の weekly で実行(媒体の数字は稼働後、CEOから受け取ったとき)。頼まれたときも実行", state: on-call, skills: ["媒体別の反応", "サイト・LINEへの流入", "UTM設計"], kpi: "SNSからの流入数", growth: "アカウントが稼働したら、型ごとに8投稿で判断する" }
 ---
 
 ## ミッション

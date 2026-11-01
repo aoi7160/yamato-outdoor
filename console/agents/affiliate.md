@@ -9,9 +9,9 @@ standby_until: ""
 order: 10
 permission: L1
 members:
-  - 案件リサーチAI
-  - リンク設計AI
-  - 収益分析AI
+  - Program Scout
+  - Conversion Design
+  - Revenue Insights
 kpi:
   - { key: linked_articles, label: アフィリエイトリンクがある記事, unit: 本, source: "校閲チェック(microCMSの公開記事)" }
   - { key: affiliate_clicks, label: アフィリエイトリンクのクリック(7日), unit: 回, source: "GA4(click_outbound のうちASPのドメイン)" }
@@ -29,9 +29,9 @@ cadence:
   - { when: "セールの3週間前", what: "セール対象になりやすい記事のリンク点検と、企画部へのセール情報" }
 reports_to: executive
 staff:
-  - { name: "案件リサーチAI", does: "ASPの案件を報酬×CVR×確定率×Cookie×記事との適合で評価して案件台帳に報酬と確認日を書き、申請の条件がそろったらASP登録の提案を積む", where: "Notion「案件台帳」/ Notion承認トレイ", runs: "スキル yamato-affiliate(案件台帳の点検・案件の評価・ASP登録の提案)。運営の時間割(yamato-ops)の morning で実行(木曜は全件点検)。頼まれたときも実行", state: on-call }
-  - { name: "リンク設計AI", does: "記事ごとにbuy-boxを置く製品・場所・店の順を設計し(未提携の案件はURLなし)、提携中の案件はリンク差し替えの差分を、リンク切れ・提携終了は差し替え案を承認トレイに積む", where: "非公開リポジトリ(content/affiliate/link-plans)/ Notion承認トレイ", runs: "スキル yamato-affiliate(リンク設計・差し替え案)。運営の時間割(yamato-ops)の morning で実行(月曜は新しい記事のリンク設計)。頼まれたときも実行", state: on-call }
-  - { name: "収益分析AI", does: "ASPのCSVから記事別の発生・確定・EPCを出し、置き場所・店の順・案件の見直しを診断する(確定値はデータ分析部・記帳は事業報告部へ渡す)", where: "非公開リポジトリ(content/affiliate/monthly)/ BASE CAMP「データ連携」(CSVはCEOのブラウザ内)", runs: "スキル yamato-affiliate(月次の締め・EPCの診断)。運営の時間割(yamato-ops)の morning で毎月1日に実行(CEOからCSVを受け取ったとき)。頼まれたときも実行", state: on-call }
+  - { name: "Program Scout", label: "案件の発掘と評価", does: "ASPの案件を報酬×CVR×確定率×Cookie×記事との適合で評価して案件台帳に報酬と確認日を書き、申請の条件がそろったらASP登録の提案を積む", where: "Notion「案件台帳」/ Notion承認トレイ", runs: "スキル yamato-affiliate(案件台帳の点検・案件の評価・ASP登録の提案)。運営の時間割(yamato-ops)の morning で実行(木曜は全件点検)。頼まれたときも実行", state: on-call, skills: ["ASPの審査対策", "案件の採点(報酬×CVR×Cookie)", "案件台帳"], kpi: "提携中の案件数", growth: "提携が通ったら、記事ごとの最適な案件を自動で選ぶ" }
+  - { name: "Conversion Design", label: "購入導線(buy-box)の設計", does: "記事ごとにbuy-boxを置く製品・場所・店の順を設計し(未提携の案件はURLなし)、提携中の案件はリンク差し替えの差分を、リンク切れ・提携終了は差し替え案を承認トレイに積む", where: "非公開リポジトリ(content/affiliate/link-plans)/ Notion承認トレイ", runs: "スキル yamato-affiliate(リンク設計・差し替え案)。運営の時間割(yamato-ops)の morning で実行(月曜は新しい記事のリンク設計)。頼まれたときも実行", state: on-call, skills: ["buy-boxの位置と文言", "PR表記", "セールの逆算"], kpi: "記事のアフィリエイトクリック率", growth: "提携後、承認トレイの記事にリンクを差し込む案を出す" }
+  - { name: "Revenue Insights", label: "収益の分析", does: "ASPのCSVから記事別の発生・確定・EPCを出し、置き場所・店の順・案件の見直しを診断する(確定値はデータ分析部・記帳は事業報告部へ渡す)", where: "非公開リポジトリ(content/affiliate/monthly)/ BASE CAMP「データ連携」(CSVはCEOのブラウザ内)", runs: "スキル yamato-affiliate(月次の締め・EPCの診断)。運営の時間割(yamato-ops)の morning で毎月1日に実行(CEOからCSVを受け取ったとき)。頼まれたときも実行", state: on-call, skills: ["記事別EPC", "リンク切れ・提携終了の検知", "ASPのCSV"], kpi: "記事別EPC", growth: "ASPのデータを自動で取り込めたら、毎週の収益レポートを出す" }
 ---
 
 ## ミッション
@@ -54,11 +54,11 @@ staff:
 
 | やること | 誰が | 承認 |
 |---|---|---|
-| どのASPに登録するかの案を出す(下の「ASPの選び方」) | 案件リサーチAI | CEO |
+| どのASPに登録するかの案を出す(下の「ASPの選び方」) | Program Scout | CEO |
 | ASPに会員登録する(本人確認・振込口座・サイト審査) | **CEO本人**(AIはできない) | — |
-| 案件台帳(Notion「YAMATO BASE CAMP」→「案件台帳」)を作り、コンテンツマップのピラーごとに当てはまる案件を調べて入れる | 案件リサーチAI | — |
-| Amazonのリンクを置くなら、Amazonが求める表記(「Amazonのアソシエイトとして…適格販売により収入を得ています」)をサイトに載せる案 | リンク設計AI → 法務部 → サイト開発部 | CEO(mainへのマージ) |
-| 使うASPのドメインが `src/lib/affiliate.ts` の `AFFILIATE_NETWORKS` に入っているかの確認(入っていないと `rel="sponsored nofollow"` が付かず、GA4でASP別に分けられない) | リンク設計AI → サイト開発部 | CEO(mainへのマージ) |
+| 案件台帳(Notion「YAMATO BASE CAMP」→「案件台帳」)を作り、コンテンツマップのピラーごとに当てはまる案件を調べて入れる | Program Scout | — |
+| Amazonのリンクを置くなら、Amazonが求める表記(「Amazonのアソシエイトとして…適格販売により収入を得ています」)をサイトに載せる案 | Conversion Design → 法務部 → サイト開発部 | CEO(mainへのマージ) |
+| 使うASPのドメインが `src/lib/affiliate.ts` の `AFFILIATE_NETWORKS` に入っているかの確認(入っていないと `rel="sponsored nofollow"` が付かず、GA4でASP別に分けられない) | Conversion Design → サイト開発部 | CEO(mainへのマージ) |
 
 **ASPの選び方(2026-10-21調査。登録前に各社の最新の規約を確かめる)**
 
@@ -115,7 +115,7 @@ Amazonへの有料広告(2026-04-20改定で、有料広告経由の購入は報
 
 ## 案件台帳(Notion)
 
-1案件1行。案件リサーチAIが毎週木曜に点検する。
+1案件1行。Program Scoutが毎週木曜に点検する。
 
 | 項目 | 書くこと |
 |---|---|
@@ -133,10 +133,10 @@ Amazonへの有料広告(2026-04-20改定で、有料広告経由の購入は報
 
 | 曜日 | 時刻 | やること | 誰が |
 |---|---|---|---|
-| 月 | 09:30 | 今週の新しい記事に案件とリンク位置の案を付ける(承認トレイ) | リンク設計AI |
+| 月 | 09:30 | 今週の新しい記事に案件とリンク位置の案を付ける(承認トレイ) | Conversion Design |
 | 月 | いつでも | ASP各社の管理画面からCSVを書き出し、コンソールの「データ取り込み」に入れる(5分) | **CEO** |
-| 木 | 10:00 | 案件台帳の点検(提携状況・報酬率・終了予定) | 案件リサーチAI |
-| 毎日 | 19:00 | 定例ヒアリング(1文。CSVが7日より古い・提携終了があるときは3〜5文) | 収益分析AI |
+| 木 | 10:00 | 案件台帳の点検(提携状況・報酬率・終了予定) | Program Scout |
+| 毎日 | 19:00 | 定例ヒアリング(1文。CSVが7日より古い・提携終了があるときは3〜5文) | Revenue Insights |
 
 **毎月**
 

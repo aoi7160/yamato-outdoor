@@ -9,9 +9,9 @@ standby_until: ""
 order: 30
 permission: L1
 members:
-  - 経理AI
-  - 記録AI
-  - 報告書AI
+  - Finance Ops
+  - Field Archive
+  - Report Studio
 kpi:
   - { key: monthly_operating_profit, label: 今月の営業利益(見込み), unit: 円, source: P&L台帳(Notion) }
   - { key: profit_per_hour, label: 時間あたり利益(今月), unit: 円/時間, source: P&L台帳・作業時間ログ(Notion) }
@@ -27,9 +27,9 @@ cadence:
   - { when: "随時", what: 事業計画書の清書(経営企画の案がCEOに承認されたあと) }
 reports_to: executive
 staff:
-  - { name: "経理AI", does: "売上(分析部の確定値を写す)・費用・作業時間をP&L台帳に記帳し、月次の締めを検算する", where: "Notion(P&L台帳・作業時間ログ・月次の締め)", runs: "スキル yamato-reporting(記帳・月次の締め)。運営の時間割(yamato-ops)の evening と monthly で実行。頼まれたときも実行", state: on-call }
-  - { name: "記録AI", does: "登山の記録(写真から読んだことは推測としてCEOに確認)と、月の活動の記録(全ブランチ・PR・記事・日報)を残す", where: "Notion(登山記録)/ GitHub", runs: "スキル yamato-reporting(登山の記録・活動の記録)。運営の時間割(yamato-ops)の evening と monthly で実行。頼まれたときも実行", state: on-call }
-  - { name: "報告書AI", does: "月次事業報告書(社内版)・四半期の対外版の下書き・事業計画書の清書を、検算と出どころつきで作る", where: "Notion", runs: "スキル yamato-reporting(報告書)。運営の時間割(yamato-ops)の monthly で実行(対外版は1・4・7・10月)。頼まれたときも実行", state: on-call }
+  - { name: "Finance Ops", label: "記帳・P&L", does: "売上(分析部の確定値を写す)・費用・作業時間をP&L台帳に記帳し、月次の締めを検算する", where: "Notion(P&L台帳・作業時間ログ・月次の締め)", runs: "スキル yamato-reporting(記帳・月次の締め)。運営の時間割(yamato-ops)の evening と monthly で実行。頼まれたときも実行", state: on-call, skills: ["P&L台帳", "作業時間ログ", "検算"], kpi: "月次P&Lの締め日", growth: "売上の確定値がそろったら、月次の締めを自動にする" }
+  - { name: "Field Archive", label: "活動と登山の記録", does: "登山の記録(写真から読んだことは推測としてCEOに確認)と、月の活動の記録(全ブランチ・PR・記事・日報)を残す", where: "Notion(登山記録)/ GitHub", runs: "スキル yamato-reporting(登山の記録・活動の記録)。運営の時間割(yamato-ops)の evening と monthly で実行。頼まれたときも実行", state: on-call, skills: ["登山の記録", "実績の一覧", "写真の管理"], kpi: "記録の欠け0件", growth: "登山の記録を、記事の実体験の台帳とつなぐ" }
+  - { name: "Report Studio", label: "事業報告書", does: "月次事業報告書(社内版)・四半期の対外版の下書き・事業計画書の清書を、検算と出どころつきで作る", where: "Notion", runs: "スキル yamato-reporting(報告書)。運営の時間割(yamato-ops)の monthly で実行(対外版は1・4・7・10月)。頼まれたときも実行", state: on-call, skills: ["月次事業報告書", "四半期の対外版", "事業計画の清書"], kpi: "報告書の期限内提出", growth: "数字がそろったら、対外版の報告書まで仕上げる" }
 ---
 
 ## ミッション
@@ -43,7 +43,7 @@ staff:
 
 ## 担当すること
 
-### 経理AI — P&L台帳
+### Finance Ops — P&L台帳
 
 - **月次P&L**を作る。科目・計上基準・按分のルールはスキル `yamato-reporting` の `references/pl-definition.md` に従う
   - 売上はデータ分析部の確定値を使う(自分で集計し直さない)。ASPの「発生・確定・入金」は3列で並べ、P&Lは**確定ベース**
@@ -53,7 +53,7 @@ staff:
   - 指標:営業利益、営業利益率、**時間あたり利益(営業利益 ÷ 作業時間)**、累計
 - 計画との差異を出す(事業計画書の月次目標と比べ、差が大きい項目に一言の理由を添える。理由は各部の報告から引く)
 
-### 記録AI — 活動と登山のアーカイブ
+### Field Archive — 活動と登山のアーカイブ
 
 - その月にやったことを、**リポジトリの全ブランチ**とPull Request、各部の日報から漏れなく拾う
   (日付で絞り込まない・未マージのブランチも見る。手順はスキル `yamato-reporting` の `references/formats.md` 5章)
@@ -61,7 +61,7 @@ staff:
   - 写真はリポジトリに入れない(公開リポジトリのため。メンバーの顔が写る)。Notionの登山記録DBに置く
   - 写真から読み取った事実(天気・人数・岩場があった等)は**推測として扱い、CEOに確認してから確定**する
 
-### 報告書AI — 報告書・計画書の作成
+### Report Studio — 報告書・計画書の作成
 
 | 文書 | 読み手 | 頻度 | 書式 |
 |---|---|---|---|

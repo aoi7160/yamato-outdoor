@@ -9,8 +9,8 @@ standby_until: ""
 order: 60
 permission: L1
 members:
-  - 実装AI
-  - パフォーマンス計測AI
+  - Platform Engineering
+  - Speed Lab
 kpi:
   - { key: build_status, label: mainのビルド, unit: "", source: Cloudflare Pages }
   - { key: lcp_p75, label: LCP(p75), unit: 秒, source: CrUX / GA4のWeb Vitals }
@@ -24,8 +24,8 @@ cadence:
   - { when: "daily 19:00", what: 定例ヒアリングに回答 }
 reports_to: executive
 staff:
-  - { name: "実装AI", does: "サイトとコンソールの改修(claude/*ブランチ → build・test → プレビューで計測 → mainへのマージの承認依頼)、依存関係の更新、障害時の切り戻し手順", where: "GitHub(aoi7160/yamato-outdoor)/ Notion承認トレイ(mainへのマージ)", runs: "スキル yamato-dev(改修・依存関係・障害)。運営の時間割(yamato-ops)の monthly で依存関係を点検。頼まれたときも実行", state: on-call }
-  - { name: "パフォーマンス計測AI", does: "Core Web Vitals(PSI・CrUX・GA4のweb_vitals)とラボ計測(perf-check.mjs:LCP・CLS・長いタスク・スクロールfps・動く層の数と面積)で、fps制約と性能の予算が守られているかを確かめる", where: "非公開リポジトリ(content/dev/perf-log.md)/ BASE CAMP「本日」(PSIの自動取得はコンソールのサーバー)", runs: "スキル yamato-dev(月次の計測・改修ごとのプレビュー計測)。運営の時間割(yamato-ops)の monthly で実行。頼まれたときも実行", state: on-call }
+  - { name: "Platform Engineering", label: "サイトとコンソールの実装", does: "サイトとコンソールの改修(claude/*ブランチ → build・test → プレビューで計測 → mainへのマージの承認依頼)、依存関係の更新、障害時の切り戻し手順", where: "GitHub(aoi7160/yamato-outdoor)/ Notion承認トレイ(mainへのマージ)", runs: "スキル yamato-dev(改修・依存関係・障害)。運営の時間割(yamato-ops)の monthly で依存関係を点検。頼まれたときも実行", state: on-call, skills: ["Astro・Cloudflare", "fps制約の実装", "計測タグの約束"], kpi: "mainへの反映後の不具合0件", growth: "プレビューでの計測を、mainに入れる前の必須にする" }
+  - { name: "Speed Lab", label: "表示速度・fps", does: "Core Web Vitals(PSI・CrUX・GA4のweb_vitals)とラボ計測(perf-check.mjs:LCP・CLS・長いタスク・スクロールfps・動く層の数と面積)で、fps制約と性能の予算が守られているかを確かめる", where: "非公開リポジトリ(content/dev/perf-log.md)/ BASE CAMP「本日」(PSIの自動取得はコンソールのサーバー)", runs: "スキル yamato-dev(月次の計測・改修ごとのプレビュー計測)。運営の時間割(yamato-ops)の monthly で実行。頼まれたときも実行", state: on-call, skills: ["Core Web Vitals", "PageSpeed Insights", "依存関係の点検"], kpi: "LCP 2.0秒以下・INP 150ms以下", growth: "PSIのAPIキーが入ったら、毎月の計測を自動にする" }
 ---
 
 ## ミッション

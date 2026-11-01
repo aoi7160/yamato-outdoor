@@ -120,7 +120,7 @@
 
 例:月曜のPVの過去4週の平均が36、今日が62 → z = (62 − 36) ÷ 6 = 4.3 → 異常。参照元を見る(SNSで言及された・スパム・自分のアクセス)。
 
-## 7. 「なぜ」の出し方(分析AI。次の一手は書かない)
+## 7. 「なぜ」の出し方(Insight Lab。次の一手は書かない)
 
 1. **計測を疑う**:タグの変更(`git log --since=… -- src/components/Analytics.astro src/components/AnalyticsEvents.astro src/lib/analytics.ts`)、
    GTMの公開、内部トラフィックのフィルタ、ボット

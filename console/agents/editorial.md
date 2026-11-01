@@ -9,9 +9,9 @@ standby_until: ""
 order: 40
 permission: L1
 members:
-  - 編集長AI
-  - 校閲AI
-  - 事実確認AI
+  - Editor's Desk
+  - Copy Desk
+  - Verification Desk
 kpi:
   - { key: proofread_findings, label: 自動チェックで指摘のある記事, unit: 本, source: "校閲チェック(microCMSの公開記事・console/server/proofread.js)" }
   - { key: reviewed, label: 審査した記事, unit: 本, source: 校閲の記録 }
@@ -24,9 +24,9 @@ cadence:
   - { when: "daily 19:00", what: 定例ヒアリングに回答 }
 reports_to: executive
 staff:
-  - { name: "編集長AI", does: "承認トレイに積まれた記事を重大度つきの審査シートで見て合格・修正依頼を出し、ページに「校閲の判断」(何が・なぜ・どう直すか)を書く。同じ指摘は一般化してルールに足す提案をする", where: "Notion承認トレイ / 非公開リポジトリ yamato-outdoor-editorial(content/editorial/)", runs: "スキル yamato-editorial(3-1・3-5・3-7・依頼時の公開前審査)。運営の時間割(yamato-ops)の morning で審査待ちを拾い上げて実行。パイプライン実行時はサブエージェント article-final-checker。頼まれたときも実行", state: on-call }
-  - { name: "校閲AI", does: "表記ゆれ・使わない語・文の長さ・見出し・広告表記など16項目を機械で調べ、誤検知を外して重大度を付ける", where: "BASE CAMP「校閲チェック」/ check_published.mjs(セッションから同じルールを回す)", runs: "コンソールのサーバー(server/proofread.js)が公開記事を1時間ごとに自動でチェック。仕分けはスキル yamato-editorial(proofread-guide.md)で、運営の時間割(yamato-ops)の morning で実行。トンマナの手直しはサブエージェント article-style-editor(パイプライン実行時)", state: auto }
-  - { name: "事実確認AI", does: "公開記事の価格・廃番・仕様・ルート情報を曜日ローテーションでメーカー・自治体の公式と照合し、事実確認の台帳を更新する。審査では体験の文が根拠の範囲に収まっているかを見る", where: "メーカー公式サイト / 自治体・施設の公式 / 非公開リポジトリ(content/editorial/fact-ledger.md)", runs: "スキル yamato-editorial(3-2・3-3・morningの2〜6)。運営の時間割(yamato-ops)の morning で実行。パイプライン実行時はサブエージェント article-fact-checker。頼まれたときも実行", state: on-call }
+  - { name: "Editor's Desk", label: "公開前審査・差し戻し", does: "承認トレイに積まれた記事を重大度つきの審査シートで見て合格・修正依頼を出し、ページに「校閲の判断」(何が・なぜ・どう直すか)を書く。同じ指摘は一般化してルールに足す提案をする", where: "Notion承認トレイ / 非公開リポジトリ yamato-outdoor-editorial(content/editorial/)", runs: "スキル yamato-editorial(3-1・3-5・3-7・依頼時の公開前審査)。運営の時間割(yamato-ops)の morning で審査待ちを拾い上げて実行。パイプライン実行時はサブエージェント article-final-checker。頼まれたときも実行", state: on-call, skills: ["合否判定", "差し戻しの書き方", "ペルソナとの整合"], kpi: "公開後に見つかった誤り0件", growth: "修正記録から、同じ指摘を減らすルールをトンマナに足す" }
+  - { name: "Copy Desk", label: "表記・表現の校閲", does: "表記ゆれ・使わない語・文の長さ・見出し・広告表記など16項目を機械で調べ、誤検知を外して重大度を付ける", where: "BASE CAMP「校閲チェック」/ check_published.mjs(セッションから同じルールを回す)", runs: "コンソールのサーバー(server/proofread.js)が公開記事を1時間ごとに自動でチェック。仕分けはスキル yamato-editorial(proofread-guide.md)で、運営の時間割(yamato-ops)の morning で実行。トンマナの手直しはサブエージェント article-style-editor(パイプライン実行時)", state: auto, skills: ["表記ゆれ", "使わない語", "文の長さ・見出し", "広告表記"], kpi: "校閲チェックの未解決0件", growth: "機械で判定できるルールを、トンマナから増やす" }
+  - { name: "Verification Desk", label: "事実確認・出典照合", does: "公開記事の価格・廃番・仕様・ルート情報を曜日ローテーションでメーカー・自治体の公式と照合し、事実確認の台帳を更新する。審査では体験の文が根拠の範囲に収まっているかを見る", where: "メーカー公式サイト / 自治体・施設の公式 / 非公開リポジトリ(content/editorial/fact-ledger.md)", runs: "スキル yamato-editorial(3-2・3-3・morningの2〜6)。運営の時間割(yamato-ops)の morning で実行。パイプライン実行時はサブエージェント article-fact-checker。頼まれたときも実行", state: on-call, skills: ["出典照合", "価格・廃番の定期確認", "体験の境界"], kpi: "出典の無い数字0件", growth: "公開記事の価格と仕様を、曜日ごとのローテーションで全件見直す" }
 ---
 
 ## ミッション

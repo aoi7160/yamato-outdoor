@@ -141,7 +141,7 @@ grep は入口にすぎない。語が違っても同じ作業なら重なり。
     "承認後:人事部が成果物を2回確認したメンバーから auto に上げる"
   ],
   "diffs": [
-    { "where": "console/agents/planning.md の staff(需要カレンダーAI)", "before": "state: on-call", "after": "state: auto(成果物2回の確認後)", "why": "定期実行で毎朝動き、日報の節が2回続けて出たため。名簿が実態どおりになり、CEOが任せられる範囲を判断できる" }
+    { "where": "console/agents/planning.md の staff(Season Radar)", "before": "state: on-call", "after": "state: auto(成果物2回の確認後)", "why": "定期実行で毎朝動き、日報の節が2回続けて出たため。名簿が実態どおりになり、CEOが任せられる範囲を判断できる" }
   ],
   "links": [{ "label": "名簿(コンソール)", "href": "/people/" }]
 }
@@ -156,8 +156,8 @@ grep は入口にすぎない。語が違っても同じ作業なら重なり。
 ずれ:2件(直した 1・依頼中 1)
 
 | 部 | メンバー | 先週 | 今週 | 証拠 | 直す先 |
-| planning | 需要カレンダーAI | on-call | on-call | 朝の定例は接続なしで空振り(11/2・11/3) | CEO(接続) |
-| executive | 議事録AI | defined | on-call | yamato-executive に決定ログの手順あり | 人事(staff を更新済み) |
+| planning | Season Radar | on-call | on-call | 朝の定例は接続なしで空振り(11/2・11/3) | CEO(接続) |
+| executive | Decision Log | defined | on-call | yamato-executive に決定ログの手順あり | 人事(staff を更新済み) |
 ```
 
 ### 能力の棚卸し(月1回)

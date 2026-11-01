@@ -9,9 +9,9 @@ standby_until: ""
 order: 0
 permission: L1
 members:
-  - 参謀AI
-  - KPI集計AI
-  - 議事録AI
+  - Chief of Staff
+  - BizOps
+  - Decision Log
 kpi:
   - { key: revenue_total, label: 本日の売上合計, unit: 円, source: アフィリエイト部・グッズ部の報告 }
   - { key: approvals_pending, label: 承認待ち, unit: 件, source: 承認トレイ }
@@ -25,9 +25,9 @@ cadence:
   - { when: "monthly 1st", what: 月次の振り返り }
 reports_to: ceo
 staff:
-  - { name: "参謀AI", does: "各部の報告とKPIツリーからボトルネックを1つ特定し、日報の締め・週報・月次の振り返り・優先3つの案・CEOに決めてほしいこと(意思決定メモ。1日3件まで)を書く。承認トレイの根拠不足も確認する", where: "Notion「日報・週報」/ 承認トレイ", runs: "スキル yamato-executive(日報の締め・週報・月次の振り返り・承認トレイの確認)。運営の時間割(yamato-ops)の evening・weekly・monthly で実行。頼まれたときも実行", state: on-call }
-  - { name: "KPI集計AI", does: "つないだデータの数字を「本日」の画面に集めて出す。週報・月次では、分析部の確定値をKPIツリー(本数→インデックス→表示→クリック→アフィリエイトクリック→売上)に当てはめ、段階とボトルネックを判定する", where: "BASE CAMP「本日」/ Notion「日報・週報」", runs: "コンソールのサーバー(server/connectors.js)とブラウザ(scripts/real.ts)が開くたびに自動で集計。KPIツリーの判定はスキル yamato-executive(kpi-tree.md)で、運営の時間割(yamato-ops)の weekly・monthly で実行", state: auto }
-  - { name: "議事録AI", does: "編集会議(週次)とCEOの判断(承認トレイ)から、決定事項・決めた人・担当の部・期限・未決を決定ログに残し、翌週に実行状況(完了・進行中・遅れ・取り下げ)を照合する", where: "Notion「日報・週報」(週報の「決定ログ」)", runs: "スキル yamato-executive(決定ログ)。運営の時間割(yamato-ops)の weekly で実行。頼まれたときも実行", state: on-call }
+  - { name: "Chief of Staff", label: "参謀・優先順位", does: "各部の報告とKPIツリーからボトルネックを1つ特定し、日報の締め・週報・月次の振り返り・優先3つの案・CEOに決めてほしいこと(意思決定メモ。1日3件まで)を書く。承認トレイの根拠不足も確認する", where: "Notion「日報・週報」/ 承認トレイ", runs: "スキル yamato-executive(日報の締め・週報・月次の振り返り・承認トレイの確認)。運営の時間割(yamato-ops)の evening・weekly・monthly で実行。頼まれたときも実行", state: on-call, skills: ["KPIツリー", "優先順位付け(ICE)", "意思決定メモ", "週次レビュー"], kpi: "優先3つの達成率", growth: "分析部の確定値がそろったら、記事別の売上貢献で優先順位を付ける" }
+  - { name: "BizOps", label: "数字の集約・ダッシュボード", does: "つないだデータの数字を「本日」の画面に集めて出す。週報・月次では、分析部の確定値をKPIツリー(本数→インデックス→表示→クリック→アフィリエイトクリック→売上)に当てはめ、段階とボトルネックを判定する", where: "BASE CAMP「本日」/ Notion「日報・週報」", runs: "コンソールのサーバー(server/connectors.js)とブラウザ(scripts/real.ts)が開くたびに自動で集計。KPIツリーの判定はスキル yamato-executive(kpi-tree.md)で、運営の時間割(yamato-ops)の weekly・monthly で実行", state: auto, skills: ["KPIダッシュボード", "データ連携", "異常値の早期発見"], kpi: "「Today」の数字の取得率", growth: "GA4・Search Consoleの鍵が直ったら、日報の数字を自動で埋める" }
+  - { name: "Decision Log", label: "決定と宿題の記録", does: "編集会議(週次)とCEOの判断(承認トレイ)から、決定事項・決めた人・担当の部・期限・未決を決定ログに残し、翌週に実行状況(完了・進行中・遅れ・取り下げ)を照合する", where: "Notion「日報・週報」(週報の「決定ログ」)", runs: "スキル yamato-executive(決定ログ)。運営の時間割(yamato-ops)の weekly で実行。頼まれたときも実行", state: on-call, skills: ["議事録", "決定ログ", "宿題の追跡"], kpi: "決めたことの実行率", growth: "編集会議の決定から、各部の宿題を自動で起票する" }
 ---
 
 ## ミッション
