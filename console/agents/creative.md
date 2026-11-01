@@ -19,12 +19,13 @@ kpi:
 screen: production-queue
 sources: [制作キュー, Veo(動画生成), ffmpeg]
 cadence:
+  - { when: "weekly mon", what: "制作キュー(サムネの撮影指示書・図解・alt)を最大4点消化し、承認トレイに納品(運営の時間割 weekly)" }
   - { when: "daily 19:00", what: 定例ヒアリングに回答 }
 reports_to: executive
 staff:
-  - { name: "サムネイルAI", does: "記事のサムネイル(16:9・文字なし)の案を作る", where: "制作キュー", runs: "仕組みは未実装(定義だけ)", state: defined }
-  - { name: "図解AI", does: "記事の図解・比較表の画像を作る", where: "制作キュー", runs: "仕組みは未実装(定義だけ)", state: defined }
-  - { name: "映像AI", does: "カバー写真から雲が動くシネマグラフを作り、ffmpegで配信用に軽くする", where: "GitHub(public/media/)", runs: "Veo(動画生成)+ ffmpeg。頼まれたときに実行", state: on-call }
+  - { name: "サムネイルAI", does: "記事のサムネイル(16:9・文字なし)のレイアウト案3つ(構図の線画SVG)と、CEOが山で撮るための撮影指示書・ショットリスト・alt案を作り、届いた写真を1600×900・位置情報なしで書き出す", where: "非公開リポジトリ(content/creative/)/ Notion承認トレイ(納品物の確認)", runs: "スキル yamato-creative(サムネイル・撮影指示書・写真の書き出し)。運営の時間割(yamato-ops)の weekly で実行。頼まれたときも実行", state: on-call }
+  - { name: "図解AI", does: "表では伝わらない重なり・順序・高低差を図解にする(SVGで作りPNGに書き出す)。本文に貼るfigureのHTML・alt・出典の行を添えてコンテンツ制作部に渡す", where: "非公開リポジトリ(content/creative/)/ Notion承認トレイ(納品物の確認)", runs: "スキル yamato-creative(図解・alt)。運営の時間割(yamato-ops)の weekly で実行。頼まれたときも実行", state: on-call }
+  - { name: "映像AI", does: "カバー写真から雲が動くシネマグラフを作る(Veoのプロンプト案 → ffmpegで音声除去・継ぎ目のクロスフェード・軽量化 → サイズ・SSIMの検査)", where: "非公開リポジトリ(content/creative/)→ サイト開発部(public/media/)", runs: "スキル yamato-creative(シネマグラフ)。Veo(CEOがGeminiで実行)+ ffmpeg。頼まれたときに実行", state: on-call }
 ---
 
 ## ミッション
@@ -58,9 +59,12 @@ staff:
 
 ## 納品物は見られる形で出す
 
-作ったもの(サムネ・図解・動画)は、**画像のURLを付けて承認トレイに「納品物の確認」として積む**
-(Notionの依頼の本文の `images`)。コンソールの承認トレイで、そのまま開いて見られる。
+作ったもの(サムネ・図解・動画)は、正本を非公開リポジトリ `yamato-outdoor-editorial` の `content/creative/` に置き、
+**開けるURLを付けて承認トレイに「納品物の確認」として積む**。非公開リポジトリのURL(CEOはGitHubにログインしているので開ける)は `links` に、
+ログインなしで画像として表示できるURLがあるときだけ `images` に入れる(手順はスキル `yamato-creative`)。
 URLの無い納品は「納品した」と報告しない。
+
+**写真はCEOが撮る。** この部は、記事の写真をAIで作らず、撮る前の設計(撮影指示書・構図の線画)と、届いた写真の書き出しを担当する。
 
 ## 定例報告
 

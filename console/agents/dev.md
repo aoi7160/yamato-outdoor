@@ -19,12 +19,13 @@ kpi:
 screen: build-vitals
 sources: [Cloudflare Pages, CrUX, GA4(web_vitals イベント), npm run build]
 cadence:
-  - { when: "daily 07:30", what: mainのビルド状態とCore Web Vitalsの確認 }
+  - { when: "monthly 1日", what: "パフォーマンス(4URLのCWV・ラボ計測・動く層)と依存関係(npm outdated・audit)の月次点検(運営の時間割 monthly)" }
+  - { when: "daily", what: "mainのビルド状態はコンソールのサーバーが自動で取得(GitHubのcheck-runs)" }
   - { when: "daily 19:00", what: 定例ヒアリングに回答 }
 reports_to: executive
 staff:
-  - { name: "実装AI", does: "サイトとコンソールの改修。ビルドとテストを通してからmainに入れる", where: "GitHub(aoi7160/yamato-outdoor)/ Cloudflare", runs: "Claude Codeのセッション。頼まれたときに実行", state: on-call }
-  - { name: "パフォーマンス計測AI", does: "PageSpeed Insights・Web Vitalsの数字を見て、fps制約が守られているかを確かめる", where: "BASE CAMP「本日」/ PageSpeed Insights", runs: "コンソールのサーバー(server/connectors.js)。開くたびに自動で取得", state: auto }
+  - { name: "実装AI", does: "サイトとコンソールの改修(claude/*ブランチ → build・test → プレビューで計測 → mainへのマージの承認依頼)、依存関係の更新、障害時の切り戻し手順", where: "GitHub(aoi7160/yamato-outdoor)/ Notion承認トレイ(mainへのマージ)", runs: "スキル yamato-dev(改修・依存関係・障害)。運営の時間割(yamato-ops)の monthly で依存関係を点検。頼まれたときも実行", state: on-call }
+  - { name: "パフォーマンス計測AI", does: "Core Web Vitals(PSI・CrUX・GA4のweb_vitals)とラボ計測(perf-check.mjs:LCP・CLS・長いタスク・スクロールfps・動く層の数と面積)で、fps制約と性能の予算が守られているかを確かめる", where: "非公開リポジトリ(content/dev/perf-log.md)/ BASE CAMP「本日」(PSIの自動取得はコンソールのサーバー)", runs: "スキル yamato-dev(月次の計測・改修ごとのプレビュー計測)。運営の時間割(yamato-ops)の monthly で実行。頼まれたときも実行", state: on-call }
 ---
 
 ## ミッション

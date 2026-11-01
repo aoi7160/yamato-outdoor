@@ -18,13 +18,14 @@ kpi:
 screen: ga4-today
 sources: [GA4, Search Console, Microsoft Clarity, PageSpeed Insights, 各部の数字]
 cadence:
-  - { when: "daily 06:00", what: 前日の数字の確定 }
-  - { when: "weekly mon 06:00", what: 週次の集計(経営企画の週次レポート用) }
-  - { when: "公開後7日・30日", what: 記事ごとの成績 }
+  - { when: "daily 06:41", what: "前日の数字の確定(GA4は2日前が確定・昨日は速報。運営の時間割 morning)" }
+  - { when: "weekly mon 07:43", what: "週次の集計(経営企画の週次レポート用。運営の時間割 weekly)" }
+  - { when: "monthly 1日 / 4日", what: "1日に前月の速報、4日に確定で上書き" }
+  - { when: "公開後10日・33日", what: "記事ごとの公開後7日・30日のレポート(Search Consoleの確定を待つため3日遅れで作る)" }
 reports_to: executive
 staff:
-  - { name: "集計AI", does: "GA4・Search Console・Clarity・PageSpeed Insightsの数字を確定させる", where: "BASE CAMP「本日」", runs: "コンソールのサーバー(server/connectors.js)。開くたびに自動で取得(1時間キャッシュ)", state: auto }
-  - { name: "分析AI", does: "数字が動いた理由を調べる(次に何をやるかは決めない)", where: "GA4 / Search Console", runs: "頼まれたときにClaude Codeで実行", state: on-call }
+  - { name: "集計AI", does: "GA4・Search Console・Clarity・PSI・Bing・ASP・SUZURIの数字を、指標の定義と速報/確定のルールで確定させ、台帳と日報・週報に書く。取れない数字は未取得と理由", where: "非公開リポジトリ(content/analytics/ledger.csv)/ Notion日報・週報(画面の自動取得はコンソールのサーバー)", runs: "スキル yamato-analytics(前日の確定・週次・月次・計測の健康診断)。運営の時間割(yamato-ops)の morning・weekly・monthly で実行。頼まれたときも実行", state: on-call }
+  - { name: "分析AI", does: "異常値(同じ曜日の過去4週との差)の切り分けと、記事の公開後7日・30日のレポート、数字が動いた理由の調査(次に何をやるかは決めない)", where: "非公開リポジトリ(content/analytics/articles/)/ Notion日報", runs: "スキル yamato-analytics(異常値・記事レポート・なぜ)。運営の時間割(yamato-ops)の morning で期日の記事を実行。頼まれたときも実行", state: on-call }
 ---
 
 ## ミッション
@@ -35,7 +36,7 @@ staff:
 ## 担当すること
 
 - 日次・週次の集計(GA4・GSC・ASP・SUZURIの数字の確定値)
-- 指標の定義の管理(例:「soft CV」= `cv_click` のうち stage が soft のもの。`docs/analytics.md` 7章)
+- 指標の定義の管理(正は `.claude/skills/yamato-analytics/metrics.md`。例:「soft CV」= `cv_click` のうち `cv_stage` が soft のもの)
 - 記事ごとの成績(公開後7日・30日)
 - 伸びている記事・落ちている記事の検出(→ 企画・編集会議部、SEO部)
 - CWV(GA4の `web_vitals` イベント・CrUX)の悪化の検知(→ サイト開発部)
@@ -45,6 +46,8 @@ staff:
 
 - 次にやることを決める → 経営企画
 - 検索順位の分析 → SEO部(分析部は流入とCVまで)
+- CWVの悪化の判断と修正 → サイト開発部(分析部は検知まで)
+- 取れない数字を、別の手段や推測で埋める(「未取得」と理由を書く)
 
 ## 受け取るもの / 渡すもの
 
