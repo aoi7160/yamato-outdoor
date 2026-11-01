@@ -5,11 +5,10 @@
  *  - table を横スクロール用のdivで包む(スマホで表が潰れるのを防ぐ)
  *  - img に loading="lazy" を足す
  *  - 外部リンクに target と rel を補う(アフィリエイトは rel="sponsored"。対象は src/lib/affiliate.ts)
- *  - ASPのインプレッション計測用の1x1画像を外す
  * DOMParserはビルド時(Node)に無いので、素直に正規表現で処理している。
  */
 
-import { affiliateNetworkOf, isImpressionPixel } from './affiliate';
+import { affiliateNetworkOf } from './affiliate';
 
 /**
  * microCMSの画像URLにWebP変換と幅指定を付ける。
@@ -103,9 +102,6 @@ export const prepareArticle = (source: string | undefined | null): PreparedArtic
   html = html.replace(/<img\b([^>]*?)\/?>/gi, (match, rawAttrs: string) => {
     let attrs = rawAttrs.replace(/\s+$/, '');
     const src = /\ssrc=["']([^"']+)["']/i.exec(attrs)?.[1];
-
-    // ASPのリンクコードに付いてくる表示回数計測の1x1画像は外す(理由は src/lib/affiliate.ts)
-    if (isImpressionPixel(attrs, src ? hostOf(src) : null)) return '';
 
     if (src && src.includes('microcms-assets.io')) {
       const srcset = microcmsSrcSet(src);

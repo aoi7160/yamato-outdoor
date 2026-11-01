@@ -19,7 +19,7 @@
  */
 import BaseLayout from '../layouts/BaseLayout.astro';
 import { CONTACT_URL, AMAZON_ASSOCIATE, AMAZON_ASSOCIATE_NOTICE } from '../lib/site';
-import { OPT_OUT_KEY, measurementTransmissions } from '../lib/analytics';
+import { OPT_OUT_KEY, measurementTransmissions, AFFILIATE_TRANSMISSIONS } from '../lib/analytics';
 
 const measured = measurementTransmissions();
 
@@ -131,9 +131,32 @@ const updated = `${today.getFullYear()}年${today.getMonth() + 1}月${today.getD
         報酬の有無によって評価を変えることはありません。
       </p>
       <p>
-        アフィリエイトリンクは、読者がリンクを押して移動したときに、移動先の事業者（各アフィリエイト・サービス提供者および販売事業者）がCookie等により成果を計測します。
-        記事を表示しただけで、これらの事業者に情報が送信されることはありません（表示回数の計測用画像は使用していません）。
+        アフィリエイトリンクを含む記事では、広告の表示回数と成果を計測するため、記事の表示時およびリンクを押したときに、閲覧情報の一部が次の事業者へ送信されます（電気通信事業法第27条の12に基づく公表）。
       </p>
+      <div class="table-scroll">
+        <table>
+          <thead>
+            <tr>
+              <th>サービス / 事業者</th>
+              <th>送信される情報</th>
+              <th>利用目的</th>
+              <th>詳細</th>
+            </tr>
+          </thead>
+          <tbody>
+            {AFFILIATE_TRANSMISSIONS.map((item) => (
+              <tr>
+                <td>{item.name}<br /><span class="legal__sub">{item.provider}</span></td>
+                <td>{item.data}</td>
+                <td>{item.purpose}</td>
+                <td class="legal__links">
+                  <a href={item.policy} target="_blank" rel="noopener noreferrer">ポリシー</a>
+                </td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
       {AMAZON_ASSOCIATE && <p>{AMAZON_ASSOCIATE_NOTICE}</p>}
 
       <h2>{5 + shift}. 免責事項</h2>

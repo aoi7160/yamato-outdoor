@@ -191,9 +191,11 @@ A/Bテストや見比べ用に、過去のトップページ構成をブラン�
   ASPのドメインは `rel="sponsored nofollow"` と `data-affiliate`(GA4の`affiliate_network`)になる。
   ASPを増やすときは `src/lib/affiliate.ts` の `AFFILIATE_NETWORKS` に1行足し、
   `console/server/proofread.js` の一覧にも足す(`cd console && npm test` でずれを検出する)。
-- **ASPのバナー・かんたんリンク(外部スクリプト)は使わない。** テキストリンクを
-  `buy-box`(`docs/workflow.md`)に入れる。リンクコードに付いてくる1x1の計測用画像は
-  `article.ts` が自動で外す。残すと記事を開いただけで外部送信が起き、`/privacy` の公表とずれる。
+- **ASP(もしも・A8などのアフィリエイト仲介会社)が出したリンクコードは、中身を変えずにそのまま貼る。**
+  リンクコードの改変(文言の変更・リンク部分だけを使うこと・1x1の計測用画像を消すこと)は規約違反になる。
+  バナーと、外部スクリプト入りの形式(もしもの「かんたんリンク」など)は使わず、テキストリンクのコードを
+  `buy-box`(`docs/workflow.md`)に貼る。計測用画像は記事を開いたときにASPへ通信するので、
+  使うASPは `src/lib/analytics.ts` の `AFFILIATE_TRANSMISSIONS` に載せる(`/privacy` に出る)。
 - アフィリエイトを含む記事は、冒頭に `<p class="pr-notice">` を置く(景品表示法)。
 - Amazonアソシエイトに参加したら `src/lib/site.ts` の `AMAZON_ASSOCIATE` を `true` にする
   (フッターと `/privacy` にAmazon指定の表記が出る)。参加前に立てない。

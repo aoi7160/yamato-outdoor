@@ -140,3 +140,28 @@ export const measurementTransmissions = (): ExternalTransmission[] =>
       optOut: 'https://x.com/settings/account/personalization',
     },
   ].filter((item): item is ExternalTransmission => Boolean(item));
+
+/**
+ * アフィリエイト(ASP)のリンクコードによる外部送信。
+ *
+ * ASPのリンクコードには表示回数を数える1x1の画像が入っていて、規約上そのまま貼る必要がある
+ * (改変の禁止。`src/lib/affiliate.ts`)。この画像は記事を開いたときに読者の端末から
+ * ASPへ通信するので、計測タグと同じく外部送信として公表する。
+ * **記事に新しいASPのリンクコードを貼るときは、ここに1行足す**(`/privacy` の「広告について」に出る)。
+ */
+export const AFFILIATE_TRANSMISSIONS: ExternalTransmission[] = [
+  {
+    name: 'A8.net',
+    provider: '株式会社ファンコミュニケーションズ',
+    data: '閲覧ページ、参照元、端末情報、Cookie識別子',
+    purpose: '広告の表示回数と成果の計測',
+    policy: 'https://www.fancs.com/privacy/',
+  },
+  {
+    name: 'もしもアフィリエイト',
+    provider: '株式会社もしも',
+    data: '閲覧ページ、参照元、端末情報、Cookie識別子',
+    purpose: '広告の表示回数と成果の計測',
+    policy: 'https://www.moshimo.co.jp/company/privacy',
+  },
+];
