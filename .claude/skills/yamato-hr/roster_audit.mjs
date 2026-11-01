@@ -29,7 +29,17 @@ const HEADINGS = [
 ];
 const SLOTS = ['morning', 'evening', 'weekly', 'monthly'];
 
-const STAFF_RE = /^\s*-\s*\{\s*name:\s*"([^"]*)",\s*does:\s*"([^"]*)",\s*where:\s*"([^"]*)",\s*runs:\s*"([^"]*)",\s*state:\s*([\w-]+)\s*\}\s*$/;
+// staff の1行を読む。必須は name / does / where / runs(値は "" で囲む)と state。
+// label・kpi・growth(文字列)や skills(配列)など、console/src/lib/org.ts の Staff 型にある任意の項目が増えても読めるようにする。
+function parseStaff(line) {
+  const m = line.match(/^\s*-\s*\{(.*)\}\s*$/);
+  if (!m) return null;
+  const body = m[1];
+  const get = (key) => body.match(new RegExp(`(?:^|[\\s,])${key}:\\s*"([^"]*)"`))?.[1];
+  const state = body.match(/(?:^|[\s,])state:\s*([\w-]+)/)?.[1];
+  const s = { name: get('name'), does: get('does'), where: get('where'), runs: get('runs'), state };
+  return Object.values(s).every((v) => typeof v === 'string') ? s : null;
+}
 
 function frontmatter(text) {
   const m = text.match(/^---\n([\s\S]*?)\n---/);
@@ -83,9 +93,9 @@ for (const file of readdirSync(AGENTS_DIR).filter((f) => f.endsWith('.md') && !f
   const staffLines = listBlock(fm, 'staff');
   const staff = [];
   for (const line of staffLines) {
-    const m = line.match(STAFF_RE);
-    if (!m) { findings.push(`[書式] ${id}: staff の行が既定の書式ではありません → ${line.trim()}`); continue; }
-    staff.push({ name: m[1], does: m[2], where: m[3], runs: m[4], state: m[5] });
+    const parsed = parseStaff(line);
+    if (!parsed) { findings.push(`[書式] ${id}: staff の行に name / does / where / runs("" で囲む)/ state がそろっていません → ${line.trim()}`); continue; }
+    staff.push(parsed);
   }
   if (staff.length === 0) findings.push(`[名簿] ${id}: staff が空です`);
 

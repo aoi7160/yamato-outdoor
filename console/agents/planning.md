@@ -23,14 +23,15 @@ cadence:
   - { when: "monthly 1日", what: "今月の企画を2本以上決める(需要の山の6週間前に公開できるもの)。企画は承認トレイに「企画」として積む" }
 reports_to: executive
 staff:
-  - { name: "需要カレンダーAI", does: "需要の山(ブラックフライデー・雪山など)の6〜8週間前に、季節に合う企画を承認トレイに積む", where: "Googleカレンダー「YAMATO BASE CAMP」/ Notion承認トレイ", runs: "スキル write-article の経路B。頼まれたときに実行", state: on-call }
-  - { name: "発注AI", does: "決まった企画を、SEO・制作・クリエイティブの各部への作業に分ける", where: "Notion承認トレイ", runs: "スキル article-pipeline の企画担当(.claude/agents/article-planner.md)。頼まれたときに実行", state: on-call }
+  - { name: "需要カレンダーAI", does: "需要の山(demo.ts の PEAKS・セール・関西の山の暦)から公開目標日と企画の締切を逆算し(立ち上げ期は山の12週前に公開)、季節×ペルソナ×コンテンツマップの行で企画を立てて承認トレイに積む。CEOの次の登山で回収する実測を束ねた取材計画も作る", where: "Googleカレンダー「YAMATO BASE CAMP」/ Notion承認トレイ / Notion「日報・週報」(週報の取材計画)", runs: "スキル yamato-planning(需要カレンダー・企画の起案・取材計画)。運営の時間割(yamato-ops)の morning・weekly で実行。頼まれたときも実行", state: on-call }
+  - { name: "発注AI", does: "承認された企画を、SEO・制作・クリエイティブ・アフィリエイト・SNS・グッズへの発注書(期限・受け取る物・完成の条件)に分け、発注表で遅れを追う。月2本以上の企画本数も管理する", where: "Notion「日報・週報」(週報の発注表)/ Notion承認トレイ", runs: "スキル yamato-planning(編集会議・発注書・発注表)。運営の時間割(yamato-ops)の morning・weekly で実行。頼まれたときも実行", state: on-call }
 ---
 
 ## ミッション
 
 「何をいつまでに出すか」を季節から逆算して決め、各部への発注に落とす。
 検索需要は山のシーズンより早く立ち上がるので、**需要の山の6〜8週間前に公開**できるように組む。
+ただし立ち上げ期(新規ドメインで順位が付くまで約3か月)は、**山の12週前の公開**を目標にする(スキル `yamato-planning` 3-2「12週ルール」)。
 
 ## 担当すること
 
@@ -90,6 +91,7 @@ staff:
 
 ## 参照するドキュメント・データ
 
+- `.claude/skills/yamato-planning/`(判断の型・逆算表 `calendar.md`・発注書の型 `order-templates.md`)
 - `docs/persona.md`(P1の登山プロファイル・行動。季節の動き方)
 - `src/lib/taxonomy.ts`(ジャンル:登山 / 釣り / キャンプ)
 

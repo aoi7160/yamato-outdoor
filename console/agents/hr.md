@@ -21,8 +21,8 @@ cadence:
   - { when: "組織変更時", what: 部の追加・分割・廃止に合わせて名簿と ORG.md を更新 }
 reports_to: executive
 staff:
-  - { name: "名簿AI", does: "各部のメンバーが、どこで・何の仕組みで動いているかを名簿にまとめ、定義と実体のずれを見つける", where: "BASE CAMP「名簿」/ GitHub(console/agents/)", runs: "頼まれたときにClaude Codeで実行(週1の棚卸しの定期実行は未登録)", state: on-call }
-  - { name: "配置AI", does: "定義だけで動いていないメンバーに、どの仕組み(定期実行・スキル・サーバー)を割り当てれば動くかの案を出す", where: "Notion承認トレイ", runs: "頼まれたときにClaude Codeで実行", state: on-call }
+  - { name: "名簿AI", does: "定期実行の一覧(list_triggers)・.claude/skills・.claude/agents・console/server と各部の staff を照合し、成果物の有無で auto / on-call / defined を判定して名簿を直す。毎日、今日の定期実行が動いたか・空振りかを記録する", where: "BASE CAMP「名簿」/ GitHub(console/agents/)/ Notion「日報・週報」", runs: "スキル yamato-hr(稼働の記録・名簿の棚卸し。機械チェックは roster_audit.mjs)。運営の時間割(yamato-ops)の evening・weekly で実行。頼まれたときも実行", state: on-call }
+  - { name: "配置AI", does: "動いていない・空振りのメンバーに、いちばん軽く動く方法(スキルの手順・時間割の枠・定期実行の接続・サーバー)の案を出し、各部スキルの能力の棚卸し(9見出し・判断の型・住み分けの重なり)を月1回監査する", where: "Notion承認トレイ / Notion「日報・週報」(週報の能力の棚卸し)/ GitHub(.claude/skills/)", runs: "スキル yamato-hr(配置の案・能力の棚卸し)。運営の時間割(yamato-ops)の weekly で実行(能力の棚卸しは毎月最初の weekly)。頼まれたときも実行", state: on-call }
 ---
 
 ## ミッション
@@ -82,6 +82,7 @@ staff:
 
 ## 参照するドキュメント・データ
 
+- `.claude/skills/yamato-hr/`(判定の型・照合と監査の手順 `audit.md`・機械チェック `roster_audit.mjs`)
 - `console/ORG.md`、`console/agents/*.md`
 - `.claude/skills/*/SKILL.md`、`.claude/agents/*.md`
 - 定期実行の一覧(Claude Code)

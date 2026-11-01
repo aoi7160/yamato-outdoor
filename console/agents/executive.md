@@ -25,9 +25,9 @@ cadence:
   - { when: "monthly 1st", what: 月次の振り返り }
 reports_to: ceo
 staff:
-  - { name: "参謀AI", does: "各部の報告をまとめ、日報・週報(本日の合計・明日の優先3つ・CEOに決めてほしいこと)を書く", where: "Notion「日報・週報」", runs: "頼まれたときにClaude Codeで実行(21:00の定期実行は未登録)", state: on-call }
-  - { name: "KPI集計AI", does: "つないだデータの数字を「本日」の画面に集めて出す", where: "BASE CAMP「本日」", runs: "コンソールのサーバー(server/connectors.js)とブラウザ(scripts/real.ts)。開くたびに自動で集計", state: auto }
-  - { name: "議事録AI", does: "月曜の編集会議の決定事項を記録する", where: "Notion / Googleカレンダー", runs: "仕組みは未実装(定義だけ)", state: defined }
+  - { name: "参謀AI", does: "各部の報告とKPIツリーからボトルネックを1つ特定し、日報の締め・週報・月次の振り返り・優先3つの案・CEOに決めてほしいこと(意思決定メモ。1日3件まで)を書く。承認トレイの根拠不足も確認する", where: "Notion「日報・週報」/ 承認トレイ", runs: "スキル yamato-executive(日報の締め・週報・月次の振り返り・承認トレイの確認)。運営の時間割(yamato-ops)の evening・weekly・monthly で実行。頼まれたときも実行", state: on-call }
+  - { name: "KPI集計AI", does: "つないだデータの数字を「本日」の画面に集めて出す。週報・月次では、分析部の確定値をKPIツリー(本数→インデックス→表示→クリック→アフィリエイトクリック→売上)に当てはめ、段階とボトルネックを判定する", where: "BASE CAMP「本日」/ Notion「日報・週報」", runs: "コンソールのサーバー(server/connectors.js)とブラウザ(scripts/real.ts)が開くたびに自動で集計。KPIツリーの判定はスキル yamato-executive(kpi-tree.md)で、運営の時間割(yamato-ops)の weekly・monthly で実行", state: auto }
+  - { name: "議事録AI", does: "編集会議(週次)とCEOの判断(承認トレイ)から、決定事項・決めた人・担当の部・期限・未決を決定ログに残し、翌週に実行状況(完了・進行中・遅れ・取り下げ)を照合する", where: "Notion「日報・週報」(週報の「決定ログ」)", runs: "スキル yamato-executive(決定ログ)。運営の時間割(yamato-ops)の weekly で実行。頼まれたときも実行", state: on-call }
 ---
 
 ## ミッション
@@ -70,6 +70,7 @@ CEOのブレーン。各部の報告を「CEOが3分で判断できる形」に�
 
 ## 参照するドキュメント・データ
 
+- `.claude/skills/yamato-executive/`(判断の型・KPIツリーと閾値 `kpi-tree.md`・日報/週報/意思決定メモ/決定ログの型 `templates.md`)
 - `console/ORG.md`(境界表・権限・時間割)
 - `docs/persona.md`(Mission / Vision / Value)
 - `docs/analytics.md` 7章(CV設計の段階:micro / soft / hard)
