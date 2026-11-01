@@ -19,14 +19,14 @@ kpi:
 screen: suzuri-sales
 sources: [SUZURI, GA4]
 cadence:
-  - { when: "daily 06:30", what: 前日のSUZURI売上 }
+  - { when: "weekly mon", what: "販売の点検・進行中の企画(商標の確認・清書)の点検(スキル yamato-goods)" }
   - { when: "daily 19:00", what: 定例ヒアリングに回答 }
-  - { when: "monthly 1st", what: 新作の企画案 }
+  - { when: "monthly 最初の月曜", what: "新作の企画とSVGのラフ(企画採点表で11点以上のものだけ)" }
 reports_to: executive
 staff:
-  - { name: "企画AI", does: "SUZURIで出すグッズの企画を立てる", where: "SUZURI", runs: "頼まれたときにClaude Codeで実行", state: on-call }
-  - { name: "デザイン案AI", does: "グッズのデザイン案を作る", where: "SUZURI", runs: "頼まれたときにClaude Codeで実行", state: on-call }
-  - { name: "販売分析AI", does: "SUZURIの売上を集計する", where: "BASE CAMP「データ連携」", runs: "仕組みは未実装(売上データの取り込み待ち)", state: defined }
+  - { name: "企画AI", does: "ペルソナ×Mission×関西の山の固有名詞でグッズの企画を立て、企画採点表(15点満点・11点以上)で絞る。企画部の季節商品の依頼にも応える", where: "非公開リポジトリ(content/goods)", runs: "スキル yamato-goods(新作の企画)。運営の時間割(yamato-ops)の weekly で実行(新作の企画は毎月最初の月曜)。頼まれたときも実行", state: on-call }
+  - { name: "デザイン案AI", does: "実在の稜線と「YAMATO OUTDOOR」の名前でSVGのラフを2〜3案作り、法務部に商標の確認・クリエイティブ部に清書を依頼し、そろったらグッズ登録の承認依頼を積む", where: "非公開リポジトリ(content/goods)/ Notion承認トレイ", runs: "スキル yamato-goods(デザイン案・グッズ登録の承認依頼)。運営の時間割(yamato-ops)の weekly で実行。頼まれたときも実行", state: on-call }
+  - { name: "販売分析AI", does: "SUZURIの販売点数・トリブンとショップへのクリックから、品ぞろえ(10点まで)と価格帯を見直す", where: "BASE CAMP「データ連携」(手入力)/ 非公開リポジトリ(content/goods)", runs: "スキル yamato-goods(販売の点検)。運営の時間割(yamato-ops)の weekly で実行(SUZURIの数字はCEOの手入力を受け取ったとき)。頼まれたときも実行", state: on-call }
 ---
 
 ## ミッション

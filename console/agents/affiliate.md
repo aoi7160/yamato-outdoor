@@ -29,9 +29,9 @@ cadence:
   - { when: "セールの3週間前", what: "セール対象になりやすい記事のリンク点検と、企画部へのセール情報" }
 reports_to: executive
 staff:
-  - { name: "案件リサーチAI", does: "ASPの案件を調べ、報酬と確認日を案件台帳に書く", where: "Notion「案件台帳」", runs: "頼まれたときにClaude Codeで実行(木曜の定期点検は未登録)", state: on-call }
-  - { name: "リンク設計AI", does: "記事のどこにどの案件の購入リンク(buy-box)を置くかを決め、差分を承認トレイに積む", where: "Notion承認トレイ", runs: "頼まれたときにClaude Codeで実行", state: on-call }
-  - { name: "収益分析AI", does: "ASPのCSVから記事ごとの発生・確定を集計する", where: "BASE CAMP「データ連携」(ブラウザ内に保存)", runs: "CSVを取り込んだときにブラウザ内で集計", state: on-call }
+  - { name: "案件リサーチAI", does: "ASPの案件を報酬×CVR×確定率×Cookie×記事との適合で評価して案件台帳に報酬と確認日を書き、申請の条件がそろったらASP登録の提案を積む", where: "Notion「案件台帳」/ Notion承認トレイ", runs: "スキル yamato-affiliate(案件台帳の点検・案件の評価・ASP登録の提案)。運営の時間割(yamato-ops)の morning で実行(木曜は全件点検)。頼まれたときも実行", state: on-call }
+  - { name: "リンク設計AI", does: "記事ごとにbuy-boxを置く製品・場所・店の順を設計し(未提携の案件はURLなし)、提携中の案件はリンク差し替えの差分を、リンク切れ・提携終了は差し替え案を承認トレイに積む", where: "非公開リポジトリ(content/affiliate/link-plans)/ Notion承認トレイ", runs: "スキル yamato-affiliate(リンク設計・差し替え案)。運営の時間割(yamato-ops)の morning で実行(月曜は新しい記事のリンク設計)。頼まれたときも実行", state: on-call }
+  - { name: "収益分析AI", does: "ASPのCSVから記事別の発生・確定・EPCを出し、置き場所・店の順・案件の見直しを診断する(確定値はデータ分析部・記帳は事業報告部へ渡す)", where: "非公開リポジトリ(content/affiliate/monthly)/ BASE CAMP「データ連携」(CSVはCEOのブラウザ内)", runs: "スキル yamato-affiliate(月次の締め・EPCの診断)。運営の時間割(yamato-ops)の morning で毎月1日に実行(CEOからCSVを受け取ったとき)。頼まれたときも実行", state: on-call }
 ---
 
 ## ミッション

@@ -24,9 +24,9 @@ cadence:
   - { when: "daily 19:00", what: 定例ヒアリングに回答 }
 reports_to: executive
 staff:
-  - { name: "編集長AI", does: "公開前チェックリストを全項目見て、合格・保留・差し戻しを出す", where: "GitHub(非公開リポジトリ yamato-outdoor-editorial)", runs: "サブエージェント article-final-checker。パイプライン実行時", state: on-call }
-  - { name: "校閲AI", does: "表記ゆれ・使わない語・文の長さ・見出し・広告表記などを機械で調べる", where: "BASE CAMP「校閲チェック」", runs: "コンソールのサーバー(server/proofread.js)。公開記事を1時間ごとに自動でチェック。トンマナの手直しはサブエージェント article-style-editor", state: auto }
-  - { name: "事実確認AI", does: "本文の数字・固有名詞を出典と照合し、体験の文が運営者の回答の範囲に収まっているかを見る", where: "メーカー公式サイト / 非公開リポジトリ", runs: "サブエージェント article-fact-checker。パイプライン実行時", state: on-call }
+  - { name: "編集長AI", does: "承認トレイに積まれた記事を重大度つきの審査シートで見て合格・修正依頼を出し、ページに「校閲の判断」(何が・なぜ・どう直すか)を書く。同じ指摘は一般化してルールに足す提案をする", where: "Notion承認トレイ / 非公開リポジトリ yamato-outdoor-editorial(content/editorial/)", runs: "スキル yamato-editorial(3-1・3-5・3-7・依頼時の公開前審査)。運営の時間割(yamato-ops)の morning で審査待ちを拾い上げて実行。パイプライン実行時はサブエージェント article-final-checker。頼まれたときも実行", state: on-call }
+  - { name: "校閲AI", does: "表記ゆれ・使わない語・文の長さ・見出し・広告表記など16項目を機械で調べ、誤検知を外して重大度を付ける", where: "BASE CAMP「校閲チェック」/ check_published.mjs(セッションから同じルールを回す)", runs: "コンソールのサーバー(server/proofread.js)が公開記事を1時間ごとに自動でチェック。仕分けはスキル yamato-editorial(proofread-guide.md)で、運営の時間割(yamato-ops)の morning で実行。トンマナの手直しはサブエージェント article-style-editor(パイプライン実行時)", state: auto }
+  - { name: "事実確認AI", does: "公開記事の価格・廃番・仕様・ルート情報を曜日ローテーションでメーカー・自治体の公式と照合し、事実確認の台帳を更新する。審査では体験の文が根拠の範囲に収まっているかを見る", where: "メーカー公式サイト / 自治体・施設の公式 / 非公開リポジトリ(content/editorial/fact-ledger.md)", runs: "スキル yamato-editorial(3-2・3-3・morningの2〜6)。運営の時間割(yamato-ops)の morning で実行。パイプライン実行時はサブエージェント article-fact-checker。頼まれたときも実行", state: on-call }
 ---
 
 ## ミッション

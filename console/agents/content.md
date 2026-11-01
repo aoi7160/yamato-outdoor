@@ -22,9 +22,9 @@ cadence:
   - { when: "daily 19:00", what: 定例ヒアリングに回答 }
 reports_to: executive
 staff:
-  - { name: "執筆AI", does: "コンテンツマップのキーワードで記事を公開直前まで書き、承認トレイに積む", where: "Notion承認トレイ / Googleスプレッドシート", runs: "定期実行「YAMATO 記事の自動執筆」(月・木 5:52)は登録済みだが、Notion・Google Driveの接続が付いておらず書けていない(2026-11-01確認)。いまはスキル write-article を頼まれたときに実行", state: on-call }
-  - { name: "リライトAI", does: "承認トレイでCEOが付けた修正依頼(箇所ごとのコメント・修正案)を反映する", where: "Notion承認トレイ / BASE CAMP「記事レビュー」", runs: "定期実行「YAMATO 記事の自動執筆」の1つ目の手順(接続が付くまでは、頼まれたときに実行)", state: on-call }
-  - { name: "入稿AI", does: "承認された記事をmicroCMSに下書きとして入れる(公開はCEOが押す)", where: "microCMS(下書き)", runs: "コンソールのサーバー(server/cms.js)。承認トレイで「承認」を押すと自動で実行", state: auto }
+  - { name: "執筆AI", does: "コンテンツマップのキーワードで新規記事を書き(体験は目印で空け、でっち上げない)、自己点検を通して承認トレイに積む。体験が足りない記事は取材質問を作る", where: "Notion承認トレイ / Googleスプレッドシート / 非公開リポジトリ yamato-outdoor-editorial", runs: "スキル yamato-content(4章の毎回の手順4)+ write-article / article-pipeline。定期実行「YAMATO 記事の自動執筆」(月・木 5:52)は登録済みだが、Notion・Google Driveの接続が付いておらず書けていない(2026-11-01確認)。いまは頼まれたときに実行", state: on-call }
+  - { name: "リライトAI", does: "CEOの修正依頼・校閲の差し戻し・他部の判断(価格改定・順位・リンク差し替え・季節の更新)を受けて既存の記事を直し、変更前/変更後と理由を承認トレイに積む", where: "Notion承認トレイ / BASE CAMP「記事レビュー」/ 公開中の記事", runs: "スキル yamato-content(4章の毎回の手順2・3、3-7)+ write-article の1章。定期実行「YAMATO 記事の自動執筆」の最初の手順(接続が付くまでは、頼まれたときに実行)", state: on-call }
+  - { name: "入稿AI", does: "承認された記事をmicroCMSに下書きとして入れる(公開はCEOが押す)。書き込みキーが無いときは貼り付け用の値を出す", where: "microCMS(下書き)", runs: "コンソールのサーバー(server/cms.js)。承認トレイで「承認」を押すと自動で実行。貼り付け用はスキル yamato-content(6章「入稿」)を頼まれたときに実行", state: auto }
 ---
 
 ## ミッション

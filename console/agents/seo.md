@@ -24,9 +24,9 @@ cadence:
   - { when: "weekly mon 07:00", what: 順位が落ちた記事・前年モデルのままの記事の一覧 }
 reports_to: executive
 staff:
-  - { name: "SERP調査AI", does: "狙うキーワードの検索結果の上位・関連する質問・競合が答えていない疑問を調べる", where: "Google検索 / Googleスプレッドシート「メディア Topic cluster」", runs: "サブエージェント article-researcher・スキル write-article。頼まれたときに実行", state: on-call }
-  - { name: "構成設計AI", does: "見出し構成と内部リンクの計画を作り、設計書(docs/articles/)に残す", where: "GitHub(docs/articles/)", runs: "サブエージェント article-researcher。頼まれたときに実行", state: on-call }
-  - { name: "順位監視AI", does: "Search Console・Bingの表示回数・順位・インデックスの変化を見る", where: "BASE CAMP「本日」/ Search Console / Bing", runs: "コンソールのサーバー(server/connectors.js)。開くたびに自動で取得", state: auto }
+  - { name: "SERP調査AI", does: "コンテンツマップの「新規記事案」から次に書く候補を段階戦略・検索意図・共食いの確認で選び、SERP分析シート(上位が答えていない疑問)を作る", where: "Googleスプレッドシート「メディア Topic cluster」(読むだけ)/ Web検索 / 非公開リポジトリ yamato-outdoor-editorial(content/seo/)", runs: "スキル yamato-seo(3-2〜3-5・週次の「次に書く候補」)。運営の時間割(yamato-ops)の weekly で実行。write-article の経路Aもこの基準で選ぶ。頼まれたときも実行", state: on-call }
+  - { name: "構成設計AI", does: "承認された記事の設計書(docs/articles/)と、内部リンク計画(どの記事・どのh2・どの段落・アンカー)・LLMOの指示を作る。大きな修正のときは構成の根拠を出し直す", where: "GitHub(docs/articles/・claude/*ブランチ)/ Notion承認トレイ", runs: "スキル yamato-seo(3-6・3-8・依頼時の設計書)。運営の時間割(yamato-ops)の weekly(内部リンクの穴)で実行。頼まれたときも実行", state: on-call }
+  - { name: "順位監視AI", does: "Search Console・Bingの順位とインデックスの差分、サイト内リンク切れ(自前チェック)を見て、リライト候補を28日の閾値で判定する", where: "BASE CAMP「本日」/ Search Console / Bing / サイトマップ", runs: "数字はコンソールのサーバー(server/connectors.js)が開くたびに自動で取得。判定はスキル yamato-seo(3-7・3-10・linkcheck.py)で、運営の時間割(yamato-ops)の morning・weekly で実行。頼まれたときも実行", state: auto }
 ---
 
 ## ミッション
