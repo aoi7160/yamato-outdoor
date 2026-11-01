@@ -22,6 +22,10 @@ cadence:
   - { when: "daily 19:00", what: 定例ヒアリングに回答 }
   - { when: "monthly", what: メルマガ(月1〜2回) }
 reports_to: executive
+staff:
+  - { name: "配信AI", does: "LINE・メルマガの配信文を作る", where: "LINE公式アカウント / メール配信", runs: "将来(配信先がそろってから)", state: defined }
+  - { name: "企画AI", does: "登山企画・イベントの案を作る", where: "Notion", runs: "将来(定義だけ)", state: defined }
+  - { name: "受付AI", does: "読者からの質問・問い合わせに返信の下書きを作る", where: "問い合わせフォーム", runs: "将来(定義だけ)", state: defined }
 ---
 
 ## ミッション

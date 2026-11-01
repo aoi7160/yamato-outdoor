@@ -21,6 +21,10 @@ sources: [制作キュー, Veo(動画生成), ffmpeg]
 cadence:
   - { when: "daily 19:00", what: 定例ヒアリングに回答 }
 reports_to: executive
+staff:
+  - { name: "サムネイルAI", does: "記事のサムネイル(16:9・文字なし)の案を作る", where: "制作キュー", runs: "仕組みは未実装(定義だけ)", state: defined }
+  - { name: "図解AI", does: "記事の図解・比較表の画像を作る", where: "制作キュー", runs: "仕組みは未実装(定義だけ)", state: defined }
+  - { name: "映像AI", does: "カバー写真から雲が動くシネマグラフを作り、ffmpegで配信用に軽くする", where: "GitHub(public/media/)", runs: "Veo(動画生成)+ ffmpeg。頼まれたときに実行", state: on-call }
 ---
 
 ## ミッション

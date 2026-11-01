@@ -20,6 +20,9 @@ cadence:
   - { when: "monthly 1st", what: サイト全体の監査(外部送信・広告表記・画像の権利) }
   - { when: "依頼時", what: 記事・グッズ・タイアップの確認 }
 reports_to: executive
+staff:
+  - { name: "法令確認AI", does: "景品表示法・ステマ規制・電気通信事業法の外部送信規律に照らして表現と表記を見る", where: "GitHub(src/lib/analytics.ts・/privacy)", runs: "頼まれたときにClaude Codeで実行", state: on-call }
+  - { name: "監査AI", does: "サイト全体の外部送信の公表と実態のずれを月1回監査する", where: "GitHub / 公開サイト", runs: "仕組みは未実装(月次の定期実行は未登録)", state: defined }
 ---
 
 ## ミッション

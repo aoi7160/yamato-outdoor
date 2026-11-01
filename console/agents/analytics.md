@@ -22,6 +22,9 @@ cadence:
   - { when: "weekly mon 06:00", what: 週次の集計(経営企画の週次レポート用) }
   - { when: "公開後7日・30日", what: 記事ごとの成績 }
 reports_to: executive
+staff:
+  - { name: "集計AI", does: "GA4・Search Console・Clarity・PageSpeed Insightsの数字を確定させる", where: "BASE CAMP「本日」", runs: "コンソールのサーバー(server/connectors.js)。開くたびに自動で取得(1時間キャッシュ)", state: auto }
+  - { name: "分析AI", does: "数字が動いた理由を調べる(次に何をやるかは決めない)", where: "GA4 / Search Console", runs: "頼まれたときにClaude Codeで実行", state: on-call }
 ---
 
 ## ミッション

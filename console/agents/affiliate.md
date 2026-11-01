@@ -28,6 +28,10 @@ cadence:
   - { when: "monthly 第3週", what: 公開記事のアフィリエイトリンクの点検(リンク切れ・提携終了・広告表記) }
   - { when: "セールの3週間前", what: "セール対象になりやすい記事のリンク点検と、企画部へのセール情報" }
 reports_to: executive
+staff:
+  - { name: "案件リサーチAI", does: "ASPの案件を調べ、報酬と確認日を案件台帳に書く", where: "Notion「案件台帳」", runs: "頼まれたときにClaude Codeで実行(木曜の定期点検は未登録)", state: on-call }
+  - { name: "リンク設計AI", does: "記事のどこにどの案件の購入リンク(buy-box)を置くかを決め、差分を承認トレイに積む", where: "Notion承認トレイ", runs: "頼まれたときにClaude Codeで実行", state: on-call }
+  - { name: "収益分析AI", does: "ASPのCSVから記事ごとの発生・確定を集計する", where: "BASE CAMP「データ連携」(ブラウザ内に保存)", runs: "CSVを取り込んだときにブラウザ内で集計", state: on-call }
 ---
 
 ## ミッション

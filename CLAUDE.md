@@ -61,6 +61,7 @@ Astro(SSG) + microCMS + Cloudflare Pages のアウトドアメディア。
 | トップのカバー動画(雲が動くシネマグラフ) | `src/pages/index.astro` の`<section class="cover cover--video">` + `public/media/hero/01-mist.mp4` |
 | 記事を書いて承認トレイに積む手順(AI) | `.claude/skills/write-article/SKILL.md` |
 | AIエージェントの組織・部の定義 / 管理コンソール「BASE CAMP」 | `console/ORG.md` / `console/agents/<部>.md` / `console/README.md`(別アプリ。公開サイトのビルドには含まれない) |
+| AIメンバーの名簿(誰が・どこで・何の仕組みで動くか) | 各部の `console/agents/<部>.md` の `staff`(人事部 `console/agents/hr.md` が管理)→ コンソールの `/people/` |
 
 ## 過去デザインのアーカイブ
 

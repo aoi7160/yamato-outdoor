@@ -22,6 +22,10 @@ cadence:
   - { when: "daily 06:00", what: 予約投稿の確認 }
   - { when: "daily 19:00", what: 定例ヒアリングに回答 }
 reports_to: executive
+staff:
+  - { name: "トレンド調査AI", does: "SNSで伸びている登山の話題を調べる", where: "X / Instagram / Threads", runs: "準備中(発信先のアカウントがそろってから)", state: defined }
+  - { name: "投稿作成AI", does: "記事の告知と登山の記録を投稿キューに積む", where: "投稿キュー", runs: "準備中(発信先のアカウントがそろってから)", state: defined }
+  - { name: "運用分析AI", does: "投稿からサイト・LINEへの流入を見る", where: "GA4", runs: "準備中(発信先のアカウントがそろってから)", state: defined }
 ---
 
 ## ミッション

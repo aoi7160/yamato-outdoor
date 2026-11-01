@@ -22,6 +22,9 @@ cadence:
   - { when: "weekly mon 10:00", what: 編集会議(今週と6週間先までの発注表) }
   - { when: "monthly 1日", what: "今月の企画を2本以上決める(需要の山の6週間前に公開できるもの)。企画は承認トレイに「企画」として積む" }
 reports_to: executive
+staff:
+  - { name: "需要カレンダーAI", does: "需要の山(ブラックフライデー・雪山など)の6〜8週間前に、季節に合う企画を承認トレイに積む", where: "Googleカレンダー「YAMATO BASE CAMP」/ Notion承認トレイ", runs: "スキル write-article の経路B。頼まれたときに実行", state: on-call }
+  - { name: "発注AI", does: "決まった企画を、SEO・制作・クリエイティブの各部への作業に分ける", where: "Notion承認トレイ", runs: "スキル article-pipeline の企画担当(.claude/agents/article-planner.md)。頼まれたときに実行", state: on-call }
 ---
 
 ## ミッション

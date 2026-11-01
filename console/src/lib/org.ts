@@ -27,6 +27,10 @@ export const DIVISIONS: Division[] = [
 export type Kpi = { key: string; label: string; unit: string; source: string };
 export type Cadence = { when: string; what: string };
 
+/** 名簿のメンバー1人。人事部が agents/<id>.md の staff に書く(agents/hr.md「名簿の書き方」) */
+export type StaffState = 'auto' | 'on-call' | 'defined';
+export type Staff = { name: string; does: string; where: string; runs: string; state: StaffState };
+
 export type AgentMeta = {
   id: string;
   name: string;
@@ -43,6 +47,7 @@ export type AgentMeta = {
   sources: string[];
   cadence: Cadence[];
   reports_to: string;
+  staff: Staff[];
 };
 
 export type Agent = AgentMeta & { Content: AstroComponentFactory };
@@ -60,6 +65,7 @@ export const AGENTS: Agent[] = Object.entries(modules)
     kpi: mod.frontmatter.kpi ?? [],
     sources: mod.frontmatter.sources ?? [],
     cadence: mod.frontmatter.cadence ?? [],
+    staff: mod.frontmatter.staff ?? [],
     standby_until: mod.frontmatter.standby_until ?? '',
     Content: mod.Content,
   }))
@@ -75,6 +81,12 @@ export const STATUS_LABEL: Record<AgentStatus, string> = {
   active: '稼働中',
   standby: '準備中',
   planned: '将来',
+};
+
+export const STAFF_STATE_LABEL: Record<StaffState, string> = {
+  auto: '自動で稼働',
+  'on-call': '頼むと動く',
+  defined: '定義だけ',
 };
 
 export const PERMISSION_LABEL = {

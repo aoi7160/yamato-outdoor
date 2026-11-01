@@ -26,6 +26,10 @@ cadence:
   - { when: "quarterly 翌月10日", what: 対外版の事業報告書(投資家・金融機関向け)の下書き }
   - { when: "随時", what: 事業計画書の清書(経営企画の案がCEOに承認されたあと) }
 reports_to: executive
+staff:
+  - { name: "経理AI", does: "売上・費用・作業時間をP&L台帳に記帳する", where: "Notion", runs: "仕組みは未実装(定義だけ)", state: defined }
+  - { name: "記録AI", does: "活動と登山の記録(山名・日付・天気・写真)を残す", where: "Notion", runs: "仕組みは未実装(定義だけ)", state: defined }
+  - { name: "報告書AI", does: "月次・四半期の事業報告書を清書する", where: "Notion / Googleドキュメント", runs: "仕組みは未実装(定義だけ)", state: defined }
 ---
 
 ## ミッション
