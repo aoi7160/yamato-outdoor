@@ -7,7 +7,7 @@ import { verifyAccess } from '../server/access.js';
 import { CONNECTORS } from '../server/connectors.js';
 import { handleApi } from '../server/api.js';
 import { checkArticle, AFFILIATE_HOSTS } from '../server/proofread.js';
-import { decide, listApprovals } from '../server/notion.js';
+import { cleanFills, decide, listApprovals } from '../server/notion.js';
 import { putDraft } from '../server/cms.js';
 import assert from 'node:assert/strict';
 
@@ -186,7 +186,8 @@ routes = {
   [`/data_sources/${DS}/query`]: { results: [
     { id: '01234567-89ab-cdef-0123-456789abcdef', url: 'https://www.notion.so/p', created_time: now, properties: {
       件名: { type: 'title', title: rt('サロモンのリライト') }, 状態: { type: 'select', select: { name: '承認待ち' } }, 依頼元: { type: 'select', select: { name: 'editorial' } },
-      種類: { type: 'select', select: { name: 'リライト' } }, 根拠: { type: 'rich_text', rich_text: rt('重複を検出\n語尾') }, 修正回数: { type: 'number', number: null } } },
+      種類: { type: 'select', select: { name: 'リライト' } }, 根拠: { type: 'rich_text', rich_text: rt('重複を検出\n語尾') }, 修正回数: { type: 'number', number: null },
+      経営企画の推奨: { type: 'select', select: { name: '承認' } }, 推奨の理由: { type: 'rich_text', rich_text: rt('収益に直結') } } },
   ] },
   [`/blocks/${PAGE}/children`]: (u, init) => {
     if (init?.method === 'PATCH') { sent.push(['append', JSON.parse(init.body)]); return Response.json({}); }
@@ -207,6 +208,15 @@ assert.equal(items.length, 1);
 assert.deepEqual([items[0].id, items[0].title, items[0].state, items[0].from, items[0].basis.length, items[0].round], [PAGE, 'サロモンのリライト', '承認待ち', 'editorial', 2, 0]);
 assert.equal(items[0].detail.diffs[0].after, '後');
 assert.equal(items[0].history[0].lines[0], '自動チェックから作成');
+assert.deepEqual([items[0].recommend, items[0].recommendWhy], ['承認', '収益に直結']);
+// 差し込み欄:https のURLと、決まった形のキーだけ通す
+assert.deepEqual(cleanFills({ amazon: ' https://af.moshimo.com/x ', rakuten: 'javascript:alert(1)', 'BAD KEY': 'https://a.example', yahoo: '' }), { amazon: 'https://af.moshimo.com/x' });
+assert.deepEqual(cleanFills('x'), {});
+sent.length = 0;
+const da = await decide(nenv, PAGE, { action: 'approve', fills: { amazon: 'https://af.moshimo.com/af/c/click?a_id=1' } }, new Date('2026-10-13T12:00:00Z'));
+assert.deepEqual(da.fills, { amazon: 'https://af.moshimo.com/af/c/click?a_id=1' });
+assert.equal(sent.find((x) => x[0] === 'append')[1].children.at(-1).bulleted_list_item.rich_text[0].text.content, '差し込み:amazon=https://af.moshimo.com/af/c/click?a_id=1');
+sent.length = 0;
 const dr = await decide(nenv, PAGE, { action: 'revise', size: '大きな修正', note: '常体に', comments: [{ where: '見出し', text: '短く' }] }, new Date('2026-10-13T12:00:00Z'));
 assert.deepEqual([dr.state, dr.round], ['修正依頼', 2]);
 const props = sent.find((x) => x[0] === 'props')[1].properties;

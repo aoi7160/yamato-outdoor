@@ -2,406 +2,850 @@
 /**
  * 承認トレイ。CEOが判断するのはここだけ(console/ORG.md 4章のL2)。
  *
- * 判断は4つ:承認 / 修正を依頼(小さな修正・大きな修正)/ 差し戻し / 取り消し。
- * 修正依頼には、全体への指示と「この箇所をこう直して」を何件でも付けられる。
+ * メールの受信箱と同じ組み立て:左に依頼の一覧、右に選んだ依頼の中身と、いつでも押せる判断のボタン。
+ * 判断は4つ:承認 / 修正を依頼(小さな修正・大きな修正)/ 差し戻し / 取り消し(押した直後のトーストの「元に戻す」)。
+ *
+ * - 判断すると次の依頼に自動で進む(1件ずつ開き直さなくていい)
+ * - 変更前/変更後は、変わった語だけに色を付ける。ブロックごとに「ここに指示」を書ける
+ * - 差し込み欄つきの依頼(アフィリエイトのリンクなど)は、URLを貼るだけで本文HTMLが仕上がる。コピーしてそのまま貼れる
+ * - 経営企画の推奨があれば、判断の目安として出す(決めるのはCEO)
+ * - 書きかけの指示・貼ったURLはこのブラウザに自動で残る(閉じても消えない)
+ * - キーボード:j/k(↓/↑)で移動、a 承認、r 修正を依頼、x 差し戻し、Esc 閉じる、? 一覧
+ *
  * Notionの「承認トレイ」につながっていれば判断はNotionに書き戻され、次にClaudeが処理するときに読む。
  * つながっていなければデモの依頼を出し、判断はこのブラウザにだけ保存する(Claudeに渡す依頼文をコピーできる)。
  */
 import Base from '../layouts/Base.astro';
 import { agentsForClient } from '../lib/org';
 ---
-<Base title="承認トレイ" active="approvals">
-  <div class="page-head">
-    <h1>承認トレイ</h1>
-    <p>公開・本番へのマージ・外部への連絡など、AIが自分では実行しないもの(L2)が積まれます。直してほしいところがあれば「修正を依頼」から、全体への指示と箇所ごとの指示を書けます。</p>
-    <p class="note" data-tray-note>読み込んでいます…</p>
+<Base title="承認トレイ" active="approvals" wide>
+  <div class="tray" data-tray data-view="list">
+    <header class="tray-head">
+      <div class="tray-head__title">
+        <h1>承認トレイ</h1>
+        <p class="tray-head__sub" data-tray-sub>読み込んでいます…</p>
+      </div>
+      <div class="tray-tabs" role="tablist" aria-label="表示する依頼" data-tabs>
+        <button role="tab" class="tray-tab is-active" data-tab="open" aria-selected="true">判断待ち <span data-count="open">0</span></button>
+        <button role="tab" class="tray-tab" data-tab="ai" aria-selected="false">AIが対応中 <span data-count="ai">0</span></button>
+        <button role="tab" class="tray-tab" data-tab="done" aria-selected="false">完了 <span data-count="done">0</span></button>
+      </div>
+      <button type="button" class="btn btn--ghost tray-head__keys" data-keys-open aria-label="キーボード操作の一覧">?</button>
+    </header>
+    <p class="tray-source" data-tray-note></p>
+    <div class="tray-body">
+      <nav class="tray-list" data-list aria-label="依頼の一覧"></nav>
+      <section class="tray-detail" data-pane aria-live="polite"></section>
+    </div>
   </div>
-  <div class="tray-filter" data-tray-filter hidden>
-    <button class="btn is-active" data-filter="open">判断待ち</button>
-    <button class="btn" data-filter="all">すべて</button>
+
+  <div class="tray-toast" data-toast role="status" hidden>
+    <span data-toast-text></span>
+    <button type="button" class="tray-toast__undo" data-toast-undo hidden>元に戻す</button>
   </div>
-  <div data-approvals></div>
-  <p class="toast" data-toast role="status"></p>
+
+  <dialog class="tray-keys" data-keys-dialog aria-label="キーボード操作">
+    <p class="tray-keys__title">キーボード操作</p>
+    <dl>
+      <div><dt><kbd>j</kbd> <kbd>↓</kbd></dt><dd>次の依頼</dd></div>
+      <div><dt><kbd>k</kbd> <kbd>↑</kbd></dt><dd>前の依頼</dd></div>
+      <div><dt><kbd>a</kbd></dt><dd>承認</dd></div>
+      <div><dt><kbd>r</kbd></dt><dd>修正を依頼</dd></div>
+      <div><dt><kbd>x</kbd></dt><dd>差し戻し</dd></div>
+      <div><dt><kbd>z</kbd></dt><dd>いまの判断を元に戻す(トーストが出ている間)</dd></div>
+      <div><dt><kbd>Esc</kbd></dt><dd>入力欄を閉じる / 一覧に戻る(スマホ)</dd></div>
+      <div><dt><kbd>⌘</kbd>+<kbd>Enter</kbd></dt><dd>入力中の修正依頼・差し戻しを送る</dd></div>
+    </dl>
+    <form method="dialog"><button class="btn">閉じる</button></form>
+  </dialog>
 
   <script type="application/json" id="org-data" set:html={JSON.stringify(agentsForClient())} />
   <script>
     import type { ClientAgent } from '../lib/org';
-    import { cmsEditUrl, instructionText, loadTray, previewUrl, sendDecision, type DecisionInput, type Tray, type TrayItem } from '../scripts/approvals';
+    import { cmsEditUrl, instructionText, loadTray, previewUrl, sendDecision, type DecisionInput, type Tray, type TrayItem, type TrayState } from '../scripts/approvals';
+    import { ageDays, ageLabel, applyFills, readPasted, wordDiff, type Applied } from '../scripts/tray-utils';
     import { esc, loadSettings } from '../scripts/store';
 
     const agents: ClientAgent[] = JSON.parse(document.getElementById('org-data')!.textContent || '[]');
-    const root = document.querySelector<HTMLElement>('[data-approvals]')!;
+    const trayEl = document.querySelector<HTMLElement>('[data-tray]')!;
+    const listEl = document.querySelector<HTMLElement>('[data-list]')!;
+    const pane = document.querySelector<HTMLElement>('[data-pane]')!;
     const noteEl = document.querySelector<HTMLElement>('[data-tray-note]')!;
-    const filterEl = document.querySelector<HTMLElement>('[data-tray-filter]')!;
+    const subEl = document.querySelector<HTMLElement>('[data-tray-sub]')!;
+    const tabsEl = document.querySelector<HTMLElement>('[data-tabs]')!;
     const s = loadSettings();
-    let tray: Tray = { mode: 'demo', items: [] };
-    let filter: 'open' | 'all' = 'open';
 
-    const OPEN = new Set(['承認待ち', '修正依頼']);
-    const STATE_CLASS: Record<string, string> = {
-      承認待ち: 'chip--state-wait',
-      修正依頼: 'chip--state-revise',
-      承認: 'chip--status-active',
-      差し戻し: 'chip--status-standby',
-      対応済み: '',
+    type Tab = 'open' | 'ai' | 'done';
+    type Panel = 'none' | 'revise' | 'reject';
+    let tray: Tray = { mode: 'demo', items: [] };
+    let tab: Tab = 'open';
+    let selected = '';
+    let panel: Panel = 'none';
+    let decidedToday = 0;
+
+    const TAB_OF: Record<TrayState, Tab> = { 承認待ち: 'open', 修正依頼: 'ai', 承認: 'ai', 差し戻し: 'done', 対応済み: 'done' };
+    const STATE_LABEL: Record<TrayState, string> = {
+      承認待ち: '判断待ち',
+      修正依頼: '修正依頼中 — AIの対応待ち',
+      承認: '承認済み — AIの実行待ち',
+      差し戻し: '差し戻し',
+      対応済み: '対応済み',
     };
-    const TEMPLATES = [
-      'docs/tone-and-manner.md の文体(常体・同じ語尾を3回続けない・体言止めの使い方)に合わせて書き直す',
+    const REVISE_TEMPLATES = [
+      'docs/tone-and-manner.md の文体に合わせて書き直す',
       '一文を50字以内に切る',
       '実測値と、出典・確認日を足す',
       '合わなかった点を、良い点と同じ分量で書く',
-      '見出し(h2)だけ読んで筋が通るように、構成から組み直す',
+      '見出し(h2)だけ読んで筋が通るように組み直す',
     ];
+    const REJECT_REASONS = ['今はやらない(優先度が低い)', '方針と合わない', '判断する材料が足りない'];
 
-    function toast(msg: string) {
-      const t = document.querySelector<HTMLElement>('[data-toast]')!;
-      t.textContent = msg;
-      t.classList.add('is-shown');
-      setTimeout(() => t.classList.remove('is-shown'), 2400);
+    /* ---------- 書きかけの保存(このブラウザだけ。読めなくても動く) ---------- */
+
+    type Draft = { note?: string; size?: string; reject?: string; diffNotes?: Record<string, string>; rows?: { where: string; text: string }[]; fills?: Record<string, string> };
+    const draftKey = (id: string) => `basecamp:tray-draft:v1:${id}`;
+    function loadDraft(id: string): Draft {
+      try {
+        return JSON.parse(localStorage.getItem(draftKey(id)) || '{}');
+      } catch {
+        return {};
+      }
     }
+    function saveDraft(id: string, patch: Partial<Draft>) {
+      try {
+        localStorage.setItem(draftKey(id), JSON.stringify({ ...loadDraft(id), ...patch }));
+      } catch {}
+    }
+    function clearDraft(id: string, keep: (keyof Draft)[] = []) {
+      try {
+        const d = loadDraft(id);
+        const next: Draft = {};
+        for (const k of keep) (next as any)[k] = d[k];
+        if (Object.keys(next).length) localStorage.setItem(draftKey(id), JSON.stringify(next));
+        else localStorage.removeItem(draftKey(id));
+      } catch {}
+    }
+
+    /* ---------- 一覧 ---------- */
+
+    const agentOf = (id: string) => agents.find((x) => x.id === id);
+    const inTab = (t: Tab) => tray.items.filter((it) => TAB_OF[it.state] === t);
+    const itemOf = (id: string | undefined) => tray.items.find((x) => x.id === id);
 
     function setNote() {
-      const sel = '<span class="chip chip--demo">DEMO</span>';
+      const demo = '<span class="chip chip--demo">DEMO</span>';
       if (tray.mode === 'notion')
-        noteEl.innerHTML = `<span class="chip chip--real">Notion</span> 各部がNotionの「承認トレイ」に積んだ依頼です。判断はNotionに書き戻され、<strong>次にClaudeが承認トレイを処理するときに実行・修正されます</strong>(押した瞬間に公開されるわけではありません)。`;
-      else if (tray.mode === 'demo')
-        noteEl.innerHTML = `${sel} デモモードです。依頼はイメージで、判断はこのブラウザにだけ保存されます。件数は「設定 → 承認依頼」で変えられます。`;
+        noteEl.innerHTML = `<span class="chip chip--real">Notion</span> 判断はNotionに記録され、<strong>次にClaudeが承認トレイを処理するときに実行されます</strong>。押した瞬間に公開されることはありません。`;
+      else if (tray.mode === 'demo') noteEl.innerHTML = `${demo} デモの依頼です。判断はこのブラウザにだけ保存されます。`;
       else if (tray.mode === 'local')
-        noteEl.innerHTML = `${sel} Notionの承認トレイがまだつながっていないので、デモの依頼を出しています${
+        noteEl.innerHTML = `${demo} Notionの承認トレイが未接続のため、デモの依頼を出しています${
           tray.missing?.length ? `(足りない環境変数:${tray.missing.map(esc).join('・')})` : tray.error ? `(${esc(tray.error)})` : ''
-        }。ここでの判断はこのブラウザにだけ保存され、AIには届きません。つなぎ方は SETUP.md の手順11。`;
-      else noteEl.innerHTML = `<span class="chip chip--status-standby">読み込み失敗</span> ${esc(tray.error ?? '')}`;
+        }。つなぎ方は SETUP.md の手順11。`;
+      else noteEl.innerHTML = `<span class="chip chip--status-standby">読み込み失敗</span> ${esc(tray.error ?? '')} <button type="button" class="btn btn--tiny" data-retry>もう一度読み込む</button>`;
     }
+
+    function setCounts() {
+      for (const t of ['open', 'ai', 'done'] as Tab[]) {
+        const el = tabsEl.querySelector<HTMLElement>(`[data-count="${t}"]`);
+        if (el) el.textContent = String(inTab(t).length);
+      }
+      const open = inTab('open');
+      const stale = open.filter((it) => (ageDays(it.createdAt) ?? 0) >= 7).length;
+      subEl.textContent = open.length
+        ? `判断待ち ${open.length}件${stale ? `(うち${stale}件は1週間以上たっています)` : ''}${decidedToday ? ` ・ いま${decidedToday}件判断しました` : ''}`
+        : decidedToday
+          ? `判断待ちはありません。いま${decidedToday}件判断しました`
+          : '判断待ちはありません';
+      const badge = document.querySelector<HTMLElement>('[data-pending-badge]');
+      if (badge) {
+        badge.textContent = String(open.length);
+        badge.hidden = open.length === 0 || (tray.mode !== 'notion' && tray.mode !== 'demo');
+      }
+    }
+
+    function rowHtml(it: TrayItem) {
+      const a = agentOf(it.from);
+      const age = ageDays(it.createdAt);
+      const stale = it.state === '承認待ち' && (age ?? 0) >= 7;
+      const reco = it.state === '承認待ち' && it.recommend ? `<span class="tray-row__reco tray-row__reco--${recoClass(it.recommend.action)}">推奨:${esc(it.recommend.action)}</span>` : '';
+      const fill = it.state === '承認待ち' && it.detail.apply ? '<span class="tray-row__reco tray-row__reco--fill">URLを貼る</span>' : '';
+      return `<button type="button" class="tray-row ${it.id === selected ? 'is-selected' : ''}" data-id="${esc(it.id)}" style="--div:${a?.color ?? '#9ea6b0'}" aria-current="${it.id === selected}">
+        <span class="tray-row__top"><span class="tray-row__type">${esc(it.type)}</span>${it.demo ? '<span class="chip chip--demo">DEMO</span>' : ''}<span class="tray-row__age ${stale ? 'is-stale' : ''}">${esc(ageLabel(age))}</span></span>
+        <span class="tray-row__title">${esc(it.title)}</span>
+        <span class="tray-row__meta"><span>${esc(a?.short ?? a?.name ?? it.from)}</span>${tab !== 'open' ? `<span>${esc(STATE_LABEL[it.state])}</span>` : ''}${reco}${fill}</span>
+      </button>`;
+    }
+
+    function renderList() {
+      const list = inTab(tab);
+      if (list.length === 0) {
+        listEl.innerHTML = `<div class="tray-empty"><p class="tray-empty__title">${
+          tab === 'open' ? '判断待ちはありません' : tab === 'ai' ? 'AIが対応中の依頼はありません' : '完了した依頼はまだありません'
+        }</p><p>${tab === 'open' ? '新しい依頼が積まれると、ここに出ます。' : ''}</p></div>`;
+        return;
+      }
+      listEl.innerHTML = list.map(rowHtml).join('');
+    }
+
+    const recoClass = (a: string) => ({ 承認: 'approve', 修正を依頼: 'revise', 差し戻し: 'reject', 保留: 'hold' })[a] ?? 'hold';
 
     /* ---------- 詳細 ---------- */
 
-    function detailHtml(it: TrayItem, open: boolean) {
-      const d = it.detail;
-      const prev = previewUrl(d);
-      const links = [
-        ...(prev ? [{ label: '下書きプレビュー(microCMS)', href: prev, note: '' }] : []),
-        ...(d.links ?? []),
-      ]
-        .map(
-          (l) => `<li><a class="btn" href="${esc(l.href)}" target="_blank" rel="noopener">${esc(l.label)} ↗</a>${
-            l.note ? `<span class="note">${esc(l.note)}</span>` : ''
-          }</li>`,
-        )
+    function diffHtml(before: string, after: string) {
+      const parts = wordDiff(before, after);
+      if (!parts) return { before: esc(before), after: esc(after) };
+      return {
+        before: parts.filter((p) => p.t !== 'ins').map((p) => (p.t === 'del' ? `<del>${esc(p.s)}</del>` : esc(p.s))).join(''),
+        after: parts.filter((p) => p.t !== 'del').map((p) => (p.t === 'ins' ? `<ins>${esc(p.s)}</ins>` : esc(p.s))).join(''),
+      };
+    }
+
+    function applyHtml(it: TrayItem, draft: Draft) {
+      const ap = it.detail.apply!;
+      const editable = it.state === '承認待ち';
+      const values = draft.fills ?? {};
+      const fields = ap.fills
+        .map((f) => {
+          const raw = values[f.key] ?? '';
+          const r = readPasted(raw, f);
+          const status = !raw ? (f.required ? '必須' : '空欄なら行ごと外します') : r.error ? '' : `✓ ${esc(r.host ?? '')}`;
+          return `<div class="fill ${r.error ? 'is-error' : raw ? 'is-ok' : ''}">
+            <label class="fill__label" for="fill-${esc(it.id)}-${esc(f.key)}">${esc(f.label)}${f.required ? '<span class="fill__req">必須</span>' : ''}</label>
+            <input id="fill-${esc(it.id)}-${esc(f.key)}" class="fill__input" data-fill="${esc(f.key)}" value="${esc(raw)}" ${editable ? '' : 'readonly'}
+              placeholder="URL、またはテキストリンクのコードをそのまま貼る" autocomplete="off" spellcheck="false" inputmode="url" />
+            <p class="fill__status" data-fill-status="${esc(f.key)}">${r.error ? esc(r.error) : status}</p>
+            ${f.hint ? `<p class="fill__hint">${esc(f.hint)}</p>` : ''}
+          </div>`;
+        })
         .join('');
-      const changes = (d.changes ?? []).map((c) => `<li>${esc(c)}</li>`).join('');
+      return `<section class="td-block td-apply" data-apply>
+        <h3>${esc(ap.label)}にリンクを入れる</h3>
+        <p class="td-apply__lead">提携できたストアのリンクを貼ってください。コードを丸ごと貼っても、URLだけを取り出します。</p>
+        <div class="fills">${fields}</div>
+        <div class="td-apply__out" data-apply-out></div>
+      </section>`;
+    }
+
+    function applyResult(it: TrayItem): Applied | null {
+      const ap = it.detail.apply;
+      if (!ap) return null;
+      const raw = loadDraft(it.id).fills ?? {};
+      const values: Record<string, string> = {};
+      for (const f of ap.fills) values[f.key] = readPasted(raw[f.key] ?? '', f).url;
+      return applyFills(ap.html, ap.fills, values);
+    }
+
+    function renderApplyOut(it: TrayItem) {
+      const out = pane.querySelector<HTMLElement>('[data-apply-out]');
+      if (!out) return;
+      const r = applyResult(it)!;
+      const where = it.detail.apply?.where;
+      const cms = cmsOpenUrl(it);
+      const ready = r.missing.length === 0 && r.links > 0 && r.leftover.length === 0;
+      const msg = !ready
+        ? r.links === 0
+          ? 'リンクを1つ以上貼ると、本文HTMLができあがります。'
+          : `まだ入っていない欄があります:${r.missing.map((f) => esc(f.label)).join('・')}`
+        : `本文HTMLができました(リンク${r.links}本${r.dropped.length ? `。${r.dropped.map((f) => esc(f.label)).join('・')}は空欄なので行ごと外しています` : ''})。`;
+      out.innerHTML = `<p class="td-apply__msg ${ready ? 'is-ready' : ''}">${msg}</p>
+        <div class="td-apply__actions">
+          <button type="button" class="btn ${ready ? 'btn--primary' : ''}" data-copy-html ${ready ? '' : 'disabled'}>本文HTMLをコピー</button>
+          ${cms ? `<a class="btn" href="${esc(cms)}" target="_blank" rel="noopener">microCMSを開く ↗</a>` : ''}
+        </div>
+        ${where ? `<p class="note">貼り付け先:${esc(where)}。いまの本文を全部消して、まるごと貼り替えてください。</p>` : ''}
+        <details class="td-apply__src"><summary>できあがった本文HTMLを見る</summary><textarea readonly rows="8" data-html-out>${esc(r.html)}</textarea></details>`;
+      refreshBar(it);
+    }
+
+    const cmsOpenUrl = (it: TrayItem) => cmsEditUrl(tray, it) || (tray.cms?.base ? `${tray.cms.base}/apis/articles` : '');
+
+    function detailHtml(it: TrayItem) {
+      const d = it.detail;
+      const a = agentOf(it.from);
+      const draft = loadDraft(it.id);
+      const prev = previewUrl(d);
+      const links = [...(prev ? [{ label: '下書きプレビュー', href: prev, note: '' }] : []), ...(d.links ?? [])]
+        .map((l) => `<li><a class="btn btn--tiny" href="${esc(l.href)}" target="_blank" rel="noopener">${esc(l.label)} ↗</a>${l.note ? `<span class="note">${esc(l.note)}</span>` : ''}</li>`)
+        .join('');
+      const editable = it.state === '承認待ち' || it.state === '修正依頼';
       const diffs = (d.diffs ?? [])
-        .map(
-          (x, i) => `<figure class="diff">
-            <figcaption><span>${esc(x.where)}</span>
-              <button type="button" class="btn btn--tiny" data-comment-on="${i}">この箇所に指示</button></figcaption>
-            <div class="diff__row diff__row--before"><span class="diff__tag">変更前</span><p>${esc(x.before)}</p></div>
-            <div class="diff__row diff__row--after"><span class="diff__tag">変更後</span><p>${esc(x.after)}</p></div>
-            ${x.why ? `<div class="diff__why"><span class="diff__tag">なぜ</span><p>${esc(x.why)}</p></div>` : ''}
-          </figure>`,
-        )
+        .map((x, i) => {
+          const h = diffHtml(x.before, x.after);
+          const dn = draft.diffNotes?.[i] ?? '';
+          return `<figure class="diff2">
+            <figcaption><span>${esc(x.where)}</span>${editable ? `<button type="button" class="btn btn--tiny" data-diff-comment="${i}">${dn ? '指示を編集' : 'ここに指示'}</button>` : ''}</figcaption>
+            <div class="diff2__row diff2__row--before"><span class="diff2__tag">前</span><p>${h.before}</p></div>
+            <div class="diff2__row diff2__row--after"><span class="diff2__tag">後</span><p>${h.after}</p></div>
+            ${x.why ? `<p class="diff2__why"><span>なぜ</span>${esc(x.why)}</p>` : ''}
+            <div class="diff2__note" data-diff-note-wrap="${i}" ${dn ? '' : 'hidden'}>
+              <textarea rows="2" maxlength="1000" data-diff-note="${i}" placeholder="この箇所をどう直してほしいか">${esc(dn)}</textarea>
+            </div>
+          </figure>`;
+        })
         .join('');
       const images = (d.images ?? [])
-        .map(
-          (im) => `<figure class="approval__shot"><a href="${esc(im.src)}" target="_blank" rel="noopener"><img src="${esc(im.src)}" alt="${esc(
-            im.alt ?? '',
-          )}" loading="lazy" /></a>${im.caption ? `<figcaption>${esc(im.caption)}</figcaption>` : ''}</figure>`,
-        )
+        .map((im) => `<figure class="approval__shot"><a href="${esc(im.src)}" target="_blank" rel="noopener"><img src="${esc(im.src)}" alt="${esc(im.alt ?? '')}" loading="lazy" /></a>${im.caption ? `<figcaption>${esc(im.caption)}</figcaption>` : ''}</figure>`)
         .join('');
-      return `<details class="approval__detail" data-detail="${it.id}" ${open ? 'open' : ''}>
-        <summary>詳細を見る</summary>
-        <div class="approval__detail-body">
-          ${d.summary ? `<p>${esc(d.summary)}</p>` : ''}
+      const age = ageDays(it.createdAt);
+      const reco = it.recommend
+        ? `<div class="td-reco td-reco--${recoClass(it.recommend.action)}"><p class="td-reco__head">経営企画の推奨:<strong>${esc(it.recommend.action)}</strong></p>${it.recommend.why ? `<p>${esc(it.recommend.why)}</p>` : ''}</div>`
+        : '';
+      const instruction =
+        it.state === '修正依頼' && it.instruction
+          ? `<div class="td-state td-state--revise"><p class="td-state__head">修正依頼中(${esc(it.size ?? '')}・${it.round}回目)。AIが直したら、もう一度ここに出ます</p><p>${esc(it.instruction)}</p></div>`
+          : it.state === '承認'
+            ? '<div class="td-state"><p class="td-state__head">承認済み。次にClaudeが承認トレイを処理するときに実行します</p></div>'
+            : '';
+      const article = d.article
+        ? `<div class="td-block td-article">
+            <a class="btn btn--primary" href="/review/?id=${encodeURIComponent(it.id)}">記事を読んでコメントする →</a>
+            <dl class="approval__facts">
+              ${d.article.keyword ? `<div><dt>狙うキーワード</dt><dd>${esc(d.article.keyword)}</dd></div>` : ''}
+              ${d.article.reader ? `<div><dt>想定読者</dt><dd>${esc(d.article.reader)}</dd></div>` : ''}
+              ${d.article.why ? `<div><dt>このテーマにした理由</dt><dd>${esc(d.article.why)}</dd></div>` : ''}
+            </dl>
+          </div>`
+        : '';
+      const hist = it.history.length
+        ? `<section class="td-block"><h3>やりとり</h3><ol class="tray-history">${it.history
+            .map((h) => `<li class="tray-history__item tray-history__item--${h.by}"><p class="tray-history__title">${esc(h.title)}</p>${h.lines.map((l) => `<p>${esc(l)}</p>`).join('')}</li>`)
+            .join('')}</ol></section>`
+        : '';
+      return `<div class="td" style="--div:${a?.color ?? '#9ea6b0'}">
+        <div class="td-scroll" data-scroll>
+          <button type="button" class="td-back" data-back>← 一覧に戻る</button>
+          <div class="td-meta">
+            <span class="chip">${esc(it.type)}</span>
+            <span>${esc(a?.name ?? it.from)}から</span>
+            ${age !== null ? `<span>${esc(ageLabel(age))}に依頼</span>` : ''}
+            ${it.round > 0 ? `<span class="chip">修正${it.round}回</span>` : ''}
+            ${it.demo ? '<span class="chip chip--demo">DEMO</span>' : ''}
+            ${it.notionUrl ? `<a class="td-meta__link" href="${esc(it.notionUrl)}" target="_blank" rel="noopener">Notionで開く ↗</a>` : ''}
+          </div>
+          <h2 class="td-title">${esc(it.title)}</h2>
+          ${d.summary ? `<p class="td-summary">${esc(d.summary)}</p>` : ''}
           ${it.detailError ? `<p class="note note--warn">${esc(it.detailError)}</p>` : ''}
-          ${links ? `<h3>開いて確かめる</h3><ul class="approval__links">${links}</ul>` : ''}
-          ${changes ? `<h3>変更点</h3><ul>${changes}</ul>` : ''}
-          ${diffs ? `<h3>本文の変更前 / 変更後</h3>${diffs}` : ''}
-          ${images ? `<h3>納品物・デザイン</h3><div class="approval__shots">${images}</div>` : ''}
-          ${d.imageSvg ? `<h3>デザイン案</h3><div class="approval__image">${d.imageSvg}</div>` : ''}
-          ${d.draft ? `<h3>${esc(d.draft.label)}</h3><pre class="approval__draft">${esc(d.draft.text)}</pre>` : ''}
+          ${instruction}
+          ${reco}
+          ${it.effect ? `<div class="td-effect"><span>承認すると</span><p>${esc(it.effect)}</p></div>` : ''}
+          ${d.apply ? applyHtml(it, draft) : ''}
+          ${article}
+          ${links ? `<section class="td-block"><h3>開いて確かめる</h3><ul class="td-links">${links}</ul></section>` : ''}
+          ${(d.changes ?? []).length ? `<section class="td-block"><h3>変更点</h3><ul>${d.changes!.map((c) => `<li>${esc(c)}</li>`).join('')}</ul></section>` : ''}
+          ${diffs ? `<section class="td-block"><h3>本文の変更(変わった語に色)</h3>${diffs}</section>` : ''}
+          ${images ? `<section class="td-block"><h3>納品物・デザイン</h3><div class="approval__shots">${images}</div></section>` : ''}
+          ${d.imageSvg ? `<section class="td-block"><h3>デザイン案</h3><div class="approval__image">${d.imageSvg}</div></section>` : ''}
+          ${d.draft ? `<section class="td-block"><h3>${esc(d.draft.label)}</h3><pre class="approval__draft">${esc(d.draft.text)}</pre></section>` : ''}
+          ${it.basis.length ? `<details class="td-block td-basis"><summary>根拠(${it.basis.length})</summary><ul>${it.basis.map((b) => `<li>${esc(b)}</li>`).join('')}</ul></details>` : ''}
+          ${hist}
         </div>
-      </details>`;
+        <footer class="td-bar" data-bar></footer>
+      </div>`;
     }
 
-    function historyHtml(it: TrayItem) {
-      if (it.history.length === 0) return '';
-      return `<ol class="tray-history">${it.history
-        .map(
-          (h) => `<li class="tray-history__item tray-history__item--${h.by}">
-            <p class="tray-history__title">${esc(h.title)}</p>
-            ${h.lines.map((l) => `<p>${esc(l)}</p>`).join('')}
-          </li>`,
-        )
-        .join('')}</ol>`;
+    /* ---------- 判断のバー(いつも画面の下にある) ---------- */
+
+    function approveBlock(it: TrayItem): string {
+      const r = applyResult(it);
+      if (!r) return '';
+      if (r.links === 0) return 'リンクを1つ以上貼ると承認できます';
+      if (r.missing.length) return `${r.missing.map((f) => f.label).join('・')}のリンクを貼ると承認できます`;
+      if (r.leftover.length) return '本文に埋まっていない差し込み欄があります(依頼元に直してもらってください)';
+      return '';
     }
 
-    /* ---------- 修正依頼のフォーム ---------- */
-
-    function reviseFormHtml(it: TrayItem) {
-      const local = it.demo;
-      return `<form class="revise" data-revise="${it.id}" hidden>
-        <p class="revise__title">修正を依頼する</p>
-        <fieldset class="revise__size">
-          <label><input type="radio" name="size" value="小さな修正" checked /> <strong>小さな修正</strong><small>この部分をこう直して(言い回し・数字・一部の段落)</small></label>
-          <label><input type="radio" name="size" value="大きな修正" /> <strong>大きな修正</strong><small>方向から書き直して(構成・文体・トンマナ全体)。コンテンツ制作部・SEO部が書き直す</small></label>
-        </fieldset>
-        <label class="revise__label" for="note-${it.id}">全体への指示</label>
-        <div class="revise__chips">${TEMPLATES.map((t) => `<button type="button" class="chip-btn" data-template="${esc(t)}">${esc(t)}</button>`).join('')}</div>
-        <textarea id="note-${it.id}" name="note" rows="4" maxlength="2000" placeholder="例:サロモンの記事と同じく、語尾が「〜だろう」「〜と思う」で続く。断定できるところは断定し、体言止めは見出しだけにする"></textarea>
-        <div class="revise__label">箇所ごとの指示 <span class="note">(変更前/変更後の「この箇所に指示」からも足せます)</span></div>
-        <ol class="revise__rows" data-rows></ol>
-        <button type="button" class="btn btn--tiny" data-add-row>＋ 箇所を足す</button>
-        <div class="revise__actions">
-          <button type="submit" class="btn btn--primary">修正依頼を送る</button>
-          ${local ? '<button type="button" class="btn" data-copy>Claudeに渡す依頼文をコピー</button>' : ''}
-          <button type="button" class="btn" data-cancel>やめる</button>
-        </div>
-        ${local ? '<p class="note">Notionが未接続のため、この依頼はこのブラウザにだけ保存されます。AIに届けるには、依頼文をコピーしてClaudeに貼ってください。</p>' : ''}
-      </form>`;
+    function barHtml(it: TrayItem) {
+      const draft = loadDraft(it.id);
+      if (panel === 'revise') {
+        const diffCount = Object.values(draft.diffNotes ?? {}).filter((v) => v.trim()).length;
+        const rows = (draft.rows ?? []).map((r, i) => reviseRowHtml(r.where, r.text, i)).join('');
+        return `<form class="bar-panel" data-revise-form>
+          <div class="bar-panel__head"><p>修正を依頼する</p><button type="button" class="btn btn--tiny" data-close-panel aria-label="閉じる">閉じる</button></div>
+          <div class="seg" role="radiogroup" aria-label="修正の大きさ">
+            <label><input type="radio" name="size" value="小さな修正" ${draft.size !== '大きな修正' ? 'checked' : ''} /><span><strong>小さな修正</strong>言い回し・数字・一部の段落</span></label>
+            <label><input type="radio" name="size" value="大きな修正" ${draft.size === '大きな修正' ? 'checked' : ''} /><span><strong>大きな修正</strong>方向・構成から書き直す</span></label>
+          </div>
+          <div class="revise__chips">${REVISE_TEMPLATES.map((t) => `<button type="button" class="chip-btn" data-template="${esc(t)}">${esc(t)}</button>`).join('')}</div>
+          <textarea name="note" rows="3" maxlength="2000" data-note placeholder="全体への指示(任意)。箇所ごとの指示は、本文の変更の「ここに指示」から書けます">${esc(draft.note ?? '')}</textarea>
+          <ol class="revise__rows" data-rows>${rows}</ol>
+          <div class="bar-panel__foot">
+            <span class="note">${diffCount ? `箇所ごとの指示 ${diffCount}件をいっしょに送ります` : ''}</span>
+            <button type="button" class="btn btn--tiny" data-add-row>＋ 箇所を指定して足す</button>
+            ${it.demo ? '<button type="button" class="btn" data-copy-instruction>依頼文をコピー</button>' : ''}
+            <button type="submit" class="btn btn--revise-solid">修正依頼を送る <kbd>⌘↵</kbd></button>
+          </div>
+        </form>`;
+      }
+      if (panel === 'reject') {
+        return `<form class="bar-panel" data-reject-form>
+          <div class="bar-panel__head"><p>差し戻す</p><button type="button" class="btn btn--tiny" data-close-panel aria-label="閉じる">閉じる</button></div>
+          <p class="note">直せば通る見込みがあるなら「修正を依頼」を使ってください。差し戻しは、この依頼をやらないという判断です。</p>
+          <div class="revise__chips">${REJECT_REASONS.map((t) => `<button type="button" class="chip-btn" data-reason="${esc(t)}">${esc(t)}</button>`).join('')}</div>
+          <textarea name="reason" rows="2" maxlength="2000" data-reason-text placeholder="理由(依頼元の部に返します。任意)">${esc(draft.reject ?? '')}</textarea>
+          <div class="bar-panel__foot"><span></span><button type="submit" class="btn btn--danger-solid">差し戻す <kbd>⌘↵</kbd></button></div>
+        </form>`;
+      }
+      const pendingNotes = Object.values(draft.diffNotes ?? {}).filter((v) => v.trim()).length + (draft.note?.trim() ? 1 : 0);
+      if (it.state === '承認待ち') {
+        const block = approveBlock(it);
+        const toCms = !!it.detail.article && !!tray.cms?.writable;
+        const reco = it.recommend?.action;
+        return `<div class="bar-actions">
+          ${block ? `<p class="bar-actions__hint">${esc(block)}</p>` : pendingNotes ? `<p class="bar-actions__hint">書きかけの指示が${pendingNotes}件あります。「修正を依頼」で送れます</p>` : ''}
+          <button type="button" class="btn btn--primary bar-btn ${reco === '承認' ? 'is-reco' : ''}" data-act="approve" ${block ? 'disabled' : ''}>${
+            toCms ? '承認してmicroCMSに下書き入稿' : it.detail.apply ? '承認(貼ったリンクを記録)' : '承認'
+          } <kbd>A</kbd></button>
+          <button type="button" class="btn bar-btn btn--revise ${reco === '修正を依頼' ? 'is-reco' : ''}" data-act="revise">修正を依頼${pendingNotes ? `(${pendingNotes})` : ''} <kbd>R</kbd></button>
+          <button type="button" class="btn bar-btn ${reco === '差し戻し' ? 'is-reco' : ''}" data-act="reject">差し戻し <kbd>X</kbd></button>
+        </div>`;
+      }
+      if (it.state === '対応済み') return '<div class="bar-actions"><p class="bar-actions__hint">対応済みです</p></div>';
+      return `<div class="bar-actions">
+        <p class="bar-actions__hint">${esc(STATE_LABEL[it.state])}</p>
+        ${it.state === '修正依頼' ? '<button type="button" class="btn bar-btn btn--revise" data-act="revise">指示を足す</button>' : ''}
+        <button type="button" class="btn bar-btn" data-act="undo">判断を取り消す</button>
+      </div>`;
     }
 
-    function rowHtml(where = '', text = '') {
-      return `<li class="revise__row">
-        <input name="where" placeholder="箇所(見出し名・段落の書き出しなど)" value="${esc(where)}" maxlength="200" />
+    function reviseRowHtml(where = '', text = '', i = 0) {
+      return `<li class="revise__row" data-row="${i}">
+        <input name="where" placeholder="箇所(見出し名・段落の書き出し)" value="${esc(where)}" maxlength="200" />
         <textarea name="text" rows="2" maxlength="1000" placeholder="どう直してほしいか">${esc(text)}</textarea>
         <button type="button" class="btn btn--tiny" data-remove-row aria-label="この箇所を消す">×</button>
       </li>`;
     }
 
-    function readForm(form: HTMLFormElement): DecisionInput {
-      const fd = new FormData(form);
-      const comments = [...form.querySelectorAll<HTMLLIElement>('.revise__row')]
-        .map((li) => ({
-          where: li.querySelector<HTMLInputElement>('[name="where"]')!.value.trim(),
-          text: li.querySelector<HTMLTextAreaElement>('[name="text"]')!.value.trim(),
-        }))
+    function refreshBar(it: TrayItem) {
+      const bar = pane.querySelector<HTMLElement>('[data-bar]');
+      if (!bar) return;
+      // 入力中の欄があれば、カーソルを失わないように描き直さない(ボタンの状態だけ変える)
+      if (panel === 'none') bar.innerHTML = barHtml(it);
+    }
+
+    function renderPane() {
+      const it = itemOf(selected);
+      if (!it) {
+        pane.innerHTML = `<div class="tray-empty tray-empty--pane"><p class="tray-empty__title">${
+          inTab('open').length ? '左の一覧から依頼を選んでください' : '判断待ちはありません'
+        }</p><p class="note">j / k で移動、a で承認できます。</p></div>`;
+        return;
+      }
+      pane.innerHTML = detailHtml(it);
+      pane.querySelector<HTMLElement>('[data-bar]')!.innerHTML = barHtml(it);
+      if (it.detail.apply) renderApplyOut(it);
+    }
+
+    function render() {
+      setCounts();
+      renderList();
+      renderPane();
+    }
+
+    function select(id: string, opts: { scroll?: boolean; view?: boolean } = {}) {
+      if (selected !== id) panel = 'none';
+      selected = id;
+      if (history.replaceState) history.replaceState(null, '', id ? `#${id}` : location.pathname);
+      listEl.querySelectorAll<HTMLElement>('.tray-row').forEach((r) => {
+        const on = r.dataset.id === id;
+        r.classList.toggle('is-selected', on);
+        r.setAttribute('aria-current', String(on));
+        if (on && opts.scroll) r.scrollIntoView({ block: 'nearest' });
+      });
+      renderPane();
+      pane.querySelector<HTMLElement>('[data-scroll]')?.scrollTo({ top: 0 });
+      if (opts.view) trayEl.dataset.view = 'detail';
+    }
+
+    function move(step: number) {
+      const list = inTab(tab);
+      if (!list.length) return;
+      const i = list.findIndex((x) => x.id === selected);
+      const next = list[Math.min(list.length - 1, Math.max(0, i < 0 ? 0 : i + step))];
+      select(next.id, { scroll: true });
+    }
+
+    function setTab(t: Tab, keepSelection = false) {
+      tab = t;
+      tabsEl.querySelectorAll<HTMLElement>('[data-tab]').forEach((b) => {
+        const on = b.dataset.tab === t;
+        b.classList.toggle('is-active', on);
+        b.setAttribute('aria-selected', String(on));
+      });
+      if (!keepSelection || TAB_OF[itemOf(selected)?.state ?? '承認待ち'] !== t) selected = inTab(t)[0]?.id ?? '';
+      panel = 'none';
+      render();
+    }
+
+    /* ---------- 判断を送る ---------- */
+
+    let toastTimer = 0;
+    let undoTarget: { id: string; prev: TrayState } | null = null;
+    function toast(msg: string, undo?: { id: string; prev: TrayState }, ms = 6000) {
+      const t = document.querySelector<HTMLElement>('[data-toast]')!;
+      t.querySelector<HTMLElement>('[data-toast-text]')!.textContent = msg;
+      const u = t.querySelector<HTMLButtonElement>('[data-toast-undo]')!;
+      undoTarget = undo ?? null;
+      u.hidden = !undo;
+      t.hidden = false;
+      clearTimeout(toastTimer);
+      toastTimer = window.setTimeout(() => {
+        t.hidden = true;
+        undoTarget = null;
+      }, ms);
+    }
+
+    function readRevise(form: HTMLFormElement, it: TrayItem): DecisionInput {
+      const draft = loadDraft(it.id);
+      const fromDiffs = Object.entries(draft.diffNotes ?? {})
+        .filter(([, v]) => v.trim())
+        .map(([i, v]) => ({ where: it.detail.diffs?.[Number(i)]?.where ?? '', text: v.trim() }));
+      const rows = [...form.querySelectorAll<HTMLLIElement>('.revise__row')]
+        .map((li) => ({ where: li.querySelector<HTMLInputElement>('[name="where"]')!.value.trim(), text: li.querySelector<HTMLTextAreaElement>('[name="text"]')!.value.trim() }))
         .filter((c) => c.text);
+      const fd = new FormData(form);
       return {
         action: 'revise',
         size: fd.get('size') === '大きな修正' ? '大きな修正' : '小さな修正',
         note: String(fd.get('note') ?? '').trim(),
-        comments,
+        comments: [...fromDiffs, ...rows],
       };
     }
 
-    /* ---------- 一覧 ---------- */
+    const DONE_MSG: Record<DecisionInput['action'], string> = { approve: '承認しました', reject: '差し戻しました', revise: '修正依頼を送りました', reopen: '判断を取り消しました' };
+    const NEXT_STATE: Record<DecisionInput['action'], TrayState> = { approve: '承認', reject: '差し戻し', revise: '修正依頼', reopen: '承認待ち' };
 
-    /** 記事の全文を読む・microCMSで直接直す(ガッツリ直したいとき) */
-    function articleButtonsHtml(it: TrayItem) {
-      const edit = cmsEditUrl(tray, it);
-      const a = it.detail.article;
-      if (!a && !edit) return '';
-      return `<div class="approval__article">
-        ${a ? `<a class="btn btn--primary" href="/review/?id=${encodeURIComponent(it.id)}">記事を読んでコメントする →</a>` : ''}
-        ${edit ? `<a class="btn" href="${esc(edit)}" target="_blank" rel="noopener">microCMSで直接直す ↗</a>` : ''}
-        ${
-          a
-            ? `<dl class="approval__facts">
-                ${a.keyword ? `<div><dt>狙うキーワード</dt><dd>${esc(a.keyword)}</dd></div>` : ''}
-                ${a.reader ? `<div><dt>想定読者</dt><dd>${esc(a.reader)}</dd></div>` : ''}
-                ${a.why ? `<div><dt>このテーマにした理由</dt><dd>${esc(a.why)}</dd></div>` : ''}
-              </dl>`
-            : ''
-        }
-      </div>`;
-    }
-
-    function actionsHtml(it: TrayItem) {
-      const toCms = !!it.detail.article && !!tray.cms?.writable;
-      if (it.state === '承認待ち')
-        return `<button class="btn btn--primary" data-approve="${it.id}" ${toCms ? 'data-to-cms' : ''}>${toCms ? '承認してmicroCMSに下書き入稿' : '承認'}</button>
-          <button class="btn btn--revise" data-open-revise="${it.id}">修正を依頼</button>
-          <button class="btn" data-reject="${it.id}">差し戻し</button>`;
-      if (it.state === '対応済み') return '';
-      return `<button class="btn" data-undo="${it.id}">判断を取り消す</button>
-        ${it.state === '修正依頼' ? `<button class="btn btn--revise" data-open-revise="${it.id}">指示を足す</button>` : ''}`;
-    }
-
-    function render(openIds = new Set<string>()) {
-      const list = tray.items.filter((it) => filter === 'all' || OPEN.has(it.state));
-      filterEl.hidden = tray.items.length === 0;
-      if (list.length === 0) {
-        root.innerHTML = `<section class="panel"><p class="note">${
-          tray.items.length ? '判断待ちの依頼はありません(「すべて」で判断済みも見られます)。' : '依頼はまだありません。'
-        }</p></section>`;
-        return;
+    async function decide(it: TrayItem, input: DecisionInput, opts: { advance?: boolean } = {}) {
+      const prev = it.state;
+      const list = inTab(tab);
+      const idx = list.findIndex((x) => x.id === it.id);
+      // 押した瞬間に画面を進める(送信の待ち時間をCEOに待たせない)。失敗したら元に戻す
+      it.state = NEXT_STATE[input.action];
+      if (input.action === 'revise') it.round += 1;
+      panel = 'none';
+      if (input.action !== 'reopen') decidedToday += 1;
+      else decidedToday = Math.max(0, decidedToday - 1);
+      if (opts.advance !== false && input.action !== 'reopen') {
+        const rest = inTab(tab);
+        selected = (rest[Math.min(idx, rest.length - 1)] ?? null)?.id ?? '';
+        if (!selected) trayEl.dataset.view = 'list';
       }
-      root.innerHTML = list
-        .map((it) => {
-          const a = agents.find((x) => x.id === it.from);
-          const instruction =
-            it.state === '修正依頼' && it.instruction
-              ? `<div class="tray-instruction"><p class="tray-instruction__title">修正依頼中(${esc(it.size ?? '')}・${it.round}回目)— AIの対応待ち</p><p>${esc(
-                  it.instruction,
-                )}</p></div>`
-              : '';
-          return `<section class="panel approval ${OPEN.has(it.state) ? '' : 'approval--done'}" id="${it.id}" style="--div:${a?.color ?? '#9ea6b0'}">
-            <div class="approval__meta">
-              <span class="chip">${esc(it.type)}</span>
-              <span>${esc(a?.name ?? it.from)}から</span>
-              <span class="chip ${STATE_CLASS[it.state] ?? ''}">${esc(it.state)}</span>
-              ${it.round > 0 && it.state !== '修正依頼' ? `<span class="chip">修正${it.round}回</span>` : ''}
-              ${it.demo ? '<span class="chip chip--demo">DEMO</span>' : ''}
-              ${it.notionUrl ? `<a class="approval__notion" href="${esc(it.notionUrl)}" target="_blank" rel="noopener">Notionで開く ↗</a>` : ''}
-            </div>
-            <p class="approval__title">${esc(it.title)}</p>
-            ${it.basis.length ? `<ul>${it.basis.map((b) => `<li>${esc(b)}</li>`).join('')}</ul>` : ''}
-            ${it.effect ? `<p class="note">承認すると:${esc(it.effect)}</p>` : ''}
-            ${instruction}
-            ${articleButtonsHtml(it)}
-            ${detailHtml(it, openIds.has(it.id))}
-            ${historyHtml(it)}
-            <div class="approval__actions">${actionsHtml(it)}</div>
-            ${OPEN.has(it.state) ? reviseFormHtml(it) : ''}
-          </section>`;
-        })
-        .join('');
-    }
-
-    const itemOf = (id: string | undefined) => tray.items.find((x) => x.id === id);
-
-    async function reload(openIds?: Set<string>) {
-      tray = await loadTray(s);
-      setNote();
-      render(openIds);
-      updateBadge();
-    }
-
-    function updateBadge() {
-      const n = tray.mode === 'notion' || tray.mode === 'demo' ? tray.items.filter((x) => x.state === '承認待ち').length : 0;
-      const badge = document.querySelector<HTMLElement>('[data-pending-badge]');
-      if (badge) {
-        badge.textContent = String(n);
-        badge.hidden = n === 0;
-      }
-    }
-
-    async function submit(it: TrayItem, input: DecisionInput, button?: HTMLButtonElement) {
-      if (button) button.disabled = true;
+      render();
       const r = await sendDecision(it, input);
       if (!r.ok) {
-        if (button) button.disabled = false;
-        toast(`送れませんでした:${r.error}`);
+        it.state = prev;
+        if (input.action === 'revise') it.round -= 1;
+        decidedToday = Math.max(0, decidedToday - (input.action !== 'reopen' ? 1 : -1));
+        selected = it.id;
+        render();
+        toast(`送れませんでした:${r.error}。もう一度押してください`, undefined, 9000);
         return;
       }
+      if (input.action === 'revise') clearDraft(it.id, ['fills']);
+      if (input.action === 'reject') clearDraft(it.id);
+      let msg = `${DONE_MSG[input.action]}${it.demo ? '(このブラウザに保存)' : ''}`;
       if (r.cms?.editUrl) {
-        // 入稿した記事をmicroCMSで開いて、最後の確認と公開をしてもらう
         window.open(r.cms.editUrl, '_blank', 'noopener');
-        if (r.cms.dropped.length) alert(`microCMSに下書きとして入稿しました。次の項目は入らなかったので、microCMSで入れてください:\n${r.cms.dropped.join('\n')}`);
+        msg = `microCMSに下書きとして入稿しました${r.cms.dropped.length ? `(入らなかった項目:${r.cms.dropped.join('、')})` : ''}`;
       }
-      const open = new Set([...root.querySelectorAll<HTMLDetailsElement>('details[open]')].map((x) => x.dataset.detail ?? ''));
-      toast(
-        { approve: '承認しました', reject: '差し戻しました', revise: '修正依頼を送りました', reopen: '判断を取り消しました' }[input.action] +
-          (it.demo ? '(このブラウザに保存)' : '(Notionに記録)'),
-      );
-      await reload(open);
+      toast(msg, input.action === 'reopen' ? undefined : { id: it.id, prev }, r.cms?.dropped.length ? 12000 : 6000);
+      // Notionの最新(履歴・AIの対応)を後ろで取り直す。選択と入力中の欄はそのまま
+      refreshQuietly();
+    }
+
+    async function refreshQuietly() {
+      const fresh = await loadTray(s);
+      if (fresh.mode === 'error') return;
+      if (panel !== 'none' || pane.contains(document.activeElement) && (document.activeElement as HTMLElement).matches('input, textarea')) {
+        tray = fresh;
+        setCounts();
+        renderList();
+        return;
+      }
+      tray = fresh;
+      setNote();
+      render();
+    }
+
+    async function undoLast() {
+      if (!undoTarget) return;
+      const it = itemOf(undoTarget.id);
+      undoTarget = null;
+      document.querySelector<HTMLElement>('[data-toast]')!.hidden = true;
+      if (!it) return;
+      setTab(TAB_OF['承認待ち']);
+      selected = it.id;
+      await decide(it, { action: 'reopen' }, { advance: false });
+      select(it.id, { scroll: true });
+    }
+
+    function act(name: string) {
+      const it = itemOf(selected);
+      if (!it) return;
+      if (name === 'approve') {
+        if (it.state !== '承認待ち' || approveBlock(it)) return;
+        const fills = it.detail.apply ? Object.fromEntries(it.detail.apply.fills.map((f) => [f.key, readPasted(loadDraft(it.id).fills?.[f.key] ?? '', f).url]).filter(([, v]) => v)) : undefined;
+        decide(it, { action: 'approve', toCms: !!it.detail.article && !!tray.cms?.writable, fills });
+        return;
+      }
+      if (name === 'revise' || name === 'reject') {
+        if (it.state !== '承認待ち' && !(name === 'revise' && it.state === '修正依頼')) return;
+        panel = name;
+        const bar = pane.querySelector<HTMLElement>('[data-bar]')!;
+        bar.innerHTML = barHtml(it);
+        bar.querySelector<HTMLTextAreaElement>(name === 'revise' ? '[data-note]' : '[data-reason-text]')?.focus();
+        return;
+      }
+      if (name === 'undo') decide(it, { action: 'reopen' }, { advance: false });
     }
 
     /* ---------- 操作 ---------- */
 
-    root.addEventListener('click', async (e) => {
-      const t = e.target as HTMLElement;
-      const btn = t.closest<HTMLButtonElement>('button');
-      if (!btn) return;
-      const section = btn.closest<HTMLElement>('.approval');
-      const it = itemOf(section?.id);
-      if (!it) return;
-      const form = section!.querySelector<HTMLFormElement>('form.revise');
+    listEl.addEventListener('click', (e) => {
+      const row = (e.target as HTMLElement).closest<HTMLElement>('.tray-row');
+      if (row?.dataset.id) select(row.dataset.id, { view: true });
+    });
 
-      if (btn.dataset.approve) return submit(it, { action: 'approve', toCms: btn.dataset.toCms !== undefined }, btn);
-      if (btn.dataset.reject) {
-        const note = prompt('差し戻しの理由(依頼元の部に返します。修正すれば通る見込みがあるなら「修正を依頼」を使ってください)');
-        if (note === null) return;
-        return submit(it, { action: 'reject', note }, btn);
-      }
-      if (btn.dataset.undo) return submit(it, { action: 'reopen' }, btn);
-      if (btn.dataset.openRevise && form) {
-        form.hidden = false;
-        if (form.querySelectorAll('.revise__row').length === 0) form.querySelector('[data-rows]')!.insertAdjacentHTML('beforeend', rowHtml());
-        form.querySelector<HTMLTextAreaElement>('textarea[name="note"]')?.focus();
+    tabsEl.addEventListener('click', (e) => {
+      const b = (e.target as HTMLElement).closest<HTMLElement>('[data-tab]');
+      if (b) setTab(b.dataset.tab as Tab);
+    });
+
+    noteEl.addEventListener('click', (e) => {
+      if ((e.target as HTMLElement).closest('[data-retry]')) reload();
+    });
+
+    pane.addEventListener('click', async (e) => {
+      const t = e.target as HTMLElement;
+      const it = itemOf(selected);
+      if (!it) return;
+      const btn = t.closest<HTMLElement>('button');
+      if (!btn) return;
+      if (btn.matches('[data-back]')) {
+        trayEl.dataset.view = 'list';
         return;
       }
-      if (btn.dataset.commentOn && form) {
-        // 変更前/変更後のブロックから、その箇所への指示欄を足す
-        const diff = it.detail.diffs?.[Number(btn.dataset.commentOn)];
-        form.hidden = false;
-        const rows = form.querySelector('[data-rows]')!;
-        // 空の行が1つだけなら、それを使う
-        const empty = [...rows.querySelectorAll<HTMLLIElement>('.revise__row')].find(
-          (li) => !li.querySelector<HTMLInputElement>('[name="where"]')!.value && !li.querySelector<HTMLTextAreaElement>('[name="text"]')!.value,
-        );
-        if (empty) empty.remove();
-        rows.insertAdjacentHTML('beforeend', rowHtml(diff?.where ?? ''));
-        rows.lastElementChild?.querySelector<HTMLTextAreaElement>('textarea')?.focus();
-        form.scrollIntoView({ block: 'nearest' });
+      if (btn.dataset.act) return act(btn.dataset.act);
+      if (btn.matches('[data-close-panel]')) {
+        panel = 'none';
+        refreshBar(it);
         return;
       }
-      if (btn.dataset.template && form) {
-        const ta = form.querySelector<HTMLTextAreaElement>('textarea[name="note"]')!;
-        ta.value = ta.value ? `${ta.value.replace(/\s+$/, '')}\n${btn.dataset.template}` : btn.dataset.template;
-        ta.focus();
+      if (btn.dataset.diffComment !== undefined) {
+        const wrap = pane.querySelector<HTMLElement>(`[data-diff-note-wrap="${btn.dataset.diffComment}"]`);
+        if (wrap) {
+          wrap.hidden = false;
+          wrap.querySelector('textarea')?.focus();
+        }
         return;
       }
-      if (btn.dataset.addRow !== undefined && form) {
-        form.querySelector('[data-rows]')!.insertAdjacentHTML('beforeend', rowHtml());
+      if (btn.dataset.template) {
+        const ta = pane.querySelector<HTMLTextAreaElement>('[data-note]');
+        if (ta) {
+          ta.value = ta.value ? `${ta.value.replace(/\s+$/, '')}\n${btn.dataset.template}` : btn.dataset.template;
+          saveDraft(it.id, { note: ta.value });
+          ta.focus();
+        }
         return;
       }
-      if (btn.dataset.removeRow !== undefined) {
+      if (btn.dataset.reason) {
+        const ta = pane.querySelector<HTMLTextAreaElement>('[data-reason-text]');
+        if (ta) {
+          ta.value = btn.dataset.reason;
+          saveDraft(it.id, { reject: ta.value });
+          ta.focus();
+        }
+        return;
+      }
+      if (btn.matches('[data-add-row]')) {
+        const rows = pane.querySelector<HTMLElement>('[data-rows]')!;
+        rows.insertAdjacentHTML('beforeend', reviseRowHtml('', '', rows.children.length));
+        rows.lastElementChild?.querySelector<HTMLInputElement>('input')?.focus();
+        return;
+      }
+      if (btn.matches('[data-remove-row]')) {
         btn.closest('li')?.remove();
+        saveRows(it);
         return;
       }
-      if (btn.dataset.cancel !== undefined && form) {
-        form.hidden = true;
+      if (btn.matches('[data-copy-html]')) {
+        const r = applyResult(it);
+        if (!r) return;
+        try {
+          await navigator.clipboard.writeText(r.html);
+          toast('本文HTMLをコピーしました。microCMSの本文(HTML)に貼り替えてください', undefined, 5000);
+        } catch {
+          const ta = pane.querySelector<HTMLTextAreaElement>('[data-html-out]');
+          if (ta) {
+            ta.closest('details')!.open = true;
+            ta.select();
+            toast('コピーできなかったので、本文HTMLを選択しました。⌘C(Ctrl+C)でコピーしてください', undefined, 7000);
+          }
+        }
         return;
       }
-      if (btn.dataset.copy !== undefined && form) {
-        const text = instructionText(it, readForm(form));
+      if (btn.matches('[data-copy-instruction]')) {
+        const form = pane.querySelector<HTMLFormElement>('[data-revise-form]');
+        if (!form) return;
+        const text = instructionText(it, readRevise(form, it));
         try {
           await navigator.clipboard.writeText(text);
           toast('依頼文をコピーしました。Claudeに貼ってください');
         } catch {
-          prompt('コピーしてClaudeに貼ってください', text);
+          toast('コピーできませんでした');
         }
       }
     });
 
-    root.addEventListener('submit', (e) => {
-      const form = e.target as HTMLFormElement;
-      if (!form.matches('form.revise')) return;
-      e.preventDefault();
-      const it = itemOf(form.closest<HTMLElement>('.approval')?.id);
+    function saveRows(it: TrayItem) {
+      const rows = [...pane.querySelectorAll<HTMLLIElement>('.revise__row')].map((li) => ({
+        where: li.querySelector<HTMLInputElement>('[name="where"]')!.value,
+        text: li.querySelector<HTMLTextAreaElement>('[name="text"]')!.value,
+      }));
+      saveDraft(it.id, { rows });
+    }
+
+    pane.addEventListener('input', (e) => {
+      const t = e.target as HTMLInputElement | HTMLTextAreaElement;
+      const it = itemOf(selected);
       if (!it) return;
-      const input = readForm(form);
-      if (!input.note && !(input.comments ?? []).length) {
-        toast('全体への指示か、箇所ごとの指示を1つ以上書いてください');
+      if (t.dataset.fill) {
+        const fills = { ...(loadDraft(it.id).fills ?? {}), [t.dataset.fill]: t.value };
+        saveDraft(it.id, { fills });
+        const f = it.detail.apply?.fills.find((x) => x.key === t.dataset.fill);
+        if (f) {
+          const r = readPasted(t.value, f);
+          // コードを丸ごと貼ったら、欄の中身もURLだけにしておく(何が使われるかが見て分かるように)
+          if (r.url && r.url !== t.value.trim() && /<a\b/i.test(t.value)) {
+            t.value = r.url;
+            saveDraft(it.id, { fills: { ...fills, [f.key]: r.url } });
+          }
+          const box = t.closest('.fill')!;
+          box.classList.toggle('is-error', !!r.error);
+          box.classList.toggle('is-ok', !!r.url);
+          pane.querySelector<HTMLElement>(`[data-fill-status="${f.key}"]`)!.textContent = r.error ?? (r.url ? `✓ ${r.host}` : f.required ? '必須' : '空欄なら行ごと外します');
+        }
+        renderApplyOut(it);
         return;
       }
-      submit(it, input, form.querySelector<HTMLButtonElement>('button[type="submit"]') ?? undefined);
+      if (t.dataset.diffNote !== undefined) {
+        const diffNotes = { ...(loadDraft(it.id).diffNotes ?? {}), [t.dataset.diffNote]: t.value };
+        saveDraft(it.id, { diffNotes });
+        // 書いている箇所を隠さないように、パネルは開かない。下のバーに「書きかけ◯件」と送り方を出す
+        if (panel === 'none') refreshBar(it);
+        else if (panel === 'revise') {
+          const n = Object.values(diffNotes).filter((v) => v.trim()).length;
+          const note = pane.querySelector<HTMLElement>('.bar-panel__foot .note');
+          if (note) note.textContent = n ? `箇所ごとの指示 ${n}件をいっしょに送ります` : '';
+        }
+        return;
+      }
+      if (t.matches('[data-note]')) return saveDraft(it.id, { note: t.value });
+      if (t.matches('[data-reason-text]')) return saveDraft(it.id, { reject: t.value });
+      if (t.closest('.revise__row')) return saveRows(it);
+      if (t.name === 'size') return saveDraft(it.id, { size: t.value });
     });
 
-    filterEl.addEventListener('click', (e) => {
-      const b = (e.target as HTMLElement).closest<HTMLButtonElement>('[data-filter]');
-      if (!b) return;
-      filter = b.dataset.filter === 'all' ? 'all' : 'open';
-      filterEl.querySelectorAll('[data-filter]').forEach((x) => x.classList.toggle('is-active', x === b));
-      render();
+    pane.addEventListener('change', (e) => {
+      const t = e.target as HTMLInputElement;
+      const it = itemOf(selected);
+      if (it && t.name === 'size') saveDraft(it.id, { size: t.value });
     });
 
-    /** ダッシュボードの報告から来たとき(/approvals/#ap-…)は、その依頼の詳細を開いて見せる */
+    pane.addEventListener('submit', (e) => {
+      e.preventDefault();
+      const form = e.target as HTMLFormElement;
+      const it = itemOf(selected);
+      if (!it) return;
+      if (form.matches('[data-revise-form]')) {
+        const input = readRevise(form, it);
+        if (!input.note && !(input.comments ?? []).length) {
+          toast('全体への指示か、箇所ごとの指示を1つ以上書いてください', undefined, 4000);
+          form.querySelector<HTMLTextAreaElement>('[data-note]')?.focus();
+          return;
+        }
+        decide(it, input);
+        return;
+      }
+      if (form.matches('[data-reject-form]')) {
+        const note = form.querySelector<HTMLTextAreaElement>('[data-reason-text]')!.value.trim();
+        decide(it, { action: 'reject', note });
+      }
+    });
+
+    document.querySelector('[data-toast-undo]')!.addEventListener('click', undoLast);
+
+    const keysDialog = document.querySelector<HTMLDialogElement>('[data-keys-dialog]')!;
+    document.querySelector('[data-keys-open]')!.addEventListener('click', () => keysDialog.showModal());
+
+    document.addEventListener('keydown', (e) => {
+      const t = e.target as HTMLElement;
+      const typing = t.matches('input, textarea, select, [contenteditable="true"]');
+      if (typing) {
+        if ((e.metaKey || e.ctrlKey) && e.key === 'Enter') {
+          const form = t.closest('form');
+          if (form?.matches('[data-revise-form], [data-reject-form]')) {
+            e.preventDefault();
+            form.requestSubmit();
+          }
+        }
+        if (e.key === 'Escape') {
+          (t as HTMLElement).blur();
+          if (panel !== 'none') {
+            panel = 'none';
+            const it = itemOf(selected);
+            if (it) refreshBar(it);
+          }
+        }
+        return;
+      }
+      if (e.metaKey || e.ctrlKey || e.altKey || keysDialog.open) return;
+      const k = e.key;
+      if (k === 'j' || k === 'ArrowDown') {
+        e.preventDefault();
+        move(1);
+      } else if (k === 'k' || k === 'ArrowUp') {
+        e.preventDefault();
+        move(-1);
+      } else if (k === 'a') act('approve');
+      else if (k === 'r') {
+        e.preventDefault();
+        act('revise');
+      } else if (k === 'x') {
+        e.preventDefault();
+        act('reject');
+      } else if (k === 'z' && undoTarget) undoLast();
+      else if (k === '?') keysDialog.showModal();
+      else if (k === 'Escape') {
+        if (panel !== 'none') {
+          panel = 'none';
+          const it = itemOf(selected);
+          if (it) refreshBar(it);
+        } else trayEl.dataset.view = 'list';
+      }
+    });
+
+    /** ダッシュボードの報告から来たとき(/approvals/#ap-…)は、その依頼を開く */
     function openFromHash() {
       const id = decodeURIComponent(location.hash.slice(1));
-      if (!id) return;
-      if (!root.querySelector(`#${CSS.escape(id)}`) && itemOf(id)) {
-        filter = 'all';
-        filterEl.querySelectorAll('[data-filter]').forEach((x) => x.classList.toggle('is-active', (x as HTMLElement).dataset.filter === 'all'));
-        render();
-      }
-      const details = root.querySelector<HTMLDetailsElement>(`details[data-detail="${CSS.escape(id)}"]`);
-      if (!details) return;
-      details.open = true;
-      document.getElementById(id)?.scrollIntoView({ block: 'start' });
+      const it = itemOf(id);
+      if (!it) return false;
+      setTab(TAB_OF[it.state], true);
+      select(it.id, { scroll: true, view: true });
+      return true;
     }
     window.addEventListener('hashchange', openFromHash);
 
-    reload().then(openFromHash);
+    async function reload() {
+      tray = await loadTray(s);
+      setNote();
+      if (!openFromHash()) {
+        // 判断待ちがあれば判断待ちから。無ければAIが対応中を見せる
+        const first: Tab = inTab('open').length ? 'open' : inTab('ai').length ? 'ai' : 'open';
+        setTab(first);
+        // スマホでは一覧から始める。広い画面では先頭の依頼を開いておく
+      }
+    }
+
+    reload();
   </script>
 </Base>

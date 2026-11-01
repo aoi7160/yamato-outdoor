@@ -47,6 +47,28 @@ export type DraftArticle = {
   why?: string;
 };
 
+/**
+ * 差し込み欄。CEOがURLを貼るだけで本文を仕上げられるようにする(アフィリエイトのリンクの差し込みなど)。
+ * html の中の {{key}} が、欄に貼った値に置き換わる。空欄にした任意の欄は、その {{key}} を含む <li> を行ごと外す。
+ */
+export type ApplyFill = {
+  key: string;
+  label: string;
+  /** 欄の下に出す説明(どこで取ってくるリンクか) */
+  hint?: string;
+  /** 受け付けるドメイン(このドメインかそのサブドメイン)。空なら https なら何でも */
+  hosts?: string[];
+  required?: boolean;
+};
+export type ApplyBody = {
+  /** 何の本文か(例:サロモンの記事の本文) */
+  label: string;
+  /** 貼り付け先の説明(例:microCMS → 記事 → 本文(HTML)を全部貼り替え) */
+  where?: string;
+  html: string;
+  fills: ApplyFill[];
+};
+
 export type ApprovalDetail = {
   /** 何を・なぜ、の要約(1〜2文) */
   summary: string;
@@ -65,6 +87,8 @@ export type ApprovalDetail = {
   article?: DraftArticle;
   /** microCMSにある記事(既存記事の修正など)。あれば「microCMSで直接直す」のボタンが出る */
   cms?: { contentId: string };
+  /** 差し込み欄つきの本文。CEOがURLを貼ると、そのまま貼れる本文HTMLができる */
+  apply?: ApplyBody;
 };
 
 export type ApprovalItem = {
@@ -77,6 +101,8 @@ export type ApprovalItem = {
   /** 承認すると何が起きるか(Phase 3で実際に起きること) */
   effect: string;
   detail: ApprovalDetail;
+  /** 経営企画の推奨(判断の目安。決めるのはCEO) */
+  recommend?: { action: '承認' | '修正を依頼' | '差し戻し' | '保留'; why: string };
 };
 
 const SALOMON = `${SITE_URL}/mountain-climbing/boots/salomon-hiking-shoes/`;
@@ -130,6 +156,7 @@ const TEMPLATES: ApprovalItem[] = [
     from: 'dev',
     type: 'mainへのマージ',
     title: '記事ページの目次まわりの余白を調整',
+    recommend: { action: '承認', why: 'ビルドとfpsの確認が済んでいて、変わるのはスマホの目次の余白だけ。戻すのも1行' },
     basis: ['npm run build 成功', 'スクロール中 60fps(実測)', 'プレビューURLで表示確認済み'],
     effect: 'mainにマージ → 本番に反映',
     detail: {
@@ -153,6 +180,7 @@ const TEMPLATES: ApprovalItem[] = [
     from: 'affiliate',
     type: 'リンク差し替え',
     title: '登山靴の記事:提携終了した案件を楽天のリンクに差し替え',
+    recommend: { action: '承認', why: '同じ商品・同等の報酬率で、読者の行き先が切れたままになっている。放置すると毎日クリックが無駄になる' },
     basis: ['SEO部がリンク切れを検知', '代替案件は同じ商品・同等の報酬率', '校閲済み'],
     effect: '制作部が本文を修正 → 公開',
     detail: {
@@ -168,8 +196,18 @@ const TEMPLATES: ApprovalItem[] = [
           where: 'X ULTRA 5 MID GORE-TEXで岩湧山を歩いた実レビュー → 購入リンク',
           before: '公式オンラインストアで見る(A8.net経由・提携終了)',
           after: '楽天市場で見る(サロモン X ULTRA 5 MID GORE-TEX)',
+          why: '提携が終わったリンクは成果にならず、読者も案件終了のページに飛ばされる。同じ商品の楽天に向ければ、読者の行き先も報酬も戻る',
         },
       ],
+      apply: {
+        label: 'サロモンの記事の購入リンクの箱',
+        where: 'microCMS → 記事 → サロモンの登山靴 → 本文(HTML)',
+        html: '<div class="buy-box">\n  <p class="buy-box__name">サロモン X ULTRA 5 MID GORE-TEX</p>\n  <ul class="buy-box__links">\n    <li><a href="{{rakuten}}">楽天市場で見る</a></li>\n    <li><a href="{{amazon}}">Amazonで見る</a></li>\n  </ul>\n</div>',
+        fills: [
+          { key: 'rakuten', label: '楽天市場', hint: 'もしもの「楽天市場」で取ったテキストリンク', hosts: ['moshimo.com', 'rakuten.co.jp'], required: true },
+          { key: 'amazon', label: 'Amazon', hint: 'もしもの「Amazon」で取ったテキストリンク(提携前なら空欄でよい)', hosts: ['moshimo.com', 'amazon.co.jp', 'amzn.to', 'amzn.asia'] },
+        ],
+      },
     },
   },
   {
@@ -194,6 +232,7 @@ const TEMPLATES: ApprovalItem[] = [
     from: 'partnership',
     type: '外部への連絡',
     title: 'ヘッドランプのメーカーへサンプル提供の依頼',
+    recommend: { action: '保留', why: 'ヘッドランプの記事がまだコンテンツマップの優先度で後ろ。記事の企画が決まってから送る方が話が早い' },
     basis: ['媒体資料を添付', '広告表記の扱いは法務で確認済み'],
     effect: 'CEOの名前でメールを送信',
     detail: {
@@ -264,6 +303,8 @@ export type DecisionInput = {
   comments?: { where: string; text: string }[];
   /** 承認と同時に、記事をmicroCMSに下書きとして入稿する */
   toCms?: boolean;
+  /** 差し込み欄に貼った値(承認のときだけ送る。Claudeが本文に反映する) */
+  fills?: Record<string, string>;
 };
 
 const LOCAL_STATE: Record<Decision['state'], TrayState> = { approved: '承認', rejected: '差し戻し', revise: '修正依頼' };
@@ -342,7 +383,27 @@ function fromNotion(x: any): TrayItem {
         .map((i: any) => ({ src: safeUrl(i?.src), alt: str(i?.alt), caption: str(i?.caption) }))
         .filter((i) => i.src.startsWith('https:')),
       preview,
+      apply:
+        d.apply && typeof d.apply === 'object' && str(d.apply.html)
+          ? {
+              label: str(d.apply.label) || '本文',
+              where: str(d.apply.where) || undefined,
+              html: str(d.apply.html),
+              fills: arr(d.apply.fills)
+                .map((f: any) => ({
+                  key: /^[a-z0-9_-]{1,32}$/.test(f?.key) ? f.key : '',
+                  label: str(f?.label) || str(f?.key),
+                  hint: str(f?.hint) || undefined,
+                  hosts: arr(f?.hosts).map(str).filter(Boolean),
+                  required: f?.required === true,
+                }))
+                .filter((f) => f.key),
+            }
+          : undefined,
     },
+    recommend: (['承認', '修正を依頼', '差し戻し', '保留'] as const).includes(x.recommend)
+      ? { action: x.recommend, why: str(x.recommendWhy) }
+      : undefined,
     state: (['承認待ち', '修正依頼', '承認', '差し戻し', '対応済み'] as const).find((v) => v === x.state) ?? '承認待ち',
     round: typeof x.round === 'number' ? x.round : 0,
     size: str(x.size) || undefined,

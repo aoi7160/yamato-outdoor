@@ -21,7 +21,9 @@ const VERSION = '2025-09-03';
 /** 状態は、この5つ以外は扱わない(Notionで手で足されても、コンソールからは書かない) */
 export const STATES = ['承認待ち', '修正依頼', '承認', '差し戻し', '対応済み'];
 const SIZES = ['小さな修正', '大きな修正'];
-const LIMIT = { note: 2000, comment: 1000, comments: 50, where: 300 };
+const LIMIT = { note: 2000, comment: 1000, comments: 50, where: 300, fills: 12, url: 2000 };
+/** 経営企画の推奨(プロパティ「経営企画の推奨」)。この4つ以外は推奨なしとして扱う */
+export const RECOMMENDS = ['承認', '修正を依頼', '差し戻し', '保留'];
 
 const cleanId = (s) => String(s ?? '').replace(/-/g, '').match(/[0-9a-f]{32}/i)?.[0]?.toLowerCase() ?? '';
 
@@ -138,6 +140,8 @@ export async function listApprovals(env, { bodies = true } = {}) {
         size: prop(P['修正の大きさ']) ?? '',
         round: prop(P['修正回数']) ?? 0,
         decidedAt: prop(P['判断日時']),
+        recommend: RECOMMENDS.includes(prop(P['経営企画の推奨'])) ? prop(P['経営企画の推奨']) : '',
+        recommendWhy: prop(P['推奨の理由']) ?? '',
       };
     });
   if (!bodies) return items;
@@ -167,7 +171,25 @@ const cap = (s, n) => String(s ?? '').trim().slice(0, n);
 const jst = (d) => new Date(d.getTime() + 9 * 3600_000).toISOString().slice(0, 16).replace('T', ' ');
 
 /**
- * @param {{ action: 'approve' | 'reject' | 'revise' | 'reopen', note?: string, size?: string, comments?: { where: string, text: string }[], toCms?: boolean }} input
+ * 承認と一緒に送られる「差し込み欄」の値(本文の {{key}} に入るアフィリエイトのリンクなど)。
+ * キーは英小文字・数字・_- だけ、値は https のURLだけを通す(Notionに書く前に必ずここを通す)
+ */
+export function cleanFills(raw) {
+  if (!raw || typeof raw !== 'object' || Array.isArray(raw)) return {};
+  const out = {};
+  for (const [k, v] of Object.entries(raw).slice(0, LIMIT.fills)) {
+    if (!/^[a-z0-9_-]{1,32}$/.test(k)) continue;
+    const u = String(v ?? '').trim();
+    if (!u || u.length > LIMIT.url) continue;
+    try {
+      if (new URL(u).protocol === 'https:') out[k] = u;
+    } catch {}
+  }
+  return out;
+}
+
+/**
+ * @param {{ action: 'approve' | 'reject' | 'revise' | 'reopen', note?: string, size?: string, comments?: { where: string, text: string }[], toCms?: boolean, fills?: Record<string, string> }} input
  */
 export async function decide(env, rawId, input, now = new Date()) {
   const id = cleanId(rawId);
@@ -188,6 +210,7 @@ export async function decide(env, rawId, input, now = new Date()) {
     .map((c) => ({ where: cap(c?.where, LIMIT.where), text: cap(c?.text, LIMIT.comment) }))
     .filter((c) => c.text);
   const size = SIZES.includes(input.size) ? input.size : '小さな修正';
+  const fills = action === 'approve' ? cleanFills(input.fills) : {};
   if (action === 'revise' && !note && comments.length === 0)
     throw Object.assign(new Error('修正依頼には、全体への指示か箇所ごとの指示を1つ以上書いてください'), { status: 400 });
 
@@ -220,12 +243,14 @@ export async function decide(env, rawId, input, now = new Date()) {
   const children = [block('heading_3', `CEOの判断(${jst(now)})${label}`)];
   if (note) children.push(block('bulleted_list_item', action === 'revise' ? `全体:${note}` : `メモ:${note}`));
   for (const c of comments) children.push(block('bulleted_list_item', `「${c.where || '(箇所の指定なし)'}」:${c.text}`));
+  // 差し込み欄の値。Claudeは承認トレイを処理するとき、本文の {{key}} をこの値に置き換えて反映する(空欄のキーは行ごと外す)
+  for (const [k, v] of Object.entries(fills)) children.push(block('bulleted_list_item', `差し込み:${k}=${v}`));
   if (cms) {
     children.push(block('bulleted_list_item', `microCMSに下書きとして入稿(コンテンツID ${cms.contentId})。公開はmicroCMSの画面で行う:${cms.editUrl}`));
     if (cms.dropped.length) children.push(block('bulleted_list_item', `入稿できなかった項目(microCMSで手で入れる):${cms.dropped.join('、')}`));
   }
   await call(env, `/blocks/${id}/children`, { method: 'PATCH', body: JSON.stringify({ children }) });
-  return { id, state, round, cms };
+  return { id, state, round, cms, fills };
 }
 
 export const notionMissing = (env) => ['NOTION_TOKEN', 'NOTION_APPROVALS_DB'].filter((k) => !env[k]);

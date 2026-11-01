@@ -167,7 +167,7 @@ A/Bテストや見比べ用に、過去のトップページ構成をブラン�
   台詞は1文が基本で、CEOが動く必要があるときだけ3〜5文(`console/src/scripts/demo.ts` の `alertsFor` と `GROUNDED`)。
 - **承認トレイの実体はNotionの「承認トレイ」データベース**(`console/server/notion.js`。手順は `console/README.md` 11章)。
   CEOの判断(承認・修正依頼・差し戻し)はNotionに書き戻され、Claudeは「承認トレイを処理して」と頼まれたときにそれを読んで動く。
-  依頼を積むときは本文の `json` に変更前/変更後(`diffs`)・納品物の画像URL(`images`)を入れる。
+  依頼を積むときは本文の `json` に変更前/変更後(`diffs`)・納品物の画像URL(`images`)を入れる。CEOにURLを貼ってもらうだけで仕上がる本文(アフィリエイトのリンクなど)は `apply`(差し込み欄)にする。判断の目安はプロパティ「経営企画の推奨」に。
   `preview` は microCMS に実際の下書きがあるときだけ書く(無い下書きのプレビューに飛ばさない)。
 - 校閲の自動チェックは `console/server/proofread.js`(画面は `/checks/`)。ルールは `docs/tone-and-manner.md` から機械で判定できるものだけ。
 - **新しい記事はAIが書いて承認トレイに積む**(スキル `write-article`。週2〜4本)。CEOは `/review/` で全文に箇所コメント・修正案を付け、
