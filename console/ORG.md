@@ -187,6 +187,23 @@ SNS部(稼働後) ── 告知を投稿キューへ  /  データ分析 ── 
 | 3日 / 5日 | 事業報告 | 月次P&Lの確定(CEO承認)/ 月次事業報告書(社内版)の提出 |
 | 四半期の翌月10日 | 事業報告 | 対外版の事業報告書の下書き(法務 → CEO) |
 
+### 定期実行(時間割の実体)
+
+時間割は、Claude Codeの定期実行(scheduled tasks)が `.claude/skills/yamato-ops/SKILL.md`(運営の時間割)を呼び、
+そこから各部のスキル `.claude/skills/yamato-<部>/SKILL.md` を順番に実行する形で動く。
+
+| 定期実行 | いつ(日本時間) | 呼ぶもの |
+|---|---|---|
+| YAMATO 朝の定例 | 毎日 6:41 | `yamato-ops morning`(分析・SEO・校閲・アフィリエイト・企画) |
+| YAMATO 夜の日報 | 毎日 20:47 | `yamato-ops evening`(事業報告・人事・経営企画) |
+| YAMATO 週次 | 毎週月曜 7:43 | `yamato-ops weekly`(編集会議・制作・SNS・コミュニティ・グッズ・人事・週報) |
+| YAMATO 月次 | 毎月1日 8:13 | `yamato-ops monthly`(監査・P&L・事業報告・振り返り) |
+| YAMATO 記事の自動執筆 | 月・木 5:52 | `write-article`(コンテンツ制作) |
+
+- どの定期実行も、claude.aiの定期実行の画面で **Notion・Google Drive・Googleカレンダー** の接続を付け、環境を **Default** にしてから動く
+  (接続が無いと「Notionにつながっていない」と報告して止まる)。本業の接続(Slack・Salesforce・Microsoft 365 など)は付けない
+- 全部署の共通基準は `.claude/skills/yamato-ops/STANDARDS.md`(専門家の水準・想起・住み分け・出力先)
+
 ---
 
 ## 7. 部の追加・分割
