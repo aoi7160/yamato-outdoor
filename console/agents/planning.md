@@ -2,7 +2,7 @@
 id: planning
 name: 企画・編集会議部
 short: 企画
-summary: "季節の需要から記事を出す時期と企画を決め、各部の作業を進行する"
+summary: "トレンドの需要から記事を出す時期と企画を決め、各部の作業を進行する"
 tagline: 季節から逆算して、各部に発注する
 division: product-content
 status: active
@@ -24,7 +24,7 @@ cadence:
   - { when: "monthly 1日", what: "今月の企画を2本以上決める(需要の山の6週間前に公開できるもの)。企画は承認トレイに「企画」として積む" }
 reports_to: executive
 staff:
-  - { name: "Season Radar", label: "季節の需要予測", does: "ブラックフライデーや雪山シーズンなど、検索や購買が増える時期から逆算して、記事を出す時期と企画を決める。", where: "Googleカレンダー「YAMATO BASE CAMP」/ Notion承認トレイ / Notion「日報・週報」(週報の取材計画)", runs: "スキル yamato-planning(需要カレンダー・企画の起案・取材計画)。運営の時間割(yamato-ops)の morning・weekly で実行。頼まれたときも実行", state: on-call, skills: ["季節の需要予測", "公開時期の逆算", "季節に合う企画"], kpi: "需要が増える6週間前までに出せた記事の数", growth: "セール(1月・7月)と関西の山の旬も予測に加える" }
+  - { name: "Season Radar", label: "トレンドの需要予測", does: "ブラックフライデーや雪山シーズンなど、検索や購買が増えるトレンドを予測し、そこから逆算して記事を出す時期と企画を決める。", where: "Googleカレンダー「YAMATO BASE CAMP」/ Notion承認トレイ / Notion「日報・週報」(週報の取材計画)", runs: "スキル yamato-planning(需要カレンダー・企画の起案・取材計画)。運営の時間割(yamato-ops)の morning・weekly で実行。頼まれたときも実行", state: on-call, skills: ["トレンドの需要予測", "公開時期の逆算", "トレンドに合う企画"], kpi: "需要が増える6週間前までに出せた記事の数", growth: "セール(1月・7月)と関西の山の旬も予測に加える" }
   - { name: "Assignment Desk", label: "制作進行の管理", does: "決まった企画を、記事・画像・リンク・SNSなどの作業に分けて各部に依頼し、締切まで進行を管理する。", where: "Notion「日報・週報」(週報の発注表)/ Notion承認トレイ", runs: "スキル yamato-planning(編集会議・発注書・発注表)。運営の時間割(yamato-ops)の morning・weekly で実行。頼まれたときも実行", state: on-call, skills: ["作業の切り分け", "締切の管理", "部をまたぐ進行"], kpi: "締切を守れた依頼の割合", growth: "CEOの登山1回で、複数の記事に要る実測をまとめて取れるよう段取りする" }
 ---
 
