@@ -1,6 +1,6 @@
 ---
 name: yamato-affiliate
-description: アフィリエイト部(YAMATO OUTDOOR)の専門スキル。ASPの選定と審査の準備、案件の評価(報酬×CVR×確定率×Cookie×記事との適合)、Notion「案件台帳」の点検、記事ごとのbuy-boxの位置と書き方の設計、セールの3週間前の準備、リンク切れ・提携終了の差し替え案、記事別EPCの収益分析までを、L1(下書き)の範囲でやり切る。「案件を調べて」「この記事のリンクを設計して」「案件台帳を点検して」「アフィリエイトの成績を見て」と頼まれたとき、運営の時間割(yamato-ops)の morning(月曜はリンク設計・木曜は台帳の全件点検・1日は月次)から呼ばれたときに使う。
+description: アフィリエイト部(YAMATO OUTDOOR)の専門スキル。ASPの選定と審査の準備、案件の評価(報酬×CVR×確定率×Cookie×記事との適合)、案件台帳(D1 の `yamato_deals`)の点検、記事ごとのbuy-boxの位置と書き方の設計、セールの3週間前の準備、リンク切れ・提携終了の差し替え案、記事別EPCの収益分析までを、L1(下書き)の範囲でやり切る。「案件を調べて」「この記事のリンクを設計して」「案件台帳を点検して」「アフィリエイトの成績を見て」と頼まれたとき、運営の時間割(yamato-ops)の morning(月曜はリンク設計・木曜は台帳の全件点検・1日は月次)から呼ばれたときに使う。
 ---
 
 # アフィリエイト部の専門スキル
@@ -18,7 +18,7 @@ description: アフィリエイト部(YAMATO OUTDOOR)の専門スキル。ASPの
 1. `CLAUDE.md`(「計測タグの約束」のASP・buy-box・pr-notice・Amazonの表記)と `.claude/skills/yamato-ops/STANDARDS.md` を読む
 2. `console/agents/affiliate.md`(段階0〜2・1記事あたりのリンクの約束・年間のセール表)を読む
 3. `docs/workflow.md` の「購入リンクの箱(アフィリエイト)」と `src/lib/affiliate.ts` の `AFFILIATE_NETWORKS` を開いておく
-4. Notion「YAMATO BASE CAMP」→「案件台帳」「承認トレイ」を開く。**Notionにつながっていなければ、ここで止めて日報用に「Notionにつながっていないため未実行」とだけ返す**
+4. 記録「案件台帳」(D1 の `yamato_deals`)・「承認トレイ」(`yamato_tray`)を開く。**記録(D1)につながらなければ、ここで止めて日報用に「記録(D1)につながらないため未実行」とだけ返す**
 5. 今日の曜日と日付から、4章のどの手順を回すかを決める
 
 ---
@@ -226,12 +226,12 @@ description: アフィリエイト部(YAMATO OUTDOOR)の専門スキル。ASPの
 
 | 出力 | 場所 | 形 |
 |---|---|---|
-| 案件 | Notion「案件台帳」 | 1案件1行(`templates.md` 1) |
+| 案件 | 案件台帳(D1 の `yamato_deals`) | 1案件1行(`templates.md` 1) |
 | 記事ごとのリンク設計 | 非公開リポジトリ `content/affiliate/link-plans/<slug>.md` | `templates.md` 2 |
-| リンクの追加・差し替え(提携中の案件だけ) | Notion「承認トレイ」種類「リンク差し替え」 | `templates.md` 3 |
-| ASP登録の提案 | Notion「承認トレイ」種類「企画」 | `templates.md` 4 |
+| リンクの追加・差し替え(提携中の案件だけ) | 承認トレイ(D1 の `yamato_tray`)種類「リンク差し替え」 | `templates.md` 3 |
+| ASP登録の提案 | 承認トレイ(D1 の `yamato_tray`)種類「企画」 | `templates.md` 4 |
 | 月次の記事別成績 | 非公開リポジトリ `content/affiliate/monthly/YYYY-MM.md` | 記事・クリック・発生・確定・EPC・診断・次の一手 |
-| 報告 | Notion「日報・週報」の今日のページ → 「各部の報告」→ 見出し3「アフィリエイト部」 | 4行まで(`templates.md` 5) |
+| 報告 | 日報・週報(D1 の `yamato_log`)の今日のページ → 「各部の報告」→ 見出し3「アフィリエイト部」 | 4行まで(`templates.md` 5) |
 
 ## 7. 住み分け
 

@@ -24,9 +24,9 @@ cadence:
   - { when: "monthly", what: メルマガ(月1〜2回) }
 reports_to: executive
 staff:
-  - { name: "CRM Studio", label: "LINE・メールの配信", does: "LINEやメールで読者に届ける配信の流れと文面を作る(配信はCEOが判断)。", where: "非公開リポジトリ yamato-outdoor-editorial(content/community/)/ Notion承認トレイ", runs: "スキル yamato-community(今週の配信案・開設の準備)。運営の時間割(yamato-ops)の weekly で実行。頼まれたときも実行", state: on-call, skills: ["配信の設計", "配信文の制作", "登録の導線"], kpi: "LINE・メールの登録者数", growth: "登録の窓口ができたら、記事の読者を配信につなげる" }
-  - { name: "Event Lab", label: "イベントの企画", does: "読者と一緒に登る企画やイベントの企画書を作る。安全面や法律の注意点も整理する。", where: "非公開リポジトリ(content/community/events/)/ Notion承認トレイ", runs: "スキル yamato-community(企画書)。頼まれたときに実行(受け口が開いたら月初の weekly で棚卸し)", state: on-call, skills: ["イベントの企画書", "安全面の確認", "法律の確認"], kpi: "実施まで進んだ企画の数", growth: "読者が集まったら、関西の山での企画を形にする" }
-  - { name: "Concierge", label: "問い合わせの対応", does: "読者からの問い合わせを分類し、返信の下書きを作る。個人情報は法務のルールに従って扱う。", where: "Notion承認トレイ / 非公開リポジトリ(content/community/questions.md)", runs: "スキル yamato-community(返信の下書き)。頼まれたときに実行", state: on-call, skills: ["問い合わせの分類", "返信の下書き", "個人情報の扱い"], kpi: "返信までの時間", growth: "問い合わせ窓口ができたら、返信の下書きを自動にする" }
+  - { name: "CRM Studio", label: "LINE・メールの配信", does: "LINEやメールで読者に届ける配信の流れと文面を作る(配信はCEOが判断)。", where: "非公開リポジトリ yamato-outdoor-editorial(content/community/)/ 承認トレイ(D1)", runs: "スキル yamato-community(今週の配信案・開設の準備)。運営の時間割(yamato-ops)の weekly で実行。頼まれたときも実行", state: on-call, skills: ["配信の設計", "配信文の制作", "登録の導線"], kpi: "LINE・メールの登録者数", growth: "登録の窓口ができたら、記事の読者を配信につなげる" }
+  - { name: "Event Lab", label: "イベントの企画", does: "読者と一緒に登る企画やイベントの企画書を作る。安全面や法律の注意点も整理する。", where: "非公開リポジトリ(content/community/events/)/ 承認トレイ(D1)", runs: "スキル yamato-community(企画書)。頼まれたときに実行(受け口が開いたら月初の weekly で棚卸し)", state: on-call, skills: ["イベントの企画書", "安全面の確認", "法律の確認"], kpi: "実施まで進んだ企画の数", growth: "読者が集まったら、関西の山での企画を形にする" }
+  - { name: "Concierge", label: "問い合わせの対応", does: "読者からの問い合わせを分類し、返信の下書きを作る。個人情報は法務のルールに従って扱う。", where: "承認トレイ(D1) / 非公開リポジトリ(content/community/questions.md)", runs: "スキル yamato-community(返信の下書き)。頼まれたときに実行", state: on-call, skills: ["問い合わせの分類", "返信の下書き", "個人情報の扱い"], kpi: "返信までの時間", growth: "問い合わせ窓口ができたら、返信の下書きを自動にする" }
 ---
 
 ## ミッション

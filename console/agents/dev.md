@@ -25,7 +25,7 @@ cadence:
   - { when: "daily 19:00", what: 定例ヒアリングに回答 }
 reports_to: executive
 staff:
-  - { name: "Platform Engineering", label: "サイトの開発", does: "サイトとBASE CAMPの機能を作り、直す。デザインの約束と表示の速さを守って作る。", where: "GitHub(aoi7160/yamato-outdoor)/ Notion承認トレイ(mainへのマージ)", runs: "スキル yamato-dev(改修・依存関係・障害)。運営の時間割(yamato-ops)の monthly で依存関係を点検。頼まれたときも実行", state: on-call, skills: ["サイトの実装", "BASE CAMPの実装", "計測タグの約束の順守"], kpi: "本番に出したあとの不具合0件", growth: "本番に出す前のプレビューでの計測を必須にする" }
+  - { name: "Platform Engineering", label: "サイトの開発", does: "サイトとBASE CAMPの機能を作り、直す。デザインの約束と表示の速さを守って作る。", where: "GitHub(aoi7160/yamato-outdoor)/ 承認トレイ(D1)(mainへのマージ)", runs: "スキル yamato-dev(改修・依存関係・障害)。運営の時間割(yamato-ops)の monthly で依存関係を点検。頼まれたときも実行", state: on-call, skills: ["サイトの実装", "BASE CAMPの実装", "計測タグの約束の順守"], kpi: "本番に出したあとの不具合0件", growth: "本番に出す前のプレビューでの計測を必須にする" }
   - { name: "Speed Lab", label: "表示速度の改善", does: "ページの表示の速さと、スクロールの滑らかさを測り、遅くなる原因を見つけて直す。", where: "非公開リポジトリ(content/dev/perf-log.md)/ BASE CAMP「本日」(PSIの自動取得はコンソールのサーバー)", runs: "スキル yamato-dev(月次の計測・改修ごとのプレビュー計測)。運営の時間割(yamato-ops)の monthly で実行。頼まれたときも実行", state: on-call, skills: ["表示速度の計測", "表示の重さの原因調査", "部品の更新の点検"], kpi: "表示の速さの目標(主要部分が2秒以内)", growth: "表示速度の計測を毎月自動にする" }
 ---
 

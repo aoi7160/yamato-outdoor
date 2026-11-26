@@ -4,8 +4,10 @@
  *
  *   GET /api/connectors        … 各連携の「設定済みか」だけ(数字は取りにいかない)
  *   GET /api/connectors/<id>   … その連携の数字(連携ごとの ttl だけキャッシュ。?fresh=1 で取り直し)
- *   GET  /api/approvals        … 承認トレイ(Notion)の依頼の一覧。キャッシュしない
- *   POST /api/approvals/<id>   … CEOの判断(承認 / 修正依頼 / 差し戻し / 取り消し)をNotionに書き戻す
+ *   GET  /api/approvals        … 承認トレイの依頼の一覧。キャッシュしない
+ *   POST /api/approvals/<id>   … CEOの判断(承認 / 修正依頼 / 差し戻し / 取り消し)を書き戻す
+ *
+ * 承認トレイの置き場は、service binding の HUMAN_OS があれば D1(server/tray.js)、無ければ Notion(server/notion.js)。
  *
  * 書き込み(POST)は、Accessの検証に加えて、同じオリジンからの X-BaseCamp ヘッダー付きの要求だけ受け付ける
  * (Accessのログインのクッキーを使って、別のサイトから判断を勝手に送らせないため)。
@@ -16,7 +18,8 @@
 import { verifyAccess } from './access.js';
 import { getCached, putCached } from './cache.js';
 import { CONNECTORS, missingEnv } from './connectors.js';
-import { decide, listApprovals, notionMissing } from './notion.js';
+import * as notion from './notion.js';
+import * as tray from './tray.js';
 import { cmsBase } from './cms.js';
 
 const json = (body, status = 200, headers = {}) =>
@@ -66,9 +69,13 @@ export async function handleApi(request, env, waitUntil) {
   }
 }
 
-/** 承認トレイ(Notion)。未設定なら configured:false を返し、画面はデモの依頼に切り替える */
+/** 承認トレイの置き場。D1(Human OS)を優先し、つながっていなければ Notion */
+const trayStore = (env) => (env.HUMAN_OS ? { ...tray, missing: tray.trayMissing(env) } : { ...notion, missing: notion.notionMissing(env) });
+
+/** 承認トレイ。未設定なら configured:false を返し、画面はデモの依頼に切り替える */
 async function approvals(request, env, url, parts) {
-  const missing = notionMissing(env);
+  const store = trayStore(env);
+  const missing = store.missing;
   if (parts.length === 2 && request.method === 'GET') {
     if (missing.length) return json({ ok: false, configured: false, missing });
     try {
@@ -78,7 +85,7 @@ async function approvals(request, env, url, parts) {
         fetchedAt: new Date().toISOString(),
         // microCMSの管理画面のURL(「microCMSで直接直す」用)と、承認時に入稿できるか
         cms: { base: cmsBase(env), writable: !!(env.MICROCMS_SERVICE_DOMAIN && env.MICROCMS_WRITE_KEY) },
-        items: await listApprovals(env, { bodies: url.searchParams.get('bodies') !== '0' }),
+        items: await store.listApprovals(env, { bodies: url.searchParams.get('bodies') !== '0' }),
       });
     } catch (e) {
       return json({ ok: false, configured: true, error: e instanceof Error ? e.message : String(e) });
@@ -96,7 +103,7 @@ async function approvals(request, env, url, parts) {
       return json({ ok: false, error: '送信の形式が正しくありません' }, 400);
     }
     try {
-      return json({ ok: true, ...(await decide(env, parts[2], body)) });
+      return json({ ok: true, ...(await store.decide(env, parts[2], body)) });
     } catch (e) {
       const status = e && typeof e === 'object' && 'status' in e && Number(e.status) >= 400 && Number(e.status) < 500 ? Number(e.status) : 502;
       return json({ ok: false, error: e instanceof Error ? e.message : String(e) }, status);

@@ -234,7 +234,7 @@ export function alertsFor(c: DemoContext): string[] {
   return out;
 }
 
-/** 承認トレイ(Notion)に、その部が積んでいて判断待ちの依頼 */
+/** 承認トレイに、その部が積んでいて判断待ちの依頼 */
 const trayOf = (c: DemoContext, id: string) =>
   (c.extra.tray?.items ?? []).filter((x) => x.from === id && (x.state === '承認待ち' || x.state === '修正依頼'));
 
@@ -303,7 +303,7 @@ const TILES: Record<string, (c: DemoContext) => Tile> = {
     c.grounded
       ? c.extra.tray?.configured
         ? { label: '確認待ちの納品物', value: `${trayOf(c, 'creative').length}件`, sub: '承認トレイ', real: true }
-        : { label: '確認待ちの納品物', value: NA, sub: '承認トレイ(Notion) 未接続' } : { label: '納品(本日)', value: `${c.s.values.assets}点`, sub: 'alt設定 100%' },
+        : { label: '確認待ちの納品物', value: NA, sub: '承認トレイ 未接続' } : { label: '納品(本日)', value: `${c.s.values.assets}点`, sub: 'alt設定 100%' },
   dev: (c) => {
     const vitals = c.realKeys.has('lcp')
       ? `LCP ${c.s.values.lcp}s${c.realKeys.has('inp') ? `・INP ${c.s.values.inp}ms` : ''}`
@@ -326,7 +326,7 @@ const TILES: Record<string, (c: DemoContext) => Tile> = {
       ? { label: '本日のPV', value: num(c.s.values.pv), sub: `自然検索 ${c.s.values.organicShare}%`, real: c.grounded }
       : { label: '本日のPV', value: NA, sub: `GA4 ${STATE_TEXT[conn(c, 'ga4')]}` },
   legal: (c) => (c.grounded ? { label: '未解決の指摘', value: NA, sub: `次の監査 ${c.nextAuditDay}` } : { label: '未解決の指摘', value: '0件', sub: `次の監査 ${c.nextAuditDay}` }),
-  reporting: () => ({ label: '今月の営業利益(見込み)', value: NA, sub: 'P&L台帳(Notion) 未接続' }),
+  reporting: () => ({ label: '今月の営業利益(見込み)', value: NA, sub: 'P&L台帳 未接続' }),
 };
 
 export const tileFor = (a: ClientAgent, c: DemoContext): Tile =>
@@ -445,7 +445,7 @@ const SCREENS: Record<string, (c: DemoContext) => Screen> = {
   },
   'production-queue': (c) => {
     if (c.grounded) {
-      if (!c.extra.tray?.configured) return { title: '納品物', rows: [{ label: '承認トレイ(Notion)', value: '未接続' }] };
+      if (!c.extra.tray?.configured) return { title: '納品物', rows: [{ label: '承認トレイ', value: '未接続' }] };
       const mine = (c.extra.tray.items ?? []).filter((x) => x.from === 'creative').slice(0, 4);
       return {
         title: '納品物(承認トレイ)',
@@ -721,7 +721,7 @@ const GROUNDED: Record<string, (c: DemoContext) => string> = {
     ].join('');
   },
   creative: (c) => {
-    if (!c.extra.tray?.configured) return '承認トレイ(Notion)がまだつながっていないため、納品物を見せられる場所がありません(納品物は画像つきで承認トレイに積みます)';
+    if (!c.extra.tray?.configured) return '承認トレイがまだつながっていないため、納品物を見せられる場所がありません(納品物は画像つきで承認トレイに積みます)';
     const mine = trayOf(c, 'creative');
     return mine.length ? `確認待ちの納品物が${mine.length}件あります(「${cut(mine[0].title, 20)}」など)` : '確認待ちの納品物はありません';
   },
@@ -789,12 +789,12 @@ const GROUNDED: Record<string, (c: DemoContext) => string> = {
   },
   legal: (c) => `次の月次監査は${c.nextAuditDay}です(監査の記録はまだつながっていないため、未解決の指摘の件数は出せません)`,
   reporting: (c) => {
-    const head = 'P&L台帳と作業時間ログ(Notion)がまだつながっていないため、今月の営業利益は出せません';
+    const head = 'P&L台帳と作業時間ログがまだつながっていないため、今月の営業利益は出せません';
     const close = closingPhase(c.today);
     if (!close) return head;
     const m = c.today.getMonth() + 1;
     const until = (day: number) => (day === c.today.getDate() ? '今日' : `あと${day - c.today.getDate()}日`);
-    const notLinked = 'P&L台帳(Notion)はまだコンソールにつながっていないので';
+    const notLinked = 'P&L台帳(D1)はまだコンソールにつながっていないので';
     const lines: Record<typeof close.kind, string[]> = {
       collect: [
         `月末なので、${close.text}の時期です。`,
@@ -805,11 +805,11 @@ const GROUNDED: Record<string, (c: DemoContext) => string> = {
       close: [
         `${m}/3は月次P&Lの確定日です(${until(3)})。`,
         '先月分の売上(ASP・SUZURI)・費用・作業時間がそろっているかを確認してください。',
-        `${notLinked}、数字はNotionで直接確認してください。`,
+        `${notLinked}、数字は記録(D1 の yamato_pl)で直接確認してください。`,
       ],
       report: [
         `${m}/5は月次事業報告書(社内版)の提出日です(${until(5)})。`,
-        `${notLinked}、報告書の数字はNotionのP&L台帳から引いてください。`,
+        `${notLinked}、報告書の数字はP&L台帳(D1 の yamato_pl)から引いてください。`,
       ],
     };
     return lines[close.kind].join('');
@@ -883,7 +883,7 @@ export function buildScript(agents: ClientAgent[], c: DemoContext): Step[] {
     steps.push({ t: s + slot * 0.55, kind: 'work', agent: a.id, member, on: false });
     if (a.id === 'content' && known(c, 'publishedUpdated') && c.s.values.publishedUpdated > 0) steps.push({ t: s + slot * 0.5, kind: 'published' });
 
-    // 実データモード:承認トレイ(Notion)にその部が積んでいる判断待ちの依頼だけを知らせる
+    // 実データモード:承認トレイにその部が積んでいる判断待ちの依頼だけを知らせる
     if (c.grounded) {
       trayOf(c, a.id)
         .slice(0, 2)

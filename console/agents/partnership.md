@@ -22,7 +22,7 @@ cadence:
 reports_to: executive
 staff:
   - { name: "Partner Scout", label: "提携候補の調査", does: "関西のメーカー・登山用品店・自治体など、一緒に組めそうな相手を探して優先順位を付ける。", where: "非公開リポジトリ yamato-outdoor-editorial(content/partnership/contacts.csv)", runs: "スキル yamato-partnership(台帳の更新)。運営の時間割(yamato-ops)の monthly で実行。頼まれたときも実行", state: on-call, skills: ["提携候補の調査", "相性の採点", "連絡先の管理"], kpi: "有望な提携候補の数", growth: "実績が増えたら、提案する相手の優先順位を見直す" }
-  - { name: "Pitch Studio", label: "提案書の作成", does: "媒体資料や、サンプルの貸し出し・共同企画のお願いの文面を作る(連絡はCEOが判断)。", where: "非公開リポジトリ(content/partnership/)/ Notion承認トレイ", runs: "スキル yamato-partnership(媒体資料・依頼文の下書き)。運営の時間割(yamato-ops)の monthly で実行。頼まれたときも実行", state: on-call, skills: ["媒体資料", "依頼文", "条件の整理"], kpi: "提案が受け入れられた割合", growth: "CEOの承認後、条件のすり合わせの論点まで出す" }
+  - { name: "Pitch Studio", label: "提案書の作成", does: "媒体資料や、サンプルの貸し出し・共同企画のお願いの文面を作る(連絡はCEOが判断)。", where: "非公開リポジトリ(content/partnership/)/ 承認トレイ(D1)", runs: "スキル yamato-partnership(媒体資料・依頼文の下書き)。運営の時間割(yamato-ops)の monthly で実行。頼まれたときも実行", state: on-call, skills: ["媒体資料", "依頼文", "条件の整理"], kpi: "提案が受け入れられた割合", growth: "CEOの承認後、条件のすり合わせの論点まで出す" }
 ---
 
 ## ミッション

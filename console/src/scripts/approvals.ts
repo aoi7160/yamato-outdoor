@@ -1,7 +1,7 @@
 /**
  * 承認トレイの依頼。
  *
- *   実データモード … Notionの「承認トレイ」データベース(server/notion.js)。各部(Claude)が積み、CEOの判断を書き戻す
+ *   実データモード … 承認トレイ(D1。server/tray.js。つながっていなければ Notion の server/notion.js)。各部(Claude)が積み、CEOの判断を書き戻す
  *   デモモード / Notion未接続 … 下の TEMPLATES(デモ)。設定の「承認依頼」の件数だけ上から積み、判断はこのブラウザにだけ保存する
  *
  * 依頼ごとに「詳細」を持つ。CEOが承認トレイから離れずに中身を確かめられるように、
@@ -300,7 +300,8 @@ function fromNotion(x: any): TrayItem {
   const d = x.detail && typeof x.detail === 'object' ? x.detail : {};
   const str = (v: unknown) => (typeof v === 'string' ? v : '');
   const arr = (v: unknown) => (Array.isArray(v) ? v : []);
-  const id = /^[0-9a-f]{32}$/.test(x.id) ? x.id : '';
+  // D1 の id(8文字)も、Notion から移した id(32文字)も通す。URL に入れるので記号は - と _ だけ
+  const id = typeof x.id === 'string' && /^[0-9A-Za-z_-]{1,64}$/.test(x.id) ? x.id : '';
   const preview =
     d.preview && /^[A-Za-z0-9_-]{1,64}$/.test(d.preview.contentId) && /^[A-Za-z0-9_-]{1,128}$/.test(d.preview.draftKey)
       ? { contentId: d.preview.contentId, draftKey: d.preview.draftKey }
@@ -355,7 +356,7 @@ function fromNotion(x: any): TrayItem {
   };
 }
 
-/** Notionのページid(32文字)。デモの依頼は null */
+/** 承認トレイの依頼のid(D1 は8文字、Notion から移したものは32文字)。デモの依頼は null */
 export const notionId = (it: TrayItem) => (it.demo ? null : it.id.replace(/^ap-/, ''));
 
 /**

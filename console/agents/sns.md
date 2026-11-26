@@ -25,7 +25,7 @@ cadence:
 reports_to: executive
 staff:
   - { name: "Trend Radar", label: "SNSの話題の調査", does: "SNSで今どんな登山の話題が伸びているかを調べ、投稿のネタと時間帯を決める。", where: "Web検索 / 非公開リポジトリ(content/sns/trends)", runs: "スキル yamato-sns(トレンド調査)。運営の時間割(yamato-ops)の weekly で実行。頼まれたときも実行", state: on-call, skills: ["SNSの話題の調査", "媒体ごとの特徴", "投稿時間の検討"], kpi: "見つけた伸びている話題の数", growth: "アカウントができたら、反応の良い投稿の型を毎週見直す" }
-  - { name: "Social Studio", label: "SNS投稿の制作", does: "記事の告知や登山の記録を、SNSごとの投稿文にして、投稿の予定表に並べる(投稿はCEO)。", where: "非公開リポジトリ(content/sns)/ 稼働後はNotion承認トレイ", runs: "スキル yamato-sns(運用設計・投稿キュー・カレンダー)。運営の時間割(yamato-ops)の weekly で実行。頼まれたときも実行", state: on-call, skills: ["投稿文の制作", "投稿の予定表", "広告であることの表示"], kpi: "1週間分の投稿の準備率", growth: "アカウントができたら、記事の公開に合わせて告知を自動で準備する" }
+  - { name: "Social Studio", label: "SNS投稿の制作", does: "記事の告知や登山の記録を、SNSごとの投稿文にして、投稿の予定表に並べる(投稿はCEO)。", where: "非公開リポジトリ(content/sns)/ 稼働後は承認トレイ(D1)", runs: "スキル yamato-sns(運用設計・投稿キュー・カレンダー)。運営の時間割(yamato-ops)の weekly で実行。頼まれたときも実行", state: on-call, skills: ["投稿文の制作", "投稿の予定表", "広告であることの表示"], kpi: "1週間分の投稿の準備率", growth: "アカウントができたら、記事の公開に合わせて告知を自動で準備する" }
   - { name: "Social Insights", label: "SNSの分析", does: "SNSからサイトやLINEにどれだけ人が来たかを測り、効いた投稿を見つける。", where: "非公開リポジトリ(content/sns/results・benchmarks)/ SNSからの流入はデータ分析部の数字", runs: "スキル yamato-sns(運用分析)。運営の時間割(yamato-ops)の weekly で実行(媒体の数字は稼働後、CEOから受け取ったとき)。頼まれたときも実行", state: on-call, skills: ["媒体ごとの反応の分析", "サイトへの流入の計測", "流入元の目印づけ"], kpi: "SNSからサイトに来た人の数", growth: "アカウントができたら、投稿の型ごとに効果を判断する" }
 ---
 

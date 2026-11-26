@@ -25,11 +25,11 @@ YAMATO以外の定期実行(名前が「YAMATO」で始まらないもの)は対
 
 | 定期実行 | 呼ぶもの | 要る接続 | 2026-11-01の実態 |
 |---|---|---|---|
-| YAMATO 朝の定例 | yamato-ops morning(分析・SEO・校閲・アフィリエイト・企画) | Notion / Google_Calendar(企画)/ Google_Drive(SEOがコンテンツマップを読むなら) | 接続なし。未実行(初回は11/2) |
-| YAMATO 夜の日報 | yamato-ops evening(事業報告・人事・経営企画) | Notion / Claude_Code_Remote(人事が list_triggers を読む) | 接続なし。未実行 |
-| YAMATO 週次 | yamato-ops weekly(9部) | Notion / Google_Drive / Google_Calendar / Claude_Code_Remote(人事) | 接続なし。未実行 |
-| YAMATO 月次 | yamato-ops monthly(6部) | Notion | 接続なし。未実行 |
-| YAMATO 記事の自動執筆 | write-article | Notion / Google_Drive | 接続なし。直近の回は約12秒で終了(空振り) |
+| YAMATO 朝の定例 | yamato-ops morning(分析・SEO・校閲・アフィリエイト・企画) | 記録(D1) / Google_Calendar(企画)/ Google_Drive(SEOがコンテンツマップを読むなら) | 接続なし。未実行(初回は11/2) |
+| YAMATO 夜の日報 | yamato-ops evening(事業報告・人事・経営企画) | 記録(D1) / Claude_Code_Remote(人事が list_triggers を読む) | 接続なし。未実行 |
+| YAMATO 週次 | yamato-ops weekly(9部) | 記録(D1) / Google_Drive / Google_Calendar / Claude_Code_Remote(人事) | 接続なし。未実行 |
+| YAMATO 月次 | yamato-ops monthly(6部) | 記録(D1) | 接続なし。未実行 |
+| YAMATO 記事の自動執筆 | write-article | 記録(D1) / Google_Drive | 接続なし。直近の回は約12秒で終了(空振り) |
 
 リポジトリのクローン(add_repo)にも Claude_Code_Remote の道具を使う。fresh session にこの道具が最初から付くのか、接続として付ける必要があるのかは、
 初回の実行結果で確かめる(推測で「要らない」と書かない)。
@@ -128,7 +128,7 @@ grep は入口にすぎない。語が違っても同じ作業なら重なり。
 | 依頼元 | `hr` |
 | 種類 | 企画 |
 | 根拠 | 1行に1つ:list_triggers で見た事実(名前・接続の有無・直近の回の秒数。確認日)/ 名簿の機械チェックの結果 / 動かないと困ること |
-| 承認すると | 誰が何をするか(例:「CEOが各定期実行の設定で Notion・Google Drive・Googleカレンダーの接続を付ける。人事部は次の2回の成果物を見て auto に上げる」) |
+| 承認すると | 誰が何をするか(例:「CEOが各定期実行の設定で Google Drive・Googleカレンダーの接続を付ける。人事部は次の2回の成果物を見て auto に上げる」) |
 | 要約 | 何を・なぜ(1〜2文) |
 
 本文の json(1つだけ):
@@ -136,8 +136,8 @@ grep は入口にすぎない。語が違っても同じ作業なら重なり。
 ```json
 {
   "changes": [
-    "YAMATO 朝の定例:Notion・Google_Calendar を付ける",
-    "YAMATO 週次:Notion・Google_Drive・Google_Calendar を付ける",
+    "YAMATO 朝の定例:Google_Calendar を付ける",
+    "YAMATO 週次:Google_Drive・Google_Calendar を付ける",
     "承認後:人事部が成果物を2回確認したメンバーから auto に上げる"
   ],
   "diffs": [

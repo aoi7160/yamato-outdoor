@@ -14,11 +14,11 @@ members:
   - Field Archive
   - Report Studio
 kpi:
-  - { key: monthly_operating_profit, label: 今月の営業利益(見込み), unit: 円, source: P&L台帳(Notion) }
-  - { key: profit_per_hour, label: 時間あたり利益(今月), unit: 円/時間, source: P&L台帳・作業時間ログ(Notion) }
+  - { key: monthly_operating_profit, label: 今月の営業利益(見込み), unit: 円, source: P&L台帳(D1) }
+  - { key: profit_per_hour, label: 時間あたり利益(今月), unit: 円/時間, source: P&L台帳・作業時間ログ(D1) }
   - { key: report_on_time, label: 月次報告の期限内提出, unit: "%", source: 報告書の提出記録 }
 screen: pl-ledger
-sources: [データ分析部の確定値, アフィリエイト部・グッズ部の報告, P&L台帳(Notion), 作業時間ログ(Notion), GitHub(全ブランチ), 登山の写真]
+sources: [データ分析部の確定値, アフィリエイト部・グッズ部の報告, P&L台帳(D1), 作業時間ログ(D1), GitHub(全ブランチ), 登山の写真]
 cadence:
   - { when: "daily 21:30", what: 当日の売上・費用・作業時間を台帳に記帳(日報の後) }
   - { when: "monthly 最終日 09:00", what: "各部とCEOに締めの回収依頼(費用の領収書・作業時間・登山の記録)" }
@@ -28,9 +28,9 @@ cadence:
   - { when: "随時", what: 事業計画書の清書(経営企画の案がCEOに承認されたあと) }
 reports_to: executive
 staff:
-  - { name: "Finance Ops", label: "経理", does: "売上・費用・作業時間を帳簿に記録し、毎月の損益をまとめる。", where: "Notion(P&L台帳・作業時間ログ・月次の締め)", runs: "スキル yamato-reporting(記帳・月次の締め)。運営の時間割(yamato-ops)の evening と monthly で実行。頼まれたときも実行", state: on-call, skills: ["帳簿の記録", "月次の損益", "数字の検算"], kpi: "月次の損益を締められた日", growth: "売上の数字がそろったら、月末の締めを自動にする" }
-  - { name: "Field Archive", label: "活動の記録", does: "登山や活動の記録(山名・日付・天気・写真)を残し、記事の体験談の元にする。", where: "Notion(登山記録)/ GitHub", runs: "スキル yamato-reporting(登山の記録・活動の記録)。運営の時間割(yamato-ops)の evening と monthly で実行。頼まれたときも実行", state: on-call, skills: ["登山の記録", "活動実績の一覧", "写真の管理"], kpi: "記録の抜け0件", growth: "登山の記録を、記事の体験談の台帳とつなぐ" }
-  - { name: "Report Studio", label: "事業報告書の作成", does: "毎月・四半期の事業報告書と、事業計画書を清書する。", where: "Notion", runs: "スキル yamato-reporting(報告書)。運営の時間割(yamato-ops)の monthly で実行(対外版は1・4・7・10月)。頼まれたときも実行", state: on-call, skills: ["月次の事業報告書", "社外向けの報告書", "事業計画の清書"], kpi: "報告書を期限内に出せた割合", growth: "数字がそろったら、社外向けの報告書まで仕上げる" }
+  - { name: "Finance Ops", label: "経理", does: "売上・費用・作業時間を帳簿に記録し、毎月の損益をまとめる。", where: "D1(P&L台帳・作業時間ログ・月次の締め)", runs: "スキル yamato-reporting(記帳・月次の締め)。運営の時間割(yamato-ops)の evening と monthly で実行。頼まれたときも実行", state: on-call, skills: ["帳簿の記録", "月次の損益", "数字の検算"], kpi: "月次の損益を締められた日", growth: "売上の数字がそろったら、月末の締めを自動にする" }
+  - { name: "Field Archive", label: "活動の記録", does: "登山や活動の記録(山名・日付・天気・写真)を残し、記事の体験談の元にする。", where: "D1(登山記録)/ GitHub", runs: "スキル yamato-reporting(登山の記録・活動の記録)。運営の時間割(yamato-ops)の evening と monthly で実行。頼まれたときも実行", state: on-call, skills: ["登山の記録", "活動実績の一覧", "写真の管理"], kpi: "記録の抜け0件", growth: "登山の記録を、記事の体験談の台帳とつなぐ" }
+  - { name: "Report Studio", label: "事業報告書の作成", does: "毎月・四半期の事業報告書と、事業計画書を清書する。", where: "D1", runs: "スキル yamato-reporting(報告書)。運営の時間割(yamato-ops)の monthly で実行(対外版は1・4・7・10月)。頼まれたときも実行", state: on-call, skills: ["月次の事業報告書", "社外向けの報告書", "事業計画の清書"], kpi: "報告書を期限内に出せた割合", growth: "数字がそろったら、社外向けの報告書まで仕上げる" }
 ---
 
 ## ミッション
@@ -59,7 +59,7 @@ staff:
 - その月にやったことを、**リポジトリの全ブランチ**とPull Request、各部の日報から漏れなく拾う
   (日付で絞り込まない・未マージのブランチも見る。手順はスキル `yamato-reporting` の `references/formats.md` 5章)
 - 登山(登頂記録)を残す:山名・標高・日付・場所・参加人数・天気・写真・メモ
-  - 写真はリポジトリに入れない(公開リポジトリのため。メンバーの顔が写る)。Notionの登山記録DBに置く
+  - 写真はリポジトリに入れない(公開リポジトリのため。メンバーの顔が写る)。記録「登山記録」(D1 の `yamato_climbs`)に置く
   - 写真から読み取った事実(天気・人数・岩場があった等)は**推測として扱い、CEOに確認してから確定**する
 
 ### Report Studio — 報告書・計画書の作成
@@ -70,7 +70,7 @@ staff:
 | 事業報告書(対外版) | 投資家・金融機関 | 四半期(依頼があれば随時) | `references/formats.md` 2章 |
 | 事業計画書 | CEO(社内)/ 対外 | 経営企画の案が承認されたとき | `references/formats.md` 3章 |
 
-- PDFが要るときは、Notionの内容から pdf スキルで作る(専用のスクリプトは未実装)
+- PDFが要るときは、記録(D1)の内容から pdf スキルで作る(専用のスクリプトは未実装)
 - 出す前に `references/formats.md` 4章のチェックリストを上から確認する(検算・出どころ・用語)
 
 ## やらないこと(他部の担当)
@@ -106,10 +106,10 @@ staff:
 
 ## 参照するドキュメント・データ
 
-- スキル `yamato-reporting`(`.claude/skills/yamato-reporting/`)— 計上ルール・Notionの台帳の設計・書式・データの取り方・チェックリスト
+- スキル `yamato-reporting`(`.claude/skills/yamato-reporting/`)— 計上ルール・台帳の設計(D1)・書式・データの取り方・チェックリスト
 - `docs/persona.md`(Mission / Vision / Value。対外版の理念の表記はここから引く)
 - ロードマップ(`claude/media-roadmap-creation-*` ブランチの `docs/roadmap.md`。読むだけ。mainには入れない)
-- Notion「YAMATO BASE CAMP」配下の **P&L台帳**・**作業時間ログ**・**登山**データベース(実データの置き場所。公開リポジトリには置かない)
+- BASE CAMP の記録(D1)配下の **P&L台帳**・**作業時間ログ**・**登山**データベース(実データの置き場所。公開リポジトリには置かない)
 - `console/ORG.md`(境界表・時間割)
 
 ## コンソールでの見え方

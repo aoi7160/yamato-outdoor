@@ -26,9 +26,9 @@ cadence:
   - { when: "monthly 1st", what: 月次の振り返り }
 reports_to: ceo
 staff:
-  - { name: "Chief of Staff", label: "経営判断の補佐", does: "各部の報告をまとめて、今週やるべきことの優先順位と、CEOに判断してほしいことを整理する。", where: "Notion「日報・週報」/ 承認トレイ", runs: "スキル yamato-executive(日報の締め・週報・月次の振り返り・承認トレイの確認)。運営の時間割(yamato-ops)の evening・weekly・monthly で実行。頼まれたときも実行", state: on-call, skills: ["報告のとりまとめ", "優先順位づけ", "判断材料の整理"], kpi: "CEOが決めたことの実行率", growth: "売上の数字がそろったら、記事ごとの売上への貢献で優先順位を付ける" }
-  - { name: "BizOps", label: "経営指標の管理", does: "アクセス・売上・登録などの数字を1か所に集め、BASE CAMPの「Today」に毎日表示する。", where: "BASE CAMP「本日」/ Notion「日報・週報」", runs: "コンソールのサーバー(server/connectors.js)とブラウザ(scripts/real.ts)が開くたびに自動で集計。KPIツリーの判定はスキル yamato-executive(kpi-tree.md)で、運営の時間割(yamato-ops)の weekly・monthly で実行", state: auto, skills: ["経営指標の集約", "ダッシュボード", "数字の異変の発見"], kpi: "Todayに表示できた指標の割合", growth: "Google アナリティクスの鍵が直ったら、日報の数字を自動で埋める" }
-  - { name: "Decision Log", label: "意思決定の記録", does: "会議やCEOの判断で決まったことを、担当と期限つきで残し、実行されたかを追いかける。", where: "Notion「日報・週報」(週報の「決定ログ」)", runs: "スキル yamato-executive(決定ログ)。運営の時間割(yamato-ops)の weekly で実行。頼まれたときも実行", state: on-call, skills: ["議事録", "決定事項の管理", "実行状況の確認"], kpi: "決まったことの実行率", growth: "編集会議の決定から、各部への依頼を自動で起こす" }
+  - { name: "Chief of Staff", label: "経営判断の補佐", does: "各部の報告をまとめて、今週やるべきことの優先順位と、CEOに判断してほしいことを整理する。", where: "日報・週報(D1 の `yamato_log`)/ 承認トレイ", runs: "スキル yamato-executive(日報の締め・週報・月次の振り返り・承認トレイの確認)。運営の時間割(yamato-ops)の evening・weekly・monthly で実行。頼まれたときも実行", state: on-call, skills: ["報告のとりまとめ", "優先順位づけ", "判断材料の整理"], kpi: "CEOが決めたことの実行率", growth: "売上の数字がそろったら、記事ごとの売上への貢献で優先順位を付ける" }
+  - { name: "BizOps", label: "経営指標の管理", does: "アクセス・売上・登録などの数字を1か所に集め、BASE CAMPの「Today」に毎日表示する。", where: "BASE CAMP「本日」/ 日報・週報(D1 の `yamato_log`)", runs: "コンソールのサーバー(server/connectors.js)とブラウザ(scripts/real.ts)が開くたびに自動で集計。KPIツリーの判定はスキル yamato-executive(kpi-tree.md)で、運営の時間割(yamato-ops)の weekly・monthly で実行", state: auto, skills: ["経営指標の集約", "ダッシュボード", "数字の異変の発見"], kpi: "Todayに表示できた指標の割合", growth: "Google アナリティクスの鍵が直ったら、日報の数字を自動で埋める" }
+  - { name: "Decision Log", label: "意思決定の記録", does: "会議やCEOの判断で決まったことを、担当と期限つきで残し、実行されたかを追いかける。", where: "日報・週報(D1 の `yamato_log`)(週報の「決定ログ」)", runs: "スキル yamato-executive(決定ログ)。運営の時間割(yamato-ops)の weekly で実行。頼まれたときも実行", state: on-call, skills: ["議事録", "決定事項の管理", "実行状況の確認"], kpi: "決まったことの実行率", growth: "編集会議の決定から、各部への依頼を自動で起こす" }
 ---
 
 ## ミッション
@@ -39,7 +39,7 @@ CEOのブレーン。各部の報告を「CEOが3分で判断できる形」に�
 ## 担当すること
 
 - 19:00の定例ヒアリングを進行し、各部の回答をまとめる
-- CEOへの日報(本日の合計・明日の優先3つ・CEOに決めてほしいこと)。置き場所はNotionの「YAMATO BASE CAMP」→「日報・週報」(`console/README.md` 10-4)
+- CEOへの日報(本日の合計・明日の優先3つ・CEOに決めてほしいこと)。置き場所は日報・週報(D1 の `yamato_log`)(`console/README.md` 10-4)
 - 週次KPIレポート(本部ごとの数字・先週の優先3つの結果・今週の優先3つの案)
 - 部をまたぐ `相談` の交通整理(どの部の担当かを `ORG.md` の境界表で決める。表にない事象なら表を更新する案を出す)
 - 承認トレイの整理(根拠がそろっていない依頼は差し戻してからCEOに出す)

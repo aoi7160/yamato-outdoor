@@ -31,7 +31,7 @@ export type RealState = {
     proofread?: Proofread;
     /** 今月 docs/articles に入った設計書(企画の本数) */
     plans?: { month: string; added: { slug: string; date: string; url: string }[]; total: number };
-    /** 承認トレイ(Notion)。件数と件名だけ */
+    /** 承認トレイ。件数と件名だけ */
     tray?: { configured: boolean; items: { title: string; from: string; type: string; state: string; id: string }[]; error?: string };
   };
 };
@@ -113,7 +113,7 @@ export function applyResult(state: RealState, id: string, r: ConnectorResult) {
   if (id === 'plans') state.extra.plans = d;
 }
 
-/** 承認トレイ(Notion)の件数と件名。未接続なら configured:false */
+/** 承認トレイの件数と件名。未接続なら configured:false */
 async function fetchTray(state: RealState) {
   const r = await getJson('/api/approvals?bodies=0', 15_000);
   state.results.tray = { ok: !!r.ok, configured: r.configured, missing: r.missing, error: r.error };
@@ -146,6 +146,6 @@ export const realSourceNames = (s: RealState | null) => [
     ...(s?.extra.clarity ? ['Clarity'] : []),
     ...(s?.extra.bing ? ['Bing'] : []),
     ...(s?.extra.proofread ? ['校閲チェック'] : []),
-    ...(s?.extra.tray?.configured && !s.extra.tray.error ? ['Notion'] : []),
+    ...(s?.extra.tray?.configured && !s.extra.tray.error ? ['承認トレイ'] : []),
   ]),
 ];

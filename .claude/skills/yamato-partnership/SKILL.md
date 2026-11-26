@@ -172,8 +172,8 @@ CEOが10分で判断できる形で積む**こと。
 | 媒体資料の下書き | 非公開リポジトリ `content/partnership/media-kit/YYYY-MM.md` | `templates.md` 2章 |
 | 依頼文・提案書・条件メモ | 非公開リポジトリ `content/partnership/proposals/` | `templates.md` 3章 |
 | やりとりの記録 | 非公開リポジトリ `content/partnership/log.md` | 日付・先方id・要旨(1行) |
-| 送ってよいかの判断 | Notion「承認トレイ」種類「外部への連絡」・依頼元 `partnership` | `templates.md` 4章 |
-| 部の報告 | Notion「日報・週報」その日のページ | `templates.md` 5章 |
+| 送ってよいかの判断 | 承認トレイ(D1 の `yamato_tray`)種類「外部への連絡」・依頼元 `partnership` | `templates.md` 4章 |
+| 部の報告 | 日報・週報(D1 の `yamato_log`)その日のページ | `templates.md` 5章 |
 
 STANDARDS 5章のとおり、提携先との条件・先方の担当者・やりとりの中身は公開リポジトリに書かない。
 コンソールのKPI(進行中の話・サンプル受領)は、台帳の段階「進行中」「完了」の件数を日報の節に書く。

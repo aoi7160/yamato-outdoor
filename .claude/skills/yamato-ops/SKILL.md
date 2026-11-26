@@ -1,6 +1,6 @@
 ---
 name: yamato-ops
-description: YAMATO OUTDOORの「運営の時間割」。朝の定例・夜の日報・週次・月次のどれかを指定すると、その時間に動く部のスキル(yamato-<部>)を順番に実行し、Notionの日報に各部の報告をまとめる。定期実行(scheduled tasks)から「/yamato-ops morning」のように呼ばれる。手動で「朝の定例を回して」「週次を回して」と頼まれたときも使う。
+description: YAMATO OUTDOORの「運営の時間割」。朝の定例・夜の日報・週次・月次のどれかを指定すると、その時間に動く部のスキル(yamato-<部>)を順番に実行し、BASE CAMP の記録(D1)の日報に各部の報告をまとめる。定期実行(scheduled tasks)から「/yamato-ops morning」のように呼ばれる。手動で「朝の定例を回して」「週次を回して」と頼まれたときも使う。
 ---
 
 # 運営の時間割(社長室・経営企画が進行役)
@@ -11,11 +11,11 @@ description: YAMATO OUTDOORの「運営の時間割」。朝の定例・夜の�
 
 1. 作業ディレクトリに `aoi7160/yamato-outdoor` が無ければ、add_repo で追加してクローンする。
    非公開の `aoi7160/yamato-outdoor-editorial` も、使う部があれば同じ階層にクローンする
-2. `CLAUDE.md` と `.claude/skills/yamato-ops/STANDARDS.md`(全部署の共通基準)を読む
-3. Notion「YAMATO BASE CAMP」を検索して開き、「日報・週報」「承認トレイ」「案件台帳」の場所を確かめる。
-   **Notionにつながっていなければ、ここで止めて「Notionにつながっていないため実行できませんでした」と報告する**
-4. 「日報・週報」に今日(日本時間)のページ `YYYY-MM-DD 日報`(種類:日報・状態:未読・日付:今日)が無ければ作る。
-   本文に見出し2「各部の報告」を置いておく
+2. `CLAUDE.md` と `.claude/skills/yamato-ops/STANDARDS.md`(全部署の共通基準)・`.claude/skills/yamato-ops/STORE.md`(記録の置き場)を読む
+3. 記録(D1)の承認トレイ `yamato_tray` を1回読んで、つながるか確かめる(STORE.md 2章)。**Notion には書かない**(上限で書けない。過去の控えとして読むだけ)。
+   **記録(D1)につながらなければ、ここで止めて「記録(D1)につながらないため実行できませんでした:<理由1行>」と報告する**
+4. 日報 `yamato_log` の id `YYYY-MM-DD-日報`(今日・日本時間)を作る(STORE.md 4章。既にあっても同じ内容を送るだけ)。
+   各部は自分の報告を `報告_<部の名前>` の項目に書く
 
 ## 1. 時間割
 

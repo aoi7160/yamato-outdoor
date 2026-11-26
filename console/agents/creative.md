@@ -24,8 +24,8 @@ cadence:
   - { when: "daily 19:00", what: 定例ヒアリングに回答 }
 reports_to: executive
 staff:
-  - { name: "Cover Studio", label: "サムネイルの制作", does: "記事のサムネイルの構図を考え、CEOが撮る写真の撮影指示書(構図・光・説明文)を作る。", where: "非公開リポジトリ(content/creative/)/ Notion承認トレイ(納品物の確認)", runs: "スキル yamato-creative(サムネイル・撮影指示書・写真の書き出し)。運営の時間割(yamato-ops)の weekly で実行。頼まれたときも実行", state: on-call, skills: ["サムネイルの構図", "撮影指示書", "画像の説明文(alt)"], kpi: "公開までにサムネイルがそろった記事の割合", growth: "CEOの写真がそろったら、サムネイルの仕上げまで行う" }
-  - { name: "Info Design", label: "図解の制作", does: "比較や手順を、ひと目で分かる図解の画像にする。", where: "非公開リポジトリ(content/creative/)/ Notion承認トレイ(納品物の確認)", runs: "スキル yamato-creative(図解・alt)。運営の時間割(yamato-ops)の weekly で実行。頼まれたときも実行", state: on-call, skills: ["図解のデザイン", "比較表の画像化", "ブランドの見た目"], kpi: "図解を入れた記事の数", growth: "BASE CAMPで画像を確認できる置き場ができたら、納品を自動にする" }
+  - { name: "Cover Studio", label: "サムネイルの制作", does: "記事のサムネイルの構図を考え、CEOが撮る写真の撮影指示書(構図・光・説明文)を作る。", where: "非公開リポジトリ(content/creative/)/ 承認トレイ(D1)(納品物の確認)", runs: "スキル yamato-creative(サムネイル・撮影指示書・写真の書き出し)。運営の時間割(yamato-ops)の weekly で実行。頼まれたときも実行", state: on-call, skills: ["サムネイルの構図", "撮影指示書", "画像の説明文(alt)"], kpi: "公開までにサムネイルがそろった記事の割合", growth: "CEOの写真がそろったら、サムネイルの仕上げまで行う" }
+  - { name: "Info Design", label: "図解の制作", does: "比較や手順を、ひと目で分かる図解の画像にする。", where: "非公開リポジトリ(content/creative/)/ 承認トレイ(D1)(納品物の確認)", runs: "スキル yamato-creative(図解・alt)。運営の時間割(yamato-ops)の weekly で実行。頼まれたときも実行", state: on-call, skills: ["図解のデザイン", "比較表の画像化", "ブランドの見た目"], kpi: "図解を入れた記事の数", growth: "BASE CAMPで画像を確認できる置き場ができたら、納品を自動にする" }
   - { name: "Motion Lab", label: "映像の制作", does: "トップページの雲が動く映像など、サイトで使う短い映像を作り、表示が重くならないよう軽くする。", where: "非公開リポジトリ(content/creative/)→ サイト開発部(public/media/)", runs: "スキル yamato-creative(シネマグラフ)。Veo(CEOがGeminiで実行)+ ffmpeg。頼まれたときに実行", state: on-call, skills: ["映像の生成", "映像の軽量化", "表示の滑らかさの確認"], kpi: "トップページの滑らかさ(1秒60コマを保つ)", growth: "つなぎ目の目立たない繰り返し映像に作り直す" }
 ---
 

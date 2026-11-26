@@ -25,8 +25,8 @@ cadence:
   - { when: "公開後10日・33日", what: "記事ごとの公開後7日・30日のレポート(Search Consoleの確定を待つため3日遅れで作る)" }
 reports_to: executive
 staff:
-  - { name: "Metrics Desk", label: "アクセスの集計", does: "アクセス数・検索からの流入・表示速度などの数字を、決まった定義で毎日集計して確定させる。", where: "非公開リポジトリ(content/analytics/ledger.csv)/ Notion日報・週報(画面の自動取得はコンソールのサーバー)", runs: "スキル yamato-analytics(前日の確定・週次・月次・計測の健康診断)。運営の時間割(yamato-ops)の morning・weekly・monthly で実行。頼まれたときも実行", state: on-call, skills: ["アクセス解析", "検索データの集計", "指標の定義の管理"], kpi: "毎日の数字を確定できた割合", growth: "Google アナリティクスの鍵が直ったら、毎日の集計を自動にする" }
-  - { name: "Insight Lab", label: "アクセスの分析", does: "数字が大きく動いたときに、どの記事・どの流入元が理由なのかを調べる。次に何をするかは経営企画に渡す。", where: "非公開リポジトリ(content/analytics/articles/)/ Notion日報", runs: "スキル yamato-analytics(異常値・記事レポート・なぜ)。運営の時間割(yamato-ops)の morning で期日の記事を実行。頼まれたときも実行", state: on-call, skills: ["数字の変化の分析", "記事ごとの成績レポート", "原因の切り分け"], kpi: "レポートを期限内に出せた割合", growth: "記事が増えたら、テーマごとの成績の比較に進む" }
+  - { name: "Metrics Desk", label: "アクセスの集計", does: "アクセス数・検索からの流入・表示速度などの数字を、決まった定義で毎日集計して確定させる。", where: "非公開リポジトリ(content/analytics/ledger.csv)/ 日報・週報(D1)(画面の自動取得はコンソールのサーバー)", runs: "スキル yamato-analytics(前日の確定・週次・月次・計測の健康診断)。運営の時間割(yamato-ops)の morning・weekly・monthly で実行。頼まれたときも実行", state: on-call, skills: ["アクセス解析", "検索データの集計", "指標の定義の管理"], kpi: "毎日の数字を確定できた割合", growth: "Google アナリティクスの鍵が直ったら、毎日の集計を自動にする" }
+  - { name: "Insight Lab", label: "アクセスの分析", does: "数字が大きく動いたときに、どの記事・どの流入元が理由なのかを調べる。次に何をするかは経営企画に渡す。", where: "非公開リポジトリ(content/analytics/articles/)/ 日報(D1)", runs: "スキル yamato-analytics(異常値・記事レポート・なぜ)。運営の時間割(yamato-ops)の morning で期日の記事を実行。頼まれたときも実行", state: on-call, skills: ["数字の変化の分析", "記事ごとの成績レポート", "原因の切り分け"], kpi: "レポートを期限内に出せた割合", growth: "記事が増えたら、テーマごとの成績の比較に進む" }
 ---
 
 ## ミッション

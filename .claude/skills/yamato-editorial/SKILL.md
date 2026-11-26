@@ -140,7 +140,7 @@ AIが書いた記事に、運営者の体験が地の文で入っているはず
 
 ### 0. 毎回はじめに
 
-1. 0章の文書を読む。Notion(承認トレイ・日報)と非公開リポジトリ `../yamato-outdoor-editorial` が使えるか確かめる(使えないものは日報の節に「未接続」)
+1. 0章の文書を読む。記録(D1。承認トレイ・日報)と非公開リポジトリ `../yamato-outdoor-editorial` が使えるか確かめる(使えないものは日報の節に「未接続」)
 2. 事実確認の台帳 `../yamato-outdoor-editorial/content/editorial/fact-ledger.md` を開く(無ければ `review-checklist.md` 4章の型で作る)
 
 ### morning(毎日。時間割の3番目)—— 定期の事実確認と校閲チェック

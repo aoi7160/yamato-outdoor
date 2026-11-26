@@ -21,7 +21,7 @@ description: SNS部(YAMATO OUTDOOR)の専門スキル。X・Instagram・Threads�
 4. `src/lib/site.ts` の `SOCIALS` を見て、**URLが入っている媒体があるか**でモードを決める
    - 全部空 → **準備モード**(いま。投稿しない・承認トレイに「SNS投稿」を積まない)
    - 1つでも入っている → その媒体だけ**稼働モード**
-5. Notion「YAMATO BASE CAMP」の「承認トレイ」を開く。**Notionにつながっていなければ、ここで止めて「Notionにつながっていないため未実行」とだけ返す**
+5. BASE CAMP の記録(D1)の「承認トレイ」を開く。**記録(D1)につながらなければ、ここで止めて「記録(D1)につながらないため未実行」とだけ返す**
 6. 非公開リポジトリ `yamato-outdoor-editorial` の `content/sns/` を開く(運用設計書・投稿キュー・カレンダー。無ければ作る)
 
 ---
@@ -214,8 +214,8 @@ P1は「指名検索が起きにくい」「ブックマークしない」(`docs
 | 投稿キュー(下書き) | 同 `content/sns/queue/<slug>.md`(記事ごと)・`content/sns/queue/topics/YYYY-MM-DD-<件名>.md`(記事以外) | `templates.md` 4 |
 | 週の投稿カレンダー | 同 `content/sns/calendar/YYYY-Www.md` | `templates.md` 5 |
 | トレンド・参考アカウントのメモ | 同 `content/sns/trends/` `content/sns/benchmarks/` | 話題・出典・使える型 |
-| 投稿の承認依頼(稼働モードだけ) | Notion「承認トレイ」種類「SNS投稿」 | `templates.md` 6 |
-| 報告 | Notion「日報・週報」→「各部の報告」→ 見出し3「SNS部」 | 4行まで(`templates.md` 7) |
+| 投稿の承認依頼(稼働モードだけ) | 承認トレイ(D1 の `yamato_tray`)種類「SNS投稿」 | `templates.md` 6 |
+| 報告 | 日報・週報(D1 の `yamato_log`)→「各部の報告」→ 見出し3「SNS部」 | 4行まで(`templates.md` 7) |
 
 ## 7. 住み分け
 

@@ -26,7 +26,7 @@ cadence:
 reports_to: executive
 staff:
   - { name: "Search Intelligence", label: "検索市場の調査", does: "狙うキーワードで今どんな記事が上位にあり、読者が何を知りたいのかを調べ、勝てる余地を見つける。", where: "Googleスプレッドシート「メディア Topic cluster」(読むだけ)/ Web検索 / 非公開リポジトリ yamato-outdoor-editorial(content/seo/)", runs: "スキル yamato-seo(3-2〜3-5・週次の「次に書く候補」)。運営の時間割(yamato-ops)の weekly で実行。write-article の経路Aもこの基準で選ぶ。頼まれたときも実行", state: on-call, skills: ["検索結果の分析", "検索意図の読み解き", "競合が書いていない論点の発見"], kpi: "狙ったキーワードで10位以内に入った記事の数", growth: "YAMATO名義の調査ツールが入ったら、勝ちやすさの数値で候補を並べる" }
-  - { name: "Content Architecture", label: "サイト構造の設計", does: "記事どうしのつながり(どの記事からどの記事へ案内するか)を設計し、記事同士が同じキーワードを奪い合わないようにする。", where: "GitHub(docs/articles/・claude/*ブランチ)/ Notion承認トレイ", runs: "スキル yamato-seo(3-6・3-8・依頼時の設計書)。運営の時間割(yamato-ops)の weekly(内部リンクの穴)で実行。頼まれたときも実行", state: on-call, skills: ["記事群の設計", "内部リンクの設計", "記事の重複の発見", "AI検索への対応"], kpi: "どこからもリンクされていない記事0本", growth: "記事が20本を超えたら、テーマの柱になるまとめ記事を設計する" }
+  - { name: "Content Architecture", label: "サイト構造の設計", does: "記事どうしのつながり(どの記事からどの記事へ案内するか)を設計し、記事同士が同じキーワードを奪い合わないようにする。", where: "GitHub(docs/articles/・claude/*ブランチ)/ 承認トレイ(D1)", runs: "スキル yamato-seo(3-6・3-8・依頼時の設計書)。運営の時間割(yamato-ops)の weekly(内部リンクの穴)で実行。頼まれたときも実行", state: on-call, skills: ["記事群の設計", "内部リンクの設計", "記事の重複の発見", "AI検索への対応"], kpi: "どこからもリンクされていない記事0本", growth: "記事が20本を超えたら、テーマの柱になるまとめ記事を設計する" }
   - { name: "Rank Watch", label: "検索順位の監視", does: "検索順位・Googleへの登録状況・リンク切れを見張り、手直しが要る記事を見つける。", where: "BASE CAMP「本日」/ Search Console / Bing / サイトマップ", runs: "数字はコンソールのサーバー(server/connectors.js)が開くたびに自動で取得。判定はスキル yamato-seo(3-7・3-10・linkcheck.py)で、運営の時間割(yamato-ops)の morning・weekly で実行。頼まれたときも実行", state: auto, skills: ["検索順位の確認", "リンク切れの発見", "手直し候補の判定"], kpi: "Googleに登録された記事の割合", growth: "Search Consoleを読めるようになったら、手直し候補を毎週自動で出す" }
 ---
 
@@ -66,7 +66,7 @@ staff:
 
 ## 記事のテーマ選び(経路A:SEO部 → コンテンツ制作部)
 
-キーワードの正はCEOのコンテンツマップ(Googleスプレッドシート「メディア Topic cluster」。IDはNotionの「連携先のメモ」)。
+キーワードの正はCEOのコンテンツマップ(Googleスプレッドシート「メディア Topic cluster」。IDは記録「連携先のメモ」(D1 の `yamato_memo`))。
 「新規記事案」シートの優先度順・「未着手」から選び、コンテンツ制作部に書かせる(スキル `write-article` の2)。
 **マップに無いキーワードでは書かせない。** 良いキーワードを見つけたら「コンテンツマップへの追加提案」として承認トレイに積む。承認された記事は、設計の要点を `docs/articles/<slug>.md` に残す。
 CEOの「大きな修正」で構成から見直すときは、この部がキーワードと見出しの根拠を出し直す。

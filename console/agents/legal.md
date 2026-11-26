@@ -22,7 +22,7 @@ cadence:
   - { when: "依頼時", what: 記事・グッズ・タイアップの確認 }
 reports_to: executive
 staff:
-  - { name: "Legal Review", label: "法令の確認", does: "広告の表示、ステルスマーケティングの規制、個人情報、著作権など、法律に触れないかを確認する。", where: "GitHub(.claude/skills/yamato-legal/rulebook.md・sources.md)/ Notion承認トレイ", runs: "スキル yamato-legal(確認依頼への回答)。頼まれたときに実行(四半期の商標の検索は monthly に含む)", state: on-call, skills: ["広告表示の法律", "個人情報の扱い", "著作権・商標"], kpi: "確認依頼の期限内の回答", growth: "アフィリエイト各社の規約の注意点を、提携先ごとに整理する" }
+  - { name: "Legal Review", label: "法令の確認", does: "広告の表示、ステルスマーケティングの規制、個人情報、著作権など、法律に触れないかを確認する。", where: "GitHub(.claude/skills/yamato-legal/rulebook.md・sources.md)/ 承認トレイ(D1)", runs: "スキル yamato-legal(確認依頼への回答)。頼まれたときに実行(四半期の商標の検索は monthly に含む)", state: on-call, skills: ["広告表示の法律", "個人情報の扱い", "著作権・商標"], kpi: "確認依頼の期限内の回答", growth: "アフィリエイト各社の規約の注意点を、提携先ごとに整理する" }
   - { name: "Compliance Audit", label: "サイトの監査", does: "毎月サイト全体を点検し、外部へのデータ送信の公表や広告表示にもれがないかを確かめる。", where: "公開サイト / 非公開リポジトリ yamato-outdoor-editorial(content/legal/audit/)", runs: "スキル yamato-legal(audit_site.py による月次監査)。運営の時間割(yamato-ops)の monthly で実行。頼まれたときも実行", state: on-call, skills: ["外部送信の公表の点検", "広告表示の点検", "画像の出どころの確認"], kpi: "直していない指摘0件", growth: "毎月の監査を自動で回す" }
 ---
 

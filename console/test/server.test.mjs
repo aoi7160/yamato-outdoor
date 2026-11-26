@@ -8,6 +8,7 @@ import { CONNECTORS } from '../server/connectors.js';
 import { handleApi } from '../server/api.js';
 import { checkArticle, AFFILIATE_HOSTS } from '../server/proofread.js';
 import { decide, listApprovals } from '../server/notion.js';
+import * as tray from '../server/tray.js';
 import { putDraft } from '../server/cms.js';
 import assert from 'node:assert/strict';
 
@@ -232,6 +233,48 @@ assert.deepEqual([none.configured, none.missing], [false, ['NOTION_TOKEN', 'NOTI
 // Accessを通っていなければ、読み書きとも閉じる
 assert.equal((await handleApi(new Request('https://basecamp.example/api/approvals'), nenv, () => {})).status, 503);
 console.log('approvals: OK');
+// --- 承認トレイ(D1。Human OS の YamatoStore を service binding で呼ぶ)---
+function fakeHumanOs() {
+  const rows = new Map();
+  let n = 0;
+  return {
+    rows,
+    async list(kind, opts) { assert.equal(kind, 'yamato_tray'); assert.ok(opts.limit <= 500); return [...rows.values()].map((r) => structuredClone(r)); },
+    async get(kind, id) { assert.equal(kind, 'yamato_tray'); return rows.has(id) ? structuredClone(rows.get(id)) : null; },
+    async save(kind, items) {
+      assert.equal(kind, 'yamato_tray');
+      return items.map((it) => {
+        const id = it.id ?? `t${++n}`;
+        const cur = rows.get(id) ?? { createdAt: `2026-11-0${++n}T00:00:00Z` };
+        rows.set(id, { ...cur, ...it, id });
+        return rows.get(id);
+      });
+    },
+  };
+}
+const ho = fakeHumanOs();
+await ho.save('yamato_tray', [{ id: 'a1', 件名: '架空の記事', 状態: '承認待ち', 依頼元: 'content', 種類: '記事公開', 根拠: '1行目\n2行目', 詳細: { article: { ...art, slug: 'kakuu' } } }]);
+await ho.save('yamato_tray', [{ id: 'a2', 件名: '古い依頼', 状態: '承認', 詳細: '{"links":[]}' }]);
+const tenv = { HUMAN_OS: ho, LOCAL_DEV_SKIP_ACCESS: '1' };
+const tl = await tray.listApprovals(tenv);
+assert.deepEqual(tl.map((x) => x.id).sort(), ['a1', 'a2']);
+const t1 = tl.find((x) => x.id === 'a1');
+assert.deepEqual([t1.state, t1.basis.length, t1.detail.article.slug, t1.history.length], ['承認待ち', 2, 'kakuu', 0]);
+assert.deepEqual(tl.find((x) => x.id === 'a2').detail, { links: [] }, '文字列のJSONも読む');
+await assert.rejects(() => tray.decide(tenv, 'a1', { action: 'revise' }), /1つ以上/);
+await assert.rejects(() => tray.decide(tenv, 'nope', { action: 'approve' }), /見つかりません/);
+await assert.rejects(() => tray.decide(tenv, '../x', { action: 'approve' }), /IDが正しくありません/);
+const rv = await tray.decide(tenv, 'a1', { action: 'revise', note: '全体を短く', comments: [{ where: '見出し1', text: '具体的に' }], size: '大きな修正' }, new Date('2026-11-27T00:00:00Z'));
+assert.deepEqual([rv.state, rv.round], ['修正依頼', 1]);
+const a1 = ho.rows.get('a1');
+assert.equal(a1['修正の指示'], '全体を短く\n「見出し1」具体的に');
+assert.equal(a1['履歴'][0].title, 'CEOの判断(2026-11-27 09:00)修正依頼(大きな修正・1回目)');
+assert.equal(a1['詳細'].article.slug, 'kakuu', 'ほかの項目は残る');
+const ap = await (await handleApi(new Request('http://localhost/api/approvals/a1', { method: 'POST', headers: { 'X-BaseCamp': '1', Origin: 'http://localhost' }, body: JSON.stringify({ action: 'approve', note: 'OK' }) }), tenv, () => {})).json();
+assert.deepEqual([ap.ok, ap.state, ho.rows.get('a1')['履歴'].length], [true, '承認', 2]);
+const viaApi = await (await handleApi(new Request('http://localhost/api/approvals?bodies=0'), tenv, () => {})).json();
+assert.deepEqual([viaApi.configured, viaApi.items.length, viaApi.items[0].detail], [true, 2, undefined]);
+console.log('tray(D1): OK');
 // --- microCMSへの入稿(承認と同時に下書きとして)---
 const cenv = { MICROCMS_SERVICE_DOMAIN: 'yamato', MICROCMS_API_KEY: 'read', MICROCMS_WRITE_KEY: 'write' };
 const art2 = { title: 'T', slug: 'rokko-layering', description: 'D', category: 'wear', tags: ['六甲山', '冬'], html: '<p>本文</p>', faq: [{ question: 'Q', answer: 'A' }] };

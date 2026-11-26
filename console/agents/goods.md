@@ -26,7 +26,7 @@ cadence:
 reports_to: executive
 staff:
   - { name: "Merch Lab", label: "グッズの企画", does: "YAMATO OUTDOORの名前を山に持っていってもらえるグッズを企画する。", where: "非公開リポジトリ(content/goods)", runs: "スキル yamato-goods(新作の企画)。運営の時間割(yamato-ops)の weekly で実行(新作の企画は毎月最初の月曜)。頼まれたときも実行", state: on-call, skills: ["グッズの企画", "読者に合わせた商品選び", "関西の山の題材"], kpi: "販売まで進んだ企画の数", growth: "売れ筋が見えたら、季節ごとの企画に広げる" }
-  - { name: "Design Studio", label: "グッズのデザイン", does: "グッズのデザイン案を作り、商標に問題がないかを法務に確認してもらう。", where: "非公開リポジトリ(content/goods)/ Notion承認トレイ", runs: "スキル yamato-goods(デザイン案・グッズ登録の承認依頼)。運営の時間割(yamato-ops)の weekly で実行。頼まれたときも実行", state: on-call, skills: ["グッズのデザイン", "山の稜線の図案", "商標の事前確認"], kpi: "採用されたデザイン案の数", growth: "SUZURIに登録できる形まで仕上げる" }
+  - { name: "Design Studio", label: "グッズのデザイン", does: "グッズのデザイン案を作り、商標に問題がないかを法務に確認してもらう。", where: "非公開リポジトリ(content/goods)/ 承認トレイ(D1)", runs: "スキル yamato-goods(デザイン案・グッズ登録の承認依頼)。運営の時間割(yamato-ops)の weekly で実行。頼まれたときも実行", state: on-call, skills: ["グッズのデザイン", "山の稜線の図案", "商標の事前確認"], kpi: "採用されたデザイン案の数", growth: "SUZURIに登録できる形まで仕上げる" }
   - { name: "Sales Insights", label: "グッズ販売の分析", does: "SUZURIでのグッズの売上を集計し、価格や品ぞろえを見直す。", where: "BASE CAMP「データ連携」(手入力)/ 非公開リポジトリ(content/goods)", runs: "スキル yamato-goods(販売の点検)。運営の時間割(yamato-ops)の weekly で実行(SUZURIの数字はCEOの手入力を受け取ったとき)。頼まれたときも実行", state: on-call, skills: ["売上の集計", "価格の見直し", "品ぞろえの判断"], kpi: "グッズの利益", growth: "SUZURIとつながったら、売上の取り込みを自動にする" }
 ---
 

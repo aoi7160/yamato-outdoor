@@ -19,7 +19,7 @@ kpi:
   - { key: affiliate_month, label: 今月の発生 / 確定, unit: 円, source: "各ASPのCSV(データ取り込み)" }
   - { key: epc, label: クリック単価(EPC), unit: 円, source: "発生 ÷ アフィリエイトリンクのクリック" }
 screen: asp-dashboard
-sources: [案件台帳(Notion), もしもアフィリエイト, A8.net, 楽天アフィリエイト, バリューコマース, アクセストレード, Amazonアソシエイト, "GA4(click_outbound)", "校閲チェック(公開記事のリンク)", コンテンツマップ]
+sources: [案件台帳(D1), もしもアフィリエイト, A8.net, 楽天アフィリエイト, バリューコマース, アクセストレード, Amazonアソシエイト, "GA4(click_outbound)", "校閲チェック(公開記事のリンク)", コンテンツマップ]
 cadence:
   - { when: "daily 19:00", what: "定例ヒアリングに回答(取り込み済みCSVの発生と、リンクがある記事の数)" }
   - { when: "weekly mon 09:30", what: "今週の新しい記事(承認トレイの記事公開)に、案件とリンクの位置の案を付ける" }
@@ -30,8 +30,8 @@ cadence:
   - { when: "セールの3週間前", what: "セール対象になりやすい記事のリンク点検と、企画部へのセール情報" }
 reports_to: executive
 staff:
-  - { name: "Program Scout", label: "提携先の選定", does: "アフィリエイトの提携先(Amazon・楽天・専門店など)を調べ、報酬と記事との相性で、どこと組むかを決める。", where: "Notion「案件台帳」/ Notion承認トレイ", runs: "スキル yamato-affiliate(案件台帳の点検・案件の評価・ASP登録の提案)。運営の時間割(yamato-ops)の morning で実行(木曜は全件点検)。頼まれたときも実行", state: on-call, skills: ["提携先の比較", "アフィリエイトの審査準備", "提携先の一覧管理"], kpi: "提携できた提携先の数", growth: "提携が通ったら、記事ごとに最適な提携先を自動で選ぶ" }
-  - { name: "Conversion Design", label: "購入導線の設計", does: "記事のどこに、どの商品の購入リンクを置くかを決め、広告であることの表示もそろえる。", where: "非公開リポジトリ(content/affiliate/link-plans)/ Notion承認トレイ", runs: "スキル yamato-affiliate(リンク設計・差し替え案)。運営の時間割(yamato-ops)の morning で実行(月曜は新しい記事のリンク設計)。頼まれたときも実行", state: on-call, skills: ["購入リンクの配置", "広告表示", "セール時期の準備"], kpi: "記事から購入リンクが押された割合", growth: "提携が通ったら、承認待ちの記事にリンクを入れる案を出す" }
+  - { name: "Program Scout", label: "提携先の選定", does: "アフィリエイトの提携先(Amazon・楽天・専門店など)を調べ、報酬と記事との相性で、どこと組むかを決める。", where: "案件台帳(D1 の `yamato_deals`)/ 承認トレイ(D1)", runs: "スキル yamato-affiliate(案件台帳の点検・案件の評価・ASP登録の提案)。運営の時間割(yamato-ops)の morning で実行(木曜は全件点検)。頼まれたときも実行", state: on-call, skills: ["提携先の比較", "アフィリエイトの審査準備", "提携先の一覧管理"], kpi: "提携できた提携先の数", growth: "提携が通ったら、記事ごとに最適な提携先を自動で選ぶ" }
+  - { name: "Conversion Design", label: "購入導線の設計", does: "記事のどこに、どの商品の購入リンクを置くかを決め、広告であることの表示もそろえる。", where: "非公開リポジトリ(content/affiliate/link-plans)/ 承認トレイ(D1)", runs: "スキル yamato-affiliate(リンク設計・差し替え案)。運営の時間割(yamato-ops)の morning で実行(月曜は新しい記事のリンク設計)。頼まれたときも実行", state: on-call, skills: ["購入リンクの配置", "広告表示", "セール時期の準備"], kpi: "記事から購入リンクが押された割合", growth: "提携が通ったら、承認待ちの記事にリンクを入れる案を出す" }
   - { name: "Revenue Insights", label: "収益の分析", does: "記事ごとの収益を集計し、リンク切れや提携の終了をいち早く見つける。", where: "非公開リポジトリ(content/affiliate/monthly)/ BASE CAMP「データ連携」(CSVはCEOのブラウザ内)", runs: "スキル yamato-affiliate(月次の締め・EPCの診断)。運営の時間割(yamato-ops)の morning で毎月1日に実行(CEOからCSVを受け取ったとき)。頼まれたときも実行", state: on-call, skills: ["記事ごとの収益の集計", "リンク切れの発見", "提携先の成績の比較"], kpi: "記事1回のクリックあたりの収益", growth: "収益データを自動で取り込めたら、毎週の収益レポートを出す" }
 ---
 
@@ -57,7 +57,7 @@ staff:
 |---|---|---|
 | どのASPに登録するかの案を出す(下の「ASPの選び方」) | Program Scout | CEO |
 | ASPに会員登録する(本人確認・振込口座・サイト審査) | **CEO本人**(AIはできない) | — |
-| 案件台帳(Notion「YAMATO BASE CAMP」→「案件台帳」)を作り、コンテンツマップのピラーごとに当てはまる案件を調べて入れる | Program Scout | — |
+| 案件台帳(案件台帳(D1 の `yamato_deals`))を作り、コンテンツマップのピラーごとに当てはまる案件を調べて入れる | Program Scout | — |
 | Amazonのリンクを置くなら、Amazonが求める表記(「Amazonのアソシエイトとして…適格販売により収入を得ています」)をサイトに載せる案 | Conversion Design → 法務部 → サイト開発部 | CEO(mainへのマージ) |
 | 使うASPのドメインが `src/lib/affiliate.ts` の `AFFILIATE_NETWORKS` に入っているかの確認(入っていないと `rel="sponsored nofollow"` が付かず、GA4でASP別に分けられない) | Conversion Design → サイト開発部 | CEO(mainへのマージ) |
 
@@ -114,7 +114,7 @@ Amazonへの有料広告(2026-04-20改定で、有料広告経由の購入は報
 - 「最安」「今だけ」など、確かめていない言葉を書かない(景品表示法)
 - アフィリエイトを含む記事は冒頭に `pr-notice`(`docs/analytics.md` 6-3)
 
-## 案件台帳(Notion)
+## 案件台帳(D1)
 
 1案件1行。Program Scoutが毎週木曜に点検する。
 

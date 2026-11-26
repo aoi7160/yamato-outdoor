@@ -200,8 +200,9 @@ SNS部(稼働後) ── 告知を投稿キューへ  /  データ分析 ── 
 | YAMATO 月次 | 毎月1日 8:13 | `yamato-ops monthly`(監査・P&L・事業報告・振り返り) |
 | YAMATO 記事の自動執筆 | 月・木 5:52 | `write-article`(コンテンツ制作) |
 
-- どの定期実行も、claude.aiの定期実行の画面で **Notion・Google Drive・Googleカレンダー** の接続を付け、環境を **Default** にしてから動く
-  (接続が無いと「Notionにつながっていない」と報告して止まる)。本業の接続(Slack・Salesforce・Microsoft 365 など)は付けない
+- どの定期実行も、claude.aiの定期実行の画面で **Google Drive・Googleカレンダー** の接続を付け、環境を **Default** にしてから動く
+  (コンテンツマップ・需要カレンダーを読むため)。本業の接続(Slack・Salesforce・Microsoft 365 など)は付けない
+- 承認トレイ・日報・台帳は D1(BASE CAMP の記録。`.claude/skills/yamato-ops/STORE.md`)に書く。2026-11-27 に Notion から移した(Notion は無料枠のブロック上限で書けなくなったため)
 - 全部署の共通基準は `.claude/skills/yamato-ops/STANDARDS.md`(専門家の水準・想起・住み分け・出力先)
 
 ---

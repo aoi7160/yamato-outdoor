@@ -52,7 +52,7 @@
 
 - [ ] `cd console && npm run build && npm test` が通る
 - [ ] `/api/*` は `console/server/access.js` でAccessのJWTを検証してからしか返さない。`CF_ACCESS_TEAM_DOMAIN` と `ALLOWED_EMAILS` が無ければ閉じる。この検証を外していない
-- [ ] 鍵(Googleのサービスアカウント・APIキー・Notionのトークン)は環境変数(シークレット)だけ。ブラウザに渡していない
+- [ ] 鍵(Googleのサービスアカウント・APIキー・Notionのトークン(旧。承認トレイは D1 に移った))は環境変数(シークレット)だけ。ブラウザに渡していない
 - [ ] `console/astro.config.mjs` の `vite.tsconfig` を消していない
 - [ ] 売上の実データ(ASPのCSV・SUZURIの金額)をリポジトリに入れていない(`console/data/private/` は `.gitignore`)
 - [ ] 実データモードで、取れない数字を「—」と「未接続/取得失敗」で出している(デモの数字で埋めていない)

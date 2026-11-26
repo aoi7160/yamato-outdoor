@@ -167,8 +167,8 @@ L1でやり切ること:
 | 出力 | 場所 | 形 |
 |---|---|---|
 | 台帳(日次の数字の正) | 非公開リポジトリ `content/analytics/ledger.csv` | `templates.md` 1章 |
-| 日報の自分の節 | Notion「日報・週報」のその日のページ | `templates.md` 2章 |
-| 週次・月次 | Notion「日報・週報」の週報のページ | `templates.md` 3・4章 |
+| 日報の自分の節 | 日報・週報(D1 の `yamato_log`)のその日のページ | `templates.md` 2章 |
+| 週次・月次 | 日報・週報(D1 の `yamato_log`)の週報のページ | `templates.md` 3・4章 |
 | 記事の7日・30日のレポート | 非公開リポジトリ `content/analytics/articles/` | `templates.md` 5章 |
 | 異常値の速報 | 日報の自分の節の先頭 | `templates.md` 6章 |
 | 指標の定義 | このフォルダの `metrics.md` | `claude/*` ブランチで更新 |
